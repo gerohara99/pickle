@@ -3,13 +3,21 @@ import "@babel/polyfill";
 import { login, logout } from "./login";
 import { signup } from "./signUp";
 import { updateSettings } from "./updateSettings";
+import { createEvent, updateEvent, deleteEvent } from "./events";
 
 // DOM ELements
 const loginForm = document.querySelector(".form--login");
 const signupForm = document.querySelector(".form--signup");
 const logOutBtn = document.querySelector(".nav__el--logout");
 const userDataForm = document.querySelector(".form-user-data");
+const eventDataForm = document.querySelector(".form-event-data");
 const userPasswordForm = document.querySelector(".form-user-password");
+const updateEventDataForm = document.querySelector(
+  ".form__group.right.updateEventButton"
+);
+const deleteEventButton = document.querySelector(
+  ".form__group.right.deleteEventButton"
+);
 
 //DELEGATION
 
@@ -39,7 +47,6 @@ if (userDataForm)
     const form = new FormData();
     form.append("name", document.getElementById("name").value);
     form.append("email", document.getElementById("email").value);
-    form.append("photo", document.getElementById("photo").files[0]);
     updateSettings(form, "data");
   });
 
@@ -58,4 +65,33 @@ if (userPasswordForm)
     document.getElementById("password-current").value = "";
     document.getElementById("password").value = "";
     document.getElementById("password-confirm").value = "";
+  });
+
+if (eventDataForm)
+  eventDataForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const eventName = document.getElementById("eventName").value;
+    const eventDate = document.getElementById("eventDate").value;
+    const eventStartTime = document.getElementById("eventStartTime").value;
+    const eventLocation = document.getElementById("eventLocation").value;
+    createEvent(eventName, eventDate, eventStartTime, eventLocation);
+  });
+
+if (updateEventDataForm)
+  updateEventDataForm.addEventListener("click", (e) => {
+    e.preventDefault();
+    const eventName = document.getElementById("eventName").value;
+    const eventDate = document.getElementById("eventDate").value;
+    const eventStartTime = document.getElementById("eventStartTime").value;
+    const eventLocation = document.getElementById("eventLocation").value;
+    const eventId = document.getElementById("eventId").value;
+    updateEvent(eventId, eventName, eventDate, eventStartTime, eventLocation);
+  });
+
+if (deleteEventButton)
+  deleteEventButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    console.log("got here");
+    const eventId = document.getElementById("eventId").value;
+    deleteEvent(eventId);
   });

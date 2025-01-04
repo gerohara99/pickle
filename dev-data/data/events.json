@@ -1,0 +1,42 @@
+[
+  {
+    "eventName": "Frist Event",
+    "eventLocation": "Knockloyn",
+    "eventDate": "1 January 2025",
+    "eventStartTime": "21:00",
+    "eventOrganiser": "Ger O'Hara",
+    "bookings": ["John", "Mary", "Jane", "Philip"]
+  },
+  {
+    "eventName": "Second Event",
+    "eventLocation": "Knockloyn",
+    "eventDate": "2 January 2025",
+    "eventStartTime": "19:00",
+    "eventOrganiser": "Barney Grumble",
+    "bookings": ["John", "Frank", "Jane", "George"]
+  },
+  {
+    "eventName": "Third Event",
+    "eventLocation": "Knockloyn",
+    "eventDate": "3 January 2025",
+    "eventStartTime": "19:30",
+    "eventOrganiser": "Billy McGrath",
+    "bookings": ["Jane"]
+  },
+  {
+    "eventName": "Fourth Event",
+    "eventLocation": "Bushy Park",
+    "eventDate": "6 January 2025",
+    "eventStartTime": "21:00",
+    "eventOrganiser": "Gerorge Washington",
+    "bookings": ["Paul", "Mary", "Jane", "Anne"]
+  },
+  {
+    "eventName": "Fifth Event",
+    "eventLocation": "Crumlin",
+    "eventDate": "12 January 2025",
+    "eventStartTime": "11:00",
+    "eventOrganiser": "Killian Murphy",
+    "bookings": ["John", "Mary", "Jeremy", "Philip", "George"]
+  }
+]

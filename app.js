@@ -12,6 +12,7 @@ const compression = require("compression");
 const cors = require("cors");
 const globalErrorHandler = require("./controllers/errorController");
 const userRouter = require("./routes/userRoutes");
+const eventRouter = require("./routes/eventRoutes");
 const viewRouter = require("./routes/viewRoutes");
 
 const { mongo } = require("mongoose");
@@ -69,14 +70,7 @@ app.use(xss());
 //Data sanitization against parameter pollution (duplicates etc.. )
 app.use(
   hpp({
-    whitelist: [
-      "duration",
-      "ratingsQuality",
-      "ratingsAverage",
-      "maxGroupSize",
-      "difficulty",
-      "price",
-    ], // Specifying parameters that are ok to be duplicated
+    whitelist: [], // Specifying parameters that are ok to be duplicated
   })
 );
 app.use(compression());
@@ -89,6 +83,7 @@ app.use((req, res, next) => {
 // ROUTES
 app.use("/", viewRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/events", eventRouter);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));

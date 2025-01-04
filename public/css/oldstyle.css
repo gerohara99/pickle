@@ -755,6 +755,7 @@ body {
   font-weight: 400;
 }
 
+.event-view,
 .user-view {
   background-color: #fff;
   max-width: 120rem;
@@ -768,6 +769,7 @@ body {
   display: -ms-flexbox;
   display: flex;
 }
+.event-view__menu,
 .user-view__menu {
   -webkit-box-flex: 32rem;
   -ms-flex: 32rem 0 0px;
@@ -782,12 +784,14 @@ body {
   background-image: linear-gradient(to right bottom, #7dd56f, #28b487);
   padding: 4rem 0;
 }
+.event-view__content,
 .user-view__content {
   -webkit-box-flex: 1;
   -ms-flex: 1;
   flex: 1;
   padding: 7rem 0;
 }
+.event-view__form-container,
 .user-view__form-container {
   max-width: 68rem;
   margin: 0 auto;
@@ -870,21 +874,22 @@ body {
     flex-direction: column;
   }
 }
-.nav--tours {
+.nav--pickle {
   -webkit-box-flex: 0;
   -ms-flex: 0 1 40%;
   flex: 0 1 40%;
 }
 @media only screen and (max-width: 62.5em) {
-  .nav--tours {
+  .nav--pickle {
     margin-bottom: 1.5rem;
   }
 }
 @media only screen and (max-width: 37.5em) {
-  .nav--tours {
+  .nav--pickle {
     margin-bottom: 0;
   }
 }
+.nav--bookings,
 .nav--user {
   -webkit-box-flex: 0;
   -ms-flex: 0 1 40%;
@@ -1231,6 +1236,16 @@ body {
   border-radius: 5px;
 }
 
+.signup-form {
+  margin: 0 auto;
+  max-width: 55rem;
+  background-color: #fff;
+  -webkit-box-shadow: 0 2.5rem 8rem 2rem rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2.5rem 8rem 2rem rgba(0, 0, 0, 0.06);
+  padding: 5rem 7rem;
+  border-radius: 5px;
+}
+
 .form__input {
   display: block;
   font-family: inherit;
@@ -1249,7 +1264,7 @@ body {
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
   /* Pseudo element (a visible thing that isn't really in the DOM).
-		Also needs -ms- */
+      Also needs -ms- */
 }
 .form__input:focus {
   outline: none;

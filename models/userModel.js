@@ -17,11 +17,6 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, "Incorrect email format"],
   },
-  photo: {
-    type: String,
-    required: false,
-    default: "default.jpg",
-  },
   role: {
     type: String,
     enum: ["user", "clubAdmin", "pickleAdmin"],
@@ -50,6 +45,7 @@ const userSchema = new mongoose.Schema({
   passwordResetToken: String,
   passwordResetExpires: Date,
   active: { type: Boolean, default: true, select: false },
+  publish: { type: Boolean, default: true, select: false },
 });
 
 userSchema.pre("save", async function (next) {

@@ -1,0 +1,31 @@
+extends base
+
+block content
+  main.main
+    .event_view
+      .event-view__content
+        .event__form-container
+          h2.heading-secondary.ma-bt-md Update Event Details
+
+          form.form.form-update-event-data
+            .form__group
+              label.form__label(for='eventName') Event Name
+              input#eventName.form__input(type='text', value=`${event.eventName}`, required, name='Event name')
+
+            .form__group
+              label.form__label(for='eventLocation') Event Location
+              input#eventLocation.form__input(type='text', value=`${event.eventLocation}`, required, name='Event Location')
+
+            .form__group
+              label.form__label(for='eventDate') Event Date
+              input#eventDate.form__input(type='text', value=`${event.eventDate.toLocaleString('en-GB',{day:'numeric',weekday: 'short', month: 'short'})}`, required, name='Event Date')
+
+            .form__group
+              label.form__label(for='eventTime') Event Time
+              input#eventStartTime.form__input(type='text', value=event.eventStartTime, required, name='Event time')
+
+            .form__group
+              input#eventId.form__input(type='hidden', value=event._id, required, name='Event Id')
+
+            .form__group.right.updateEventButton
+              button.btn.btn--small.btn--green Update Event

@@ -9,18 +9,6 @@ mixin navItem(link, text, icon, active)
 
 block content
   main.main
-    .user-view
-      nav.user-view__menu
-        ul.side-nav
-          +navItem('#', 'My bookings', 'briefcase')
-
-        - if (user.role === 'clubAdmin')
-          .admin-nav
-            h5.admin-nav__heading Admin
-            ul.side-nav
-              +navItem('#', 'Users', 'users')
-              +navItem('#', 'Reference Data', 'database')
-              +navItem('#', 'Events', 'calendar')
 
       .user-view__content
         .user-view__form-container
@@ -37,15 +25,11 @@ block content
             .form__group.ma-bt-md
               label.form__label(for='email') Email address
               input#email.form__input(type='email', value=`${user.email}`, required, name='email')
-            .form__group.form__photo-upload
-              img.form__user-photo(src=`/img/users/${user.photo}`, alt='User photo')
-              input.form__upload(type='file', accept='image/*',id='photo',name='photo')
-              label(for='photo') Choose new photo
 
             .form__group.right
               button.btn.btn--small.btn--green Save settings
               
-        .line &nbsp;
+        .line &nbsp; 
         
         .user-view__form-container
           h2.heading-secondary.ma-bt-md Password change

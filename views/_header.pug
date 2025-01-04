@@ -1,14 +1,23 @@
 header.header 
-    nav.nav.nav--tours
-        a.nav__el(href='/') Pickle Ball !!!
+
     .header__logo
         img(src='/img/logo-PickleBall.png' alt='Pickle logo')
     nav.nav--user
         if user
-            a.nav__el.nav__el--logout Log Out
             a.nav__el(href='/me')
-                img.nav__user-img(src=`/img/users/${user.photo}`, alt=`Photo of ${user.name}`)
-                span= user.name.split(' ')[0]
+                span= "Welcome "+ user.name.split(' ')[0]
+            a.nav__el.nav__el--logout Log Out
         else
             a.nav__el(href='/login') log in
             a.nav__el.nav__el--cta(href='/signup') Sign up
+
+    nav.nav--bookings 
+        a.nav__el(href='#') My Bookings
+
+    nav.nav--manageUsers
+        - if (user && user.role === 'clubAdmin')
+            a.nav__el(href='#') Manage Users
+
+    nav.nav--manageEvents
+        - if (user && user.role === 'clubAdmin')
+            a.nav__el(href='/') Manage Events

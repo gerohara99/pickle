@@ -22,14 +22,14 @@ router.use(authController.protect);
 router.get("/me", userController.getMe, userController.getUser);
 router.patch(
   "/updateMe",
-  userController.uploadUserPhoto,
-  userController.reSizeUserPhoto,
+  //  userController.uploadUserPhoto,
+  //  userController.reSizeUserPhoto,
   userController.updateMe
 );
 router.delete("/deleteMe", userController.deleteMe);
 
 // From here on only admin can perform these functions
-router.use(authController.restrictTo("admin"));
+router.use(authController.restrictTo("clubAdmin", "pickleAdmin"));
 
 router
   .route("/")
