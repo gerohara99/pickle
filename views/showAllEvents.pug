@@ -4,7 +4,7 @@ block content
 	main.main
 		.heading-secondary
 			a.label All Events 
-			a.btn--green.btn--small.btn(href=`/createEvent`)
+			a.btn--green.btn--small.btn(href=`/events/create`)
 		.card_container
 			each event in events
 				.card
@@ -28,7 +28,7 @@ block content
 							use(xlink:href='/img/icons.svg#icon-clock')
 						span=`${event.eventStartTime}`
 					.card__footer
-						a.btn.btn--green.btn--small(href=`/events/${event._id}`) Edit
+						a.btn.btn--green.btn--small(href=`/events/get/${event._id}`) Edit
 						.form__group.right.deleteEventButton
 							input#eventId.form__input(type='hidden',value=`${event._id}`, name='Event Id')
 							button.btn.btn--small.btn--green Delete

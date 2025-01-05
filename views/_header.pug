@@ -4,20 +4,20 @@ header.header
         img(src='/img/logo-PickleBall.png' alt='Pickle logo')
     nav.nav--user
         if user
-            a.nav__el(href='/me')
+            a.nav__el(href='/me/account')
                 span= "Welcome "+ user.name.split(' ')[0]
             a.nav__el.nav__el--logout Log Out
         else
-            a.nav__el(href='/login') log in
-            a.nav__el.nav__el--cta(href='/signup') Sign up
+            a.nav__el(href='/me/login') log in
+            a.nav__el.nav__el--cta(href='/me/signup') Sign up
 
     nav.nav--bookings 
         a.nav__el(href='#') My Bookings
 
     nav.nav--manageUsers
         - if (user && user.role === 'clubAdmin')
-            a.nav__el(href='#') Manage Users
+            a.nav__el(href='/users/showall') Manage Users
 
     nav.nav--manageEvents
         - if (user && user.role === 'clubAdmin')
-            a.nav__el(href='/') Manage Events
+            a.nav__el(href='/events/showall') Manage Events

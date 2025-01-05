@@ -3,28 +3,32 @@ import "@babel/polyfill";
 import axios from "axios";
 import { showAlert } from "./alerts";
 
-export const createEventPubJs = async (
-  eventName,
-  eventDate,
-  eventStartTime,
-  eventLocation
+export const createUserPubJs = async (
+  name,
+  email,
+  mobile,
+  role,
+  password,
+  passwordConfirm
 ) => {
   try {
     const res = await axios({
       method: "POST",
       url: "/api/v1/events",
       data: {
-        eventName,
-        eventDate,
-        eventStartTime,
-        eventLocation,
+        name,
+        email,
+        mobile,
+        role,
+        password,
+        passwordConfirm,
       },
     });
     if (res.data.status === "success") {
-      showAlert("success", "Event successfully created");
+      showAlert("success", "User successfully created");
 
       window.setTimeout(() => {
-        location.assign("/events/showAll");
+        location.assign("/");
       }, 1500);
     }
   } catch (err) {
@@ -32,29 +36,22 @@ export const createEventPubJs = async (
   }
 };
 
-export const updateEventPubJs = async (
-  eventId,
-  eventName,
-  eventDate,
-  eventStartTime,
-  eventLocation
-) => {
+export const updateUserPubJs = async (userId, name, email, mobile) => {
   try {
     const res = await axios({
       method: "PATCH",
-      url: `/api/v1/events/${eventId}`,
+      url: `/api/v1/users/${userId}`,
       data: {
-        eventName,
-        eventDate,
-        eventStartTime,
-        eventLocation,
+        name,
+        email,
+        mobile,
       },
     });
     if (res.status === 204) {
-      showAlert("success", "Event successfully updated");
+      showAlert("success", "User successfully updated");
 
       window.setTimeout(() => {
-        location.assign("/events/showAll");
+        location.assign("/users/showall");
       }, 1500);
     }
   } catch (err) {
@@ -62,18 +59,18 @@ export const updateEventPubJs = async (
   }
 };
 
-export const deleteEventPubJs = async (eventId) => {
+export const deleteUserPubJs = async (userId) => {
   try {
     const res = await axios({
       method: "DELETE",
-      url: `/api/v1/events/${eventId}`,
+      url: `/api/v1/users/${userId}`,
     });
     console.log(res.status);
     if (res.status === 204) {
-      showAlert("success", "Event successfully deleted");
+      showAlert("success", "User successfully deleted");
 
       window.setTimeout(() => {
-        location.assign("/events/showAll");
+        location.assign("/users/showall");
       }, 1500);
     }
   } catch (err) {

@@ -8,6 +8,11 @@ import {
   updateEventPubJs,
   deleteEventPubJs,
 } from "./eventsPubJs";
+import {
+  createUserPubJs,
+  updateUserPubJs,
+  deleteUserPubJs,
+} from "./usersPubJs";
 
 // DOM ELements
 const loginForm = document.querySelector(".form--login");
@@ -16,11 +21,16 @@ const logOutBtn = document.querySelector(".nav__el--logout");
 const userDataForm = document.querySelector(".form-user-data");
 const eventDataForm = document.querySelector(".form-event-data");
 const userPasswordForm = document.querySelector(".form-user-password");
+const userEditForm = document.querySelector(".form-edit-user-data");
+
 const updateEventDataForm = document.querySelector(
   ".form__group.right.updateEventButton"
 );
 const deleteEventButton = document.querySelector(
   ".form__group.right.deleteEventButton"
+);
+const deleteUserButton = document.querySelector(
+  ".form__group.right.deleteUserButton"
 );
 
 //DELEGATION
@@ -52,6 +62,17 @@ if (userDataForm)
     form.append("name", document.getElementById("name").value);
     form.append("email", document.getElementById("email").value);
     updateSettings(form, "data");
+  });
+
+if (userEditForm)
+  userEditForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const mobile = document.getElementById("mobile").value;
+    const userId = document.getElementById("userId").value;
+    console.log(userId);
+    updateUserPubJs(userId, name, email, mobile);
   });
 
 if (userPasswordForm)
@@ -101,7 +122,13 @@ if (updateEventDataForm)
 if (deleteEventButton)
   deleteEventButton.addEventListener("click", (e) => {
     e.preventDefault();
-    console.log("got here");
     const eventId = document.getElementById("eventId").value;
     deleteEventPubJs(eventId);
+  });
+
+if (deleteUserButton)
+  deleteUserButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const userId = document.getElementById("userId").value;
+    deleteUserPubJs(userId);
   });

@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
 
-// name, email, photo, password, passwordConfirm
+// name, email, mobile, password, passwordConfirm
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -17,12 +17,17 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, "Incorrect email format"],
   },
+  mobile: {
+    type: Number,
+    required: [true, "please enter your mobile phone number"],
+    unique: [true, "This mobile phone number is already taken"],
+  },
   role: {
     type: String,
     enum: ["user", "clubAdmin", "pickleAdmin"],
     default: "user",
   },
-  passwordChangedAt: {
+  PasswordChangedAt: {
     type: Date,
   },
   password: {
@@ -45,7 +50,6 @@ const userSchema = new mongoose.Schema({
   passwordResetToken: String,
   passwordResetExpires: Date,
   active: { type: Boolean, default: true, select: false },
-  publish: { type: Boolean, default: true, select: false },
 });
 
 userSchema.pre("save", async function (next) {
