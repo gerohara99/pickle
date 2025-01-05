@@ -2,8 +2,9 @@ extends base
 
 block content
 	main.main
-		h1 All Events
-		a.btn.btn--green.btn--small(href=`/createEvent`) Create Event
+		.heading-secondary
+			a.label All Events 
+			a.btn--green.btn--small.btn(href=`/createEvent`)
 		.card_container
 			each event in events
 				.card

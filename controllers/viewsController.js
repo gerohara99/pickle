@@ -32,27 +32,26 @@ exports.createEvent = (req, res) => {
   });
 };
 
-exports.getAllEvents = catchAsync(async (req, res, next) => {
+exports.showAllEvents = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
   const events = await Event.find();
   // 2) Render template using tour data
-  res.status(200).render("getAllEvents", {
+  res.status(200).render("showAllEvents", {
     title: "All Events",
     events: events,
   });
 });
 
-exports.getEvent = catchAsync(async (req, res, next) => {
+exports.editEvent = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
   const event = await Event.findOne({ id: req.params._id });
 
   if (!event) {
     return next(new AppError("There is no event with that name", 404));
   }
-  // 2) Build template
 
   // 3) Render template using tour data
-  res.status(200).render("event", {
+  res.status(200).render("editEvent", {
     title: `${event.eventName} Event`,
     event,
   });

@@ -3,7 +3,11 @@ import "@babel/polyfill";
 import { login, logout } from "./login";
 import { signup } from "./signUp";
 import { updateSettings } from "./updateSettings";
-import { createEvent, updateEvent, deleteEvent } from "./events";
+import {
+  createEventPubJs,
+  updateEventPubJs,
+  deleteEventPubJs,
+} from "./eventsPubJs";
 
 // DOM ELements
 const loginForm = document.querySelector(".form--login");
@@ -74,7 +78,7 @@ if (eventDataForm)
     const eventDate = document.getElementById("eventDate").value;
     const eventStartTime = document.getElementById("eventStartTime").value;
     const eventLocation = document.getElementById("eventLocation").value;
-    createEvent(eventName, eventDate, eventStartTime, eventLocation);
+    createEventPubJs(eventName, eventDate, eventStartTime, eventLocation);
   });
 
 if (updateEventDataForm)
@@ -85,7 +89,13 @@ if (updateEventDataForm)
     const eventStartTime = document.getElementById("eventStartTime").value;
     const eventLocation = document.getElementById("eventLocation").value;
     const eventId = document.getElementById("eventId").value;
-    updateEvent(eventId, eventName, eventDate, eventStartTime, eventLocation);
+    updateEventPubJs(
+      eventId,
+      eventName,
+      eventDate,
+      eventStartTime,
+      eventLocation
+    );
   });
 
 if (deleteEventButton)
@@ -93,5 +103,5 @@ if (deleteEventButton)
     e.preventDefault();
     console.log("got here");
     const eventId = document.getElementById("eventId").value;
-    deleteEvent(eventId);
+    deleteEventPubJs(eventId);
   });

@@ -3,7 +3,7 @@ import "@babel/polyfill";
 import axios from "axios";
 import { showAlert } from "./alerts";
 
-export const createEvent = async (
+export const createEventPubJs = async (
   eventName,
   eventDate,
   eventStartTime,
@@ -32,7 +32,7 @@ export const createEvent = async (
   }
 };
 
-export const updateEvent = async (
+export const updateEventPubJs = async (
   eventId,
   eventName,
   eventDate,
@@ -62,7 +62,7 @@ export const updateEvent = async (
   }
 };
 
-export const deleteEvent = async (eventId) => {
+export const deleteEventPubJs = async (eventId) => {
   try {
     console.log(eventId);
     const res = await axios({
