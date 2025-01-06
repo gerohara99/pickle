@@ -12,7 +12,8 @@ header.header
             a.nav__el.nav__el--cta(href='/me/signup') Sign up
 
     nav.nav--bookings 
-        a.nav__el(href='#') My Bookings
+        if user
+            a.nav__el(href='#') My Bookings
 
     nav.nav--manageUsers
         - if (user && user.role === 'clubAdmin')
@@ -21,3 +22,7 @@ header.header
     nav.nav--manageEvents
         - if (user && user.role === 'clubAdmin')
             a.nav__el(href='/events/showall') Manage Events
+
+    nav.nav--manageLocations
+        - if (user && user.role === 'clubAdmin')
+            a.nav__el(href='/locations/showall') Manage Locations

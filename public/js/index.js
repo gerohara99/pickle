@@ -13,28 +13,48 @@ import {
   updateUserPubJs,
   deleteUserPubJs,
 } from "./usersPubJs";
+import {
+  createLocationPubJs,
+  updateLocationPubJs,
+  deleteLocationPubJs,
+} from "./locationsPubJs";
 
 // DOM ELements
+
+//Auth Elements
 const loginForm = document.querySelector(".form--login");
 const signupForm = document.querySelector(".form--signup");
 const logOutBtn = document.querySelector(".nav__el--logout");
-const userDataForm = document.querySelector(".form-user-data");
-const eventDataForm = document.querySelector(".form-event-data");
-const userPasswordForm = document.querySelector(".form-user-password");
-const userEditForm = document.querySelector(".form-edit-user-data");
 
+//Individual User Elements
+const userDataForm = document.querySelector(".form-user-data");
+const userPasswordForm = document.querySelector(".form-user-password");
+
+// Admin user elements
+const userEditForm = document.querySelector(".form-edit-user-data");
+const deleteUserButton = document.querySelector(
+  "form__group.right.deleteUserButton"
+);
+
+//Events
+const eventDataForm = document.querySelector(".form-event-data");
 const updateEventDataForm = document.querySelector(
   ".form__group.right.updateEventButton"
 );
 const deleteEventButton = document.querySelector(
   ".form__group.right.deleteEventButton"
 );
-const deleteUserButton = document.querySelector(
-  ".form__group.right.deleteUserButton"
+
+//Locations
+const locationDataForm = document.querySelector(".form-location-data");
+const updateLocationDataForm = document.querySelector(
+  ".form__group.right.updateLocationButton"
+);
+const deleteLocationButton = document.querySelector(
+  ".form__group.right.deleteLocationButton"
 );
 
-//DELEGATION
-
+// AUTH FORMS
 if (loginForm)
   loginForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -53,6 +73,7 @@ if (signupForm)
     signup(name, email, password, passwordConfirm);
   });
 
+//INDIVIUAL USER FORMS
 if (logOutBtn) logOutBtn.addEventListener("click", logout);
 
 if (userDataForm)
@@ -62,17 +83,6 @@ if (userDataForm)
     form.append("name", document.getElementById("name").value);
     form.append("email", document.getElementById("email").value);
     updateSettings(form, "data");
-  });
-
-if (userEditForm)
-  userEditForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const mobile = document.getElementById("mobile").value;
-    const userId = document.getElementById("userId").value;
-    console.log(userId);
-    updateUserPubJs(userId, name, email, mobile);
   });
 
 if (userPasswordForm)
@@ -92,6 +102,26 @@ if (userPasswordForm)
     document.getElementById("password-confirm").value = "";
   });
 
+//ADMIN RELATED USER FORMS
+if (userEditForm)
+  userEditForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const mobile = document.getElementById("mobile").value;
+    const userId = document.getElementById("userId").value;
+    console.log(userId);
+    updateUserPubJs(userId, name, email, mobile);
+  });
+
+if (deleteUserButton)
+  deleteUserButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const userId = document.getElementById("userId").value;
+    deleteUserPubJs(userId);
+  });
+
+// EVENT FORMS
 if (eventDataForm)
   eventDataForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -126,9 +156,41 @@ if (deleteEventButton)
     deleteEventPubJs(eventId);
   });
 
-if (deleteUserButton)
-  deleteUserButton.addEventListener("click", (e) => {
+// LOCATION FORMS
+if (locationDataForm)
+  locationDataForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const userId = document.getElementById("userId").value;
-    deleteUserPubJs(userId);
+    const locationName = document.getElementById("locationName").value;
+    const locationNumCourts = document.getElementById(
+      "locationNumOfCourts"
+    ).value;
+    const locationCourtCapacity = document.getElementById(
+      "locationCourtCapacity"
+    ).value;
+    createLocationPubJs(locationName, locationNumCourts, locationCourtCapacity);
+  });
+
+if (updateLocationDataForm)
+  updateLocationDataForm.addEventListener("click", (e) => {
+    e.preventDefault();
+    const locationName = document.getElementById("locationName").value;
+    const locationNumCourts =
+      document.getElementById("locationNumCourts").value;
+    const locationCourtCapacity = document.getElementById(
+      "locationCourtCapacity"
+    ).value;
+    const locationId = document.getElementById("locationId").value;
+    updateEventPubJs(
+      locationId,
+      locationName,
+      locationNumCourts,
+      locationCourtCapacity
+    );
+  });
+
+if (deleteLocationButton)
+  deleteLocationButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const locationId = document.getElementById("locationId").value;
+    deleteLocationPubJs(locationId);
   });

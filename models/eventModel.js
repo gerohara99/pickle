@@ -24,29 +24,16 @@ const eventSchema = new mongoose.Schema(
       //required: [true, "Please enter an organiser name for the event"],
     },
     slug: String,
-    numAcourts: {
+    numCourts: {
       type: Number,
       //required: [true, "Please enter a value for number of A courts available"],
       default: 2,
     },
-    numBcourts: {
-      type: Number,
-      //required: [true, "Please enter a value for number of B courts available"],
-      default: 2,
-    },
-    capacityAcourts: {
+    courtCapacity: {
       type: Number,
       /*required: [
       true,
       "Please enter a value for number of players on an A court",
-    ], */
-      default: 4,
-    },
-    capacityBcourts: {
-      type: Number,
-      /* required: [
-      true,
-      "Please enter a value for number of players on an B court",
     ], */
       default: 4,
     },

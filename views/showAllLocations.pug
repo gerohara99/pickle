@@ -1,0 +1,24 @@
+extends base
+
+block content
+	main.main
+		.heading-secondary
+			a.label All Locations
+			a.btn--green.btn--small.btn(href=`/locations/create`) Create a new location
+		.card_container
+			each location in locations
+				.card
+					.card_header
+					.card__details
+						h1.card__sub-heading= `${location.locationName}`
+						.card__data
+							span='Number of courts :' 
+							span=location.locationNumCourts
+						.card__data
+							span='Capacity per court :' 
+							span=location.locationCourtCapacity
+					.card__footer
+						a.btn.btn--green.btn--small(href=`/locations/get/${location._id}`) Edit
+						.form__group.right.deleteLocationButton
+							input#locationId.form__input(type='hidden',value=`${location._id}`, name='Location Id')
+							button.btn.btn--small.btn--green Delete

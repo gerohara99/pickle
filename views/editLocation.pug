@@ -1,0 +1,26 @@
+extends base
+
+block content
+  main.main
+    .location_view
+      .location-view__content
+        .location__form-container
+          h2.heading-secondary.ma-bt-md Update Location Details
+
+          form.form.form-update-location-data
+            .form__group
+              label.form__label(for='locationName') Location Name
+              input#locationName.form__input(type='text', value=`${location.locationName}`, required, name='Location name')
+
+            .form__group
+              label.form__label(for='locationNumCourts') Number of courts
+              input#locationNumCourts.form__input(type='number', value=`${location.locationNumCourts}`, required, name='Location Number of Courts')
+
+            .form__group
+              label.form__label(for='locatioCourtCapacity') Player capacity per court
+              input#locationCourtCapacity.form__input(type='number', value=`${location.locationCourtCapacity}`, required, name='Location Court Capacity')
+            .form__group
+              input#locationId.form__input(type='hidden', value=location._id, required, name='Location Id')
+
+            .form__group.right.updateLocationButton
+              button.btn.btn--small.btn--green Update Location

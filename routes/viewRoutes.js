@@ -5,7 +5,7 @@ const authController = require("../controllers/authController");
 const router = express.Router();
 
 //Homepage
-router.get("/", viewsController.getHomePage);
+router.get("/", authController.isLoggedIn, viewsController.getHomePage);
 
 //Indivdiual users
 router.get(
@@ -46,6 +46,23 @@ router.get(
   "/events/get/:id",
   authController.isLoggedIn,
   viewsController.editEvent
+);
+
+//Locations
+router.get(
+  "/locations/showAll",
+  authController.isLoggedIn,
+  viewsController.showAllLocations
+);
+router.get(
+  "/locations/create",
+  authController.protect,
+  viewsController.createLocation
+);
+router.get(
+  "/locations/get/:id",
+  authController.isLoggedIn,
+  viewsController.editLocation
 );
 
 module.exports = router;

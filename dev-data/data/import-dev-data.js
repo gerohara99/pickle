@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const User = require("../../models/userModel");
 const Event = require("../../models/eventModel");
+const Location = require("../../models/locationModel");
 
 process.on("uncaughtException", (err) => {
   console.log("UNCAUGHT EXCEPTION! 💥 Shutting down...");
@@ -28,6 +29,9 @@ mongoose
 // READ JSON file
 const events = JSON.parse(fs.readFileSync(`${__dirname}/events.json`, "utf-8"));
 const users = JSON.parse(fs.readFileSync(`${__dirname}/users.json`, "utf-8"));
+const locations = JSON.parse(
+  fs.readFileSync(`${__dirname}/locations.json`, "utf-8")
+);
 
 //IMPORT DATA INTO DATABASE
 
@@ -35,6 +39,7 @@ const importData = async () => {
   try {
     await Event.create(events);
     await User.create(users, { validateBeforeSave: false });
+    await Location.create(locations, { validateBeforeSave: false });
   } catch (err) {
     console.log(err);
   }
@@ -45,6 +50,7 @@ const deleteData = async () => {
   try {
     await Event.deleteMany();
     await User.deleteMany();
+    await Location.deleteMany();
     process.exit();
   } catch (err) {
     console.log(err);

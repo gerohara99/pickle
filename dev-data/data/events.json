@@ -1,42 +1,52 @@
 [
   {
-    "eventName": "Frist Event",
-    "eventLocation": "Knockloyn",
-    "eventDate": "1 January 2025",
-    "eventStartTime": "21:00",
-    "eventOrganiser": "Ger O'Hara",
-    "bookings": ["John", "Mary", "Jane", "Philip"]
-  },
-  {
-    "eventName": "Second Event",
-    "eventLocation": "Knockloyn",
-    "eventDate": "2 January 2025",
-    "eventStartTime": "19:00",
-    "eventOrganiser": "Barney Grumble",
-    "bookings": ["John", "Frank", "Jane", "George"]
-  },
-  {
-    "eventName": "Third Event",
-    "eventLocation": "Knockloyn",
-    "eventDate": "3 January 2025",
-    "eventStartTime": "19:30",
-    "eventOrganiser": "Billy McGrath",
-    "bookings": ["Jane"]
-  },
-  {
-    "eventName": "Fourth Event",
-    "eventLocation": "Bushy Park",
-    "eventDate": "6 January 2025",
-    "eventStartTime": "21:00",
-    "eventOrganiser": "Gerorge Washington",
-    "bookings": ["Paul", "Mary", "Jane", "Anne"]
-  },
-  {
-    "eventName": "Fifth Event",
-    "eventLocation": "Crumlin",
+    "eventName": "Sunday Event",
+    "eventLocation": "Kilmacud",
     "eventDate": "12 January 2025",
+    "eventStartTime": "21:00",
+    "eventOrganiser": "John Curtis",
+    "bookings": ["John", "Mary", "Jane", "Philip"],
+    "numCourts": 2,
+    "courtCapacity": 4
+  },
+  {
+    "eventName": "Monday Event",
+    "eventLocation": "St Raphaelas",
+    "eventDate": "13 January 2025",
+    "eventStartTime": "19:00",
+    "eventOrganiser": "John Curtis",
+    "bookings": ["John", "Frank", "Jane", "George"],
+    "numCourts": 2,
+    "courtCapacity": 4
+  },
+  {
+    "eventName": "Tuesday Event",
+    "eventLocation": "St Olafs",
+    "eventDate": "14 January 2025",
+    "eventStartTime": "19:30",
+    "eventOrganiser": "John Curtis",
+    "bookings": ["Jane"],
+    "numCourts": 5,
+    "courtCapacity": 4
+  },
+  {
+    "eventName": "Wednesday Event",
+    "eventLocation": "St Raphaelas",
+    "eventDate": "15 January 2025",
+    "eventStartTime": "21:00",
+    "eventOrganiser": "John Curtis",
+    "bookings": ["Paul", "Mary", "Jane", "Anne"],
+    "numCourts": 2,
+    "courtCapacity": 4
+  },
+  {
+    "eventName": "Thursday Event",
+    "eventLocation": "St Olafs",
+    "eventDate": "16 January 2025",
     "eventStartTime": "11:00",
-    "eventOrganiser": "Killian Murphy",
-    "bookings": ["John", "Mary", "Jeremy", "Philip", "George"]
+    "eventOrganiser": "John Curtis",
+    "bookings": ["John", "Mary", "Jeremy", "Philip", "George"],
+    "numCourts": 5,
+    "courtCapacity": 4
   }
 ]

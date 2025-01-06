@@ -14,6 +14,7 @@ const globalErrorHandler = require("./controllers/errorController");
 const userRouter = require("./routes/userRoutes");
 const eventRouter = require("./routes/eventRoutes");
 const viewRouter = require("./routes/viewRoutes");
+const locationRouter = require("./routes/locationRoutes");
 
 const { mongo } = require("mongoose");
 
@@ -84,6 +85,7 @@ app.use((req, res, next) => {
 app.use("/", viewRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/events", eventRouter);
+app.use("/api/v1/locations", locationRouter);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));

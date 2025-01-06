@@ -7,16 +7,20 @@ block content
 		.card_container
 			each user in users
 				.card
+					.card_header
 					.card__details
-						h4.card__sub-heading= `${user.name}`
-					.card__data
-						svg.card__icon
-							use(xlink:href='/img/icons.svg#icon-mail')
-						span=user.email
-					.card__data
-						span=user.role				
-					.card__data
-						span=user.mobile
+						h1.card__sub-heading= `${user.name}`
+						.card__data
+							svg.card__icon
+								use(xlink:href='/img/icons.svg#icon-mail')
+							span=user.email
+						.card__data
+							span='Role: '
+							span=user.role				
+						.card__data
+							svg.card__icon
+								use(xlink:href='/img/icons.svg#icon-phone')
+							span=user.mobile
 					.card__footer
 						a.btn.btn--green.btn--small(href=`/users/get/${user._id}`) Edit
 						.form__group.right.deleteUserButton
