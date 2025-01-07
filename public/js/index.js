@@ -21,7 +21,7 @@ import {
 
 // DOM ELements
 
-//Auth Elements
+//Auth Elements -- note all these functions are in public/js folder NOT auth routes
 const loginForm = document.querySelector(".form--login");
 const signupForm = document.querySelector(".form--signup");
 const logOutBtn = document.querySelector(".nav__el--logout");
@@ -68,9 +68,10 @@ if (signupForm)
     e.preventDefault();
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
+    const mobile = document.getElementById("mobile").value;
     const password = document.getElementById("password").value;
     const passwordConfirm = document.getElementById("passwordConfirm").value;
-    signup(name, email, password, passwordConfirm);
+    signup(name, email, mobile, password, passwordConfirm);
   });
 
 //INDIVIUAL USER FORMS

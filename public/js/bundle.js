@@ -8573,7 +8573,7 @@ function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyri
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; } /* eslint-disable */
 var signup = exports.signup = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(name, email, password, passwordConfirm) {
+  var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(name, email, mobile, password, passwordConfirm) {
     var res;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
@@ -8586,6 +8586,7 @@ var signup = exports.signup = /*#__PURE__*/function () {
             data: {
               name: name,
               email: email,
+              mobile: mobile,
               password: password,
               passwordConfirm: passwordConfirm
             }
@@ -8610,7 +8611,7 @@ var signup = exports.signup = /*#__PURE__*/function () {
       }
     }, _callee, null, [[0, 7]]);
   }));
-  return function signup(_x, _x2, _x3, _x4) {
+  return function signup(_x, _x2, _x3, _x4, _x5) {
     return _ref.apply(this, arguments);
   };
 }();
@@ -9603,7 +9604,7 @@ function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; } /*eslint-disable*/
 // DOM ELements
 
-//Auth Elements
+//Auth Elements -- note all these functions are in public/js folder NOT auth routes
 var loginForm = document.querySelector(".form--login");
 var signupForm = document.querySelector(".form--signup");
 var logOutBtn = document.querySelector(".nav__el--logout");
@@ -9637,9 +9638,10 @@ if (signupForm) signupForm.addEventListener("submit", function (e) {
   e.preventDefault();
   var name = document.getElementById("name").value;
   var email = document.getElementById("email").value;
+  var mobile = document.getElementById("mobile").value;
   var password = document.getElementById("password").value;
   var passwordConfirm = document.getElementById("passwordConfirm").value;
-  (0, _signUp.signup)(name, email, password, passwordConfirm);
+  (0, _signUp.signup)(name, email, mobile, password, passwordConfirm);
 });
 
 //INDIVIUAL USER FORMS
