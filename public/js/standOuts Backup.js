@@ -1,6 +1,6 @@
 // Declare variables
 
-const aPlayers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+const aPlayers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 const numAcourts = 1;
 const capacityAcourts = 8; // Number of players on an A court per round
 const eventDurationMins = 150;

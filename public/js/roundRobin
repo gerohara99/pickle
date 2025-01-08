@@ -1,9 +1,33 @@
+const standOuts = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8, 9],
+  [10, 11, 1],
+  [2, 3, 4],
+  [5, 6, 7],
+  [8, 9, 10],
+  [11, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [9, 10, 11],
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8, 9],
+  [10, 11, 1],
+  [2, 3, 4],
+];
+
+const capacityPerCourt = 4;
+const numOfCourts = 2;
+const pairingsPerRound = (capacityPerCourt * numOfCourts) / numOfCourts;
 const DUMMY = -1;
 // returns an array of round representations (array of player pairs).
 // http://en.wikipedia.org/wiki/Round-robin_tournament#Scheduling_algorithm
 
-const n = 14;
-let ps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+const numStandOuts = 3;
+let ps = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+let n = ps.length;
+
 const rs = []; // rs = round array
 if (!ps) {
   ps = [];
@@ -20,15 +44,17 @@ if (n % 2 === 1) {
 }
 for (let j = 0; j < n - 1; j += 1) {
   rs[j] = []; // create inner match array for round j
+  //const ps1 = ps.filter((item) => !standOuts[j].includes(item));
   for (let i = 0; i < n / 2; i += 1) {
-    const o = n - 1 - i;
-    if (ps[i] !== DUMMY && ps[o] !== DUMMY) {
-      // flip orders to ensure everyone gets roughly n/2 home matches
-      const isHome = i === 0 && j % 2 === 1;
-      // insert pair as a match - [ away, home ]
-      rs[j].push([isHome ? ps[o] : ps[i], isHome ? ps[i] : ps[o]]);
+    const ps1 = ps.filter((item) => !standOuts[j].includes(item));
+    const o = ps1.length - 1 - i - 1;
+    if (ps1[i] !== DUMMY && ps1[o] !== DUMMY) {
+      rs[j].push([ps1[o], ps1[i]]);
+      console.log(o, ps1, "the elements-", ps1[o], ps1[i]);
     }
+    if (i === pairingsPerRound - 1) break;
   }
   ps.splice(1, 0, ps.pop()); // permutate for next round
 }
+
 console.log(rs);
