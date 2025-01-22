@@ -1,4 +1,6 @@
-exports.const = generateStandOutsPubJs = (
+const { filter } = require("compression");
+
+exports.const = generateStandOuts = (
   playersList,
   numOfRounds,
   numStandOuts
@@ -32,7 +34,7 @@ exports.const = generateStandOutsPubJs = (
   return standOutsPerRound;
 };
 
-exports.const = generateAvailablePairingsPubJs = (playersList) => {
+exports.const = generateAvailablePairings = (playersList) => {
   // Declare variables
   const DUMMY = -1;
   let avaibalePairings = [];
@@ -58,51 +60,49 @@ exports.const = generateAvailablePairingsPubJs = (playersList) => {
   return avaibalePairings;
 };
 
-exports.const = generateSchedulePubJs = (availablePairings, standOuts) => {
-  let schedule = { rounds: [] };
-  let availablePairing = availablePairings;
+exports.const = generateSchedule = (
+  availablePairings,
+  standOuts,
+  numOfRounds,
+  numOfCourts,
+  numOfPairingsPerCourt
+) => {
+  let schedule = [];
+  // Generate schedule for each round
+  for (let roundCounter = 0; roundCounter < numOfRounds; roundCounter++) {
+    schedule.push({
+      round: roundCounter,
+      standOuts: standOuts[roundCounter],
+    });
 
-  for (let i = 0; i < standOuts.length; i++) {
-    let pairingsUsed = 0;
-    let pairings = [{}];
-    for (let j = 0; j < availablePairing.length; j++) {
-      if (
-        !standOuts[i].includes(availablePairing[j].playerA) &&
-        !standOuts[i].includes(availablePairing[j].playerB) &&
-        availablePairing[j].pairingUsed === false
-      ) {
-        if (pairingsUsed < numPairings) {
-          pairings.push({
-            playerA: availablePairing[j].playerA,
-            playerB: availablePairing[j].playerB,
-          });
-          availablePairing[j].pairingUsed = true;
-          pairingsUsed++;
-        } else {
-          schedule.rounds.push({
-            round: i,
-            players: pairings,
-            standouts: standOuts[i],
-          });
-          j = 99;
-        }
-      }
+    // Assign Players to each court
+    for (let courtCounter = 0; courtCounter < numOfCourts; courtCounter++) {
+      // Only select players that are not assinged stand outs for this round
+      schedule[roundCounter].courts[courtCounter].courtNumber = courtCounter;
+      schedule[roundCounter].courts.pairings = availablePairings
+        .filter(
+          (element) =>
+            !standOuts[roundCounter].includes(element.playerA) &&
+            !standOuts[roundCounter].includes(element.playerB) &&
+            element.pairingUsed === false
+        )
+        .slice(0, numOfPairingsPerCourt);
     }
   }
-  return schedule;
 };
 
 const playersList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 let standOuts = [];
 const numStandOuts = 3;
 const numOfRounds = 11;
-const numPairings = 4;
-
-standOuts = generateStandOutsPubJs(playersList, numOfRounds, numStandOuts);
-availablePairings = generateAvailablePairingsPubJs(playersList);
-schedule = generateSchedulePubJs(availablePairings, standOuts, numPairings);
-
-const values = Object.values(schedule.rounds);
-for (const round of values) {
-  console.log(round);
-}
+const numOfCourts = 2;
+const numOfPairingsPerCourt = 2;
+standOuts = generateStandOuts(playersList, numOfRounds, numStandOuts);
+availablePairings = generateAvailablePairings(playersList);
+schedule = generateSchedule(
+  availablePairings,
+  standOuts,
+  numOfRounds,
+  numOfCourts,
+  numOfPairingsPerCourt
+);
