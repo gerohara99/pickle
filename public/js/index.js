@@ -44,6 +44,9 @@ const updateEventDataForm = document.querySelector(
 const deleteEventButton = document.querySelector(
   ".form__group.right.deleteEventButton"
 );
+const bookEventButton = document.querySelector(
+  ".form__group.right.bookEventButton"
+);
 
 //Locations
 const locationDataForm = document.querySelector(".form-location-data");
@@ -155,6 +158,15 @@ if (deleteEventButton)
     e.preventDefault();
     const eventId = document.getElementById("eventId").value;
     deleteEventPubJs(eventId);
+  });
+
+if (bookEventButton)
+  bookEventButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const eventId = document.getElementById("eventId").value;
+    const eventBookings = document.getElementById("eventBookings").value;
+    const numPlayers = document.getElementById("numPlayers").value;
+    eventCreateBookingPubJs(eventId, eventBookings, numPlayers);
   });
 
 // LOCATION FORMS

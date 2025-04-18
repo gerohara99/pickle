@@ -1,5 +1,4 @@
 const Event = require("../models/eventModel");
-const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const mongoose = require("mongoose");
@@ -49,9 +48,3 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     data: { booking: req.body.userId },
   });
 });
-
-exports.getEvent = factory.getOne(Event);
-exports.getAllEvents = factory.getAll(Event);
-exports.createEvent = factory.createOne(Event);
-exports.updateEvent = factory.updateOne(Event);
-exports.deleteEvent = factory.deleteOne(Event);

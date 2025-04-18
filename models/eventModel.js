@@ -1,15 +1,10 @@
 const mongoose = require("mongoose");
-const slugify = require("slugify");
 
 const eventSchema = new mongoose.Schema(
   {
     eventName: {
       type: String,
       required: [true, "Please enter the name of the event"],
-    },
-    eventLocation: {
-      type: String,
-      required: [true, "Please enter the location of the event"],
     },
     eventDate: {
       type: Date,
@@ -22,20 +17,6 @@ const eventSchema = new mongoose.Schema(
     eventOrganiser: {
       type: String,
       //required: [true, "Please enter an organiser name for the event"],
-    },
-    slug: String,
-    numCourts: {
-      type: Number,
-      //required: [true, "Please enter a value for number of A courts available"],
-      default: 2,
-    },
-    courtCapacity: {
-      type: Number,
-      /*required: [
-      true,
-      "Please enter a value for number of players on an A court",
-    ], */
-      default: 4,
     },
     eventDurationMins: {
       type: Number,
@@ -53,7 +34,8 @@ const eventSchema = new mongoose.Schema(
     numOfRounds: {
       type: Number,
     },
-    bookings: [],
+    bookings: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
+    location: { type: mongoose.Schema.ObjectId, ref: "Location" },
   },
   {
     // enable virtual fields
@@ -62,15 +44,26 @@ const eventSchema = new mongoose.Schema(
   }
 );
 
-eventSchema.index({ slug: 1 });
-
 eventSchema.pre("save", function (next) {
   this.numOfRounds = this.eventDurationMins / this.gameDurationMins;
   next();
 });
 
-eventSchema.pre("save", function (next) {
-  this.slug = slugify(this.eventName, { lower: true });
+// Using virtual populate to join event bookings and users but don't bring over _v, password changed or role fields
+eventSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "bookings",
+    select: "-__v -passwordChangedAt -role",
+  });
+  next();
+});
+
+// Using virtual populate to populate location from locations schema
+eventSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "location",
+    select: "-__v",
+  });
   next();
 });
 

@@ -16,8 +16,6 @@ const eventRouter = require("./routes/eventRoutes");
 const viewRouter = require("./routes/viewRoutes");
 const locationRouter = require("./routes/locationRoutes");
 
-const { mongo } = require("mongoose");
-
 //Start express app
 const app = express();
 

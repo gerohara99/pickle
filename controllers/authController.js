@@ -48,7 +48,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 1) Check if email and password exist
   if (!email || !password) {
-    console.log("checking email and passowrd");
+    console.log("checking email and password");
     return next(new AppError("Please provide email and password", 400));
   }
 

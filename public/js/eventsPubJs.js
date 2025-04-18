@@ -80,3 +80,31 @@ export const deleteEventPubJs = async (eventId) => {
     showAlert("error", err.response.data.message);
   }
 };
+
+export const eventCreateBookingPubJs = async (
+  eventId,
+  eventBookings,
+  numPlayers
+) => {
+  try {
+    console.log("hithere");
+    const res = await axios({
+      method: "PATCH",
+      url: `/api/v1/events/bookingd/create`,
+      data: {
+        eventId,
+        eventBookings,
+        numPlayers,
+      },
+    });
+    if (res.status === 204) {
+      showAlert("success", "Booking successfully created");
+
+      window.setTimeout(() => {
+        location.assign("/events/showAll");
+      }, 1500);
+    }
+  } catch (err) {
+    showAlert("error", err.response.data.message);
+  }
+};
