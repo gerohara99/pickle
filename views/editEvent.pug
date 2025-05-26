@@ -1,31 +1,36 @@
 extends base
 
 block content
-  main.main
-    .event_view
-      .event-view__content
-        .event__form-container
-          h2.heading-secondary.ma-bt-md Update Event Details
+	main.main
+	section(class="section-editEvent")
+		div(class="container")
+			div(class="editEvent")
+				div(class="editEvent-text-box") 
+					h1(class="heading-secondary") Edit Event
+					p(class="editEvent-text") The "go to" place to book all your pickle ball games
 
-          form.form.form-update-event-data
-            .form__group
-              label.form__label(for='eventName') Event Name
-              input#eventName.form__input(type='text', value=`${event.eventName}`, required, name='Event name')
+					form(class="editEvent-form")
+						div
+							label(for="eventName") Event name
+							input(name="eventName" type="text" value=`${event.eventName}` id="eventName" required)
+						div 
+							- const year = event.eventDate.toLocaleString("default", { year: "numeric" });
+							- const  month = event.eventDate.toLocaleString("default", { month: "2-digit" });
+							- const day = event.eventDate.toLocaleString("default", { day: "2-digit" });
+							- const formattedDate = year + "-" + month + "-" + day;
+							label(for="eventDate") Event date
+							input(name="eventDate" type="date" value=`${formattedDate}` id="eventDate" required)
+						div 
+							label(for="eventStartTime") Event time
+							input(name="eventStartTime" type="time" value=`${event.eventStartTime}` id="eventStartTime" required)
+						div 
+							label(for="eventOrganiser") Event Organiser
+							input(name="eventOrganiser" type="text" value=`${event.eventOrganiser}` id="eventOrganiser" required)
+						p(class="hiddenField" id="eventId")=`${event._id}`
+					div(class="button-container")
+						div 
+							a(class="btn btn--form" id="saveEventButton" href="#") Save
+						div 
+							a(class="btn btn--outline" id="cancelButton" href="/events/showall") Cancel
 
-            .form__group
-              label.form__label(for='eventLocation') Event Location
-              input#eventLocation.form__input(type='text', value=`${event.eventLocation}`, required, name='Event Location')
-
-            .form__group
-              label.form__label(for='eventDate') Event Date
-              input#eventDate.form__input(type='text', value=`${event.eventDate.toLocaleString('en-GB',{day:'numeric',weekday: 'short', month: 'short'})}`, required, name='Event Date')
-
-            .form__group
-              label.form__label(for='eventTime') Event Time
-              input#eventStartTime.form__input(type='text', value=event.eventStartTime, required, name='Event time')
-
-            .form__group
-              input#eventId.form__input(type='hidden', value=event._id, required, name='Event Id')
-
-            .form__group.right.updateEventButton
-              button.btn.btn--small.btn--green Update Event
+				div(class="editUser-img-box" role="img" aria-label="Picture of a pickle court")

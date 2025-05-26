@@ -19,7 +19,7 @@ exports.getLoginForm = (req, res) => {
 };
 
 exports.getsignupForm = (req, res) => {
-  res.status(200).render("signup", {
+  res.status(200).render("signUp", {
     title: "create your account",
   });
 };
@@ -49,13 +49,14 @@ exports.createUser = (req, res) => {
 
 exports.editUser = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
-  const user = await User.findOne({ id: req.params._id });
+
+  const user = await User.findOne({ _id: req.params.id });
 
   if (!user) {
     return next(new AppError("There is no user with that name", 404));
   }
 
-  // 3) Render template using tour data
+  // 3) Render edit user form
   res.status(200).render("editUser", {
     title: `${user.name} Name`,
     user,
@@ -81,7 +82,8 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
 
 exports.editEvent = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
-  const event = await Event.findOne({ id: req.params._id });
+
+  const event = await Event.findOne({ _id: req.params.id });
 
   if (!event) {
     return next(new AppError("There is no event with that name", 404));

@@ -1,8 +1,10 @@
 /*eslint-disable*/
 import "@babel/polyfill";
-import { login, logout } from "./login";
-import { signup } from "./signUp";
-import { updateSettings } from "./updateSettings";
+import { login } from "./login";
+import { logOut } from "./logout";
+import { signUp } from "./signUp";
+import { adminCreateUser } from "./_deprecated_adminCreateUser";
+import { updateAcSettings } from "./updateAcSettings";
 import {
   createEventPubJs,
   updateEventPubJs,
@@ -13,197 +15,183 @@ import {
   updateUserPubJs,
   deleteUserPubJs,
 } from "./usersPubJs";
-import {
-  createLocationPubJs,
-  updateLocationPubJs,
-  deleteLocationPubJs,
-} from "./locationsPubJs";
 
 // DOM ELements
 
 //Auth Elements -- note all these functions are in public/js folder NOT auth routes
-const loginForm = document.querySelector(".form--login");
-const signupForm = document.querySelector(".form--signup");
-const logOutBtn = document.querySelector(".nav__el--logout");
+const logInButton = document.getElementById("logInButton");
+const signUpButton = document.getElementById("signUpButton");
+const logOutButton = document.getElementById("logOutButton");
 
-//Individual User Elements
-const userDataForm = document.querySelector(".form-user-data");
-const userPasswordForm = document.querySelector(".form-user-password");
+// Admin elements for creating, updating, deleteing Users and Events
+const createUserButton = document.getElementById("createUserButton");
+const saveUserButton = document.getElementById("saveUserButton");
+const deleteUserButtons = document.querySelectorAll("a.deleteUserButtons");
+const editUserButtons = document.querySelectorAll("a.editUserButtons");
 
-// Admin user elements
-const userEditForm = document.querySelector(".form-edit-user-data");
-const deleteUserButton = document.querySelector(
-  "form__group.right.deleteUserButton"
-);
+const createEventButton = document.getElementById("createEventButton");
+const saveEventButton = document.getElementById("saveEventButton");
+const deleteEventButtons = document.querySelectorAll("a.deleteEventButtons");
+const editEventButtons = document.querySelectorAll("a.editEventButtons");
 
-//Events
-const eventDataForm = document.querySelector(".form-event-data");
-const updateEventDataForm = document.querySelector(
-  ".form__group.right.updateEventButton"
-);
-const deleteEventButton = document.querySelector(
-  ".form__group.right.deleteEventButton"
-);
-const bookEventButton = document.querySelector(
-  ".form__group.right.bookEventButton"
-);
+//******************** User Elements for editing profile, booking and cencelling events
+const saveAcSettingsButton = document.getElementById("saveAcSettingsButton");
 
-//Locations
-const locationDataForm = document.querySelector(".form-location-data");
-const updateLocationDataForm = document.querySelector(
-  ".form__group.right.updateLocationButton"
-);
-const deleteLocationButton = document.querySelector(
-  ".form__group.right.deleteLocationButton"
-);
-
-// AUTH FORMS
-if (loginForm)
-  loginForm.addEventListener("submit", (e) => {
+//******************** Authorization functions
+if (logInButton)
+  logInButton.addEventListener("click", (e) => {
     e.preventDefault();
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     login(email, password);
   });
 
-if (signupForm)
-  signupForm.addEventListener("submit", (e) => {
+if (signUpButton)
+  signUpButton.addEventListener("click", (e) => {
     e.preventDefault();
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
     const mobile = document.getElementById("mobile").value;
     const password = document.getElementById("password").value;
     const passwordConfirm = document.getElementById("passwordConfirm").value;
-    signup(name, email, mobile, password, passwordConfirm);
+    signUp(name, email, mobile, password, passwordConfirm);
   });
 
-//INDIVIUAL USER FORMS
-if (logOutBtn) logOutBtn.addEventListener("click", logout);
-
-if (userDataForm)
-  userDataForm.addEventListener("submit", (e) => {
+if (logOutButton)
+  logOutButton.addEventListener("click", (e) => {
     e.preventDefault();
-    const form = new FormData();
-    form.append("name", document.getElementById("name").value);
-    form.append("email", document.getElementById("email").value);
-    updateSettings(form, "data");
+    console.log("got here");
+    logOut();
   });
 
-if (userPasswordForm)
-  userPasswordForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const passwordCurrent = document.getElementById("password-current").value;
-    const password = document.getElementById("password").value;
-    const passwordConfirm = document.getElementById("password-confirm").value;
+// ******************   Admin functions for creating, updating, deleteing Users and Events
 
-    await updateSettings(
-      { passwordCurrent, password, passwordConfirm },
-      "password"
+// *************************** Users ***************************************
+if (createUserButton)
+  createUserButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const userName = document.getElementById("name").value;
+    const userEmail = document.getElementById("email").value;
+    const userMobile = document.getElementById("mobile").value;
+    const userPassword = document.getElementById("password").value;
+    const userPasswordConfirm =
+      document.getElementById("passwordConfirm").value;
+    createUserPubJs(
+      userName,
+      userEmail,
+      userMobile,
+      userPassword,
+      userPasswordConfirm
     );
-
-    document.getElementById("password-current").value = "";
-    document.getElementById("password").value = "";
-    document.getElementById("password-confirm").value = "";
   });
 
-//ADMIN RELATED USER FORMS
-if (userEditForm)
-  userEditForm.addEventListener("submit", (e) => {
+if (editUserButtons)
+  editUserButtons.forEach((item) =>
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      const userId = e.target.parentElement.querySelector(".userId");
+      const locationPath = "/users/get/" + userId.textContent;
+      location.assign(locationPath);
+    })
+  );
+
+if (deleteUserButtons)
+  deleteUserButtons.forEach((item) =>
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      const userId = e.target.parentElement.querySelector(".userId");
+      deleteUserPubJs(userId.textContent);
+    })
+  );
+
+if (saveUserButton)
+  saveUserButton.addEventListener("click", (e) => {
     e.preventDefault();
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const mobile = document.getElementById("mobile").value;
-    const userId = document.getElementById("userId").value;
-    console.log(userId);
-    updateUserPubJs(userId, name, email, mobile);
+    const userName = document.getElementById("name").value;
+    const userEmail = document.getElementById("email").value;
+    const userMobile = document.getElementById("mobile").value;
+    const userId = document.getElementById("userId").textContent;
+    updateUserPubJs(userId, userName, userEmail, userMobile);
   });
 
-if (deleteUserButton)
-  deleteUserButton.addEventListener("click", (e) => {
+if (createUserButton)
+  createUserButton.addEventListener("click", (e) => {
     e.preventDefault();
-    const userId = document.getElementById("userId").value;
-    deleteUserPubJs(userId);
+    const userName = document.getElementById("name").value;
+    const userEmail = document.getElementById("email").value;
+    const userMobile = document.getElementById("mobile").value;
+    const userPassword = document.getElementById("password").value;
+    const userPasswordConfirm =
+      document.getElementById("passwordConfirm").value;
+    adminCreateUser(
+      userName,
+      userEmail,
+      userMobile,
+      userPassword,
+      userPasswordConfirm
+    );
   });
 
-// EVENT FORMS
-if (eventDataForm)
-  eventDataForm.addEventListener("submit", (e) => {
+// ***************************** Events **************************
+
+if (createEventButton)
+  createEventButton.addEventListener("click", (e) => {
     e.preventDefault();
+    const eventName = document.getElementById("eventName").value;
+    const eventLocation = document.getElementById("eventLocation").value;
+    const eventDate = document.getElementById("eventDate").value;
+    const eventStartTime = document.getElementById("eventStartTime").value;
+    const eventOrganiser = document.getElementById("eventOrganiser").value;
+    createEventPubJs(eventName, eventDate, eventStartTime, eventOrganiser);
+  });
+
+if (editEventButtons)
+  editEventButtons.forEach((item) =>
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      const eventId = e.target.parentElement.querySelector(".eventId");
+      const locationPath = "/events/get/" + eventId.textContent;
+      console.log(locationPath);
+      location.assign(locationPath);
+    })
+  );
+
+if (deleteEventButtons)
+  deleteEventButtons.forEach((item) =>
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      const eventId = e.target.parentElement.querySelector(".eventId");
+      deleteEventPubJs(eventId.textContent);
+    })
+  );
+
+if (saveEventButton)
+  saveEventButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    const eventId = document.getElementById("eventId").textContent;
     const eventName = document.getElementById("eventName").value;
     const eventDate = document.getElementById("eventDate").value;
     const eventStartTime = document.getElementById("eventStartTime").value;
-    const eventLocation = document.getElementById("eventLocation").value;
-    createEventPubJs(eventName, eventDate, eventStartTime, eventLocation);
-  });
-
-if (updateEventDataForm)
-  updateEventDataForm.addEventListener("click", (e) => {
-    e.preventDefault();
-    const eventName = document.getElementById("eventName").value;
-    const eventDate = document.getElementById("eventDate").value;
-    const eventStartTime = document.getElementById("eventStartTime").value;
-    const eventLocation = document.getElementById("eventLocation").value;
-    const eventId = document.getElementById("eventId").value;
+    const eventOrganiser = document.getElementById("eventOrganiser").value;
     updateEventPubJs(
       eventId,
       eventName,
       eventDate,
       eventStartTime,
-      eventLocation
+      eventOrganiser
     );
   });
 
-if (deleteEventButton)
-  deleteEventButton.addEventListener("click", (e) => {
+/******** User functions    ************************/
+if (saveAcSettingsButton)
+  saveAcSettingsButton.addEventListener("click", (e) => {
     e.preventDefault();
-    const eventId = document.getElementById("eventId").value;
-    deleteEventPubJs(eventId);
-  });
+    let data = {};
+    data.userName = document.getElementById("name").value;
+    data.userEmail = document.getElementById("email").value;
+    data.userMobile = document.getElementById("mobile").value;
+    data.userId = document.getElementById("mobile").textContent;
+    const type = "account";
 
-if (bookEventButton)
-  bookEventButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    const eventId = document.getElementById("eventId").value;
-    const eventBookings = document.getElementById("eventBookings").value;
-    const numPlayers = document.getElementById("numPlayers").value;
-    eventCreateBookingPubJs(eventId, eventBookings, numPlayers);
-  });
-
-// LOCATION FORMS
-if (locationDataForm)
-  locationDataForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const locationName = document.getElementById("locationName").value;
-    const locationNumCourts = document.getElementById(
-      "locationNumOfCourts"
-    ).value;
-    const locationCourtCapacity = document.getElementById(
-      "locationCourtCapacity"
-    ).value;
-    createLocationPubJs(locationName, locationNumCourts, locationCourtCapacity);
-  });
-
-if (updateLocationDataForm)
-  updateLocationDataForm.addEventListener("click", (e) => {
-    e.preventDefault();
-    const locationName = document.getElementById("locationName").value;
-    const locationNumCourts =
-      document.getElementById("locationNumCourts").value;
-    const locationCourtCapacity = document.getElementById(
-      "locationCourtCapacity"
-    ).value;
-    const locationId = document.getElementById("locationId").value;
-    updateEventPubJs(
-      locationId,
-      locationName,
-      locationNumCourts,
-      locationCourtCapacity
-    );
-  });
-
-if (deleteLocationButton)
-  deleteLocationButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    const locationId = document.getElementById("locationId").value;
-    deleteLocationPubJs(locationId);
+    updateAcSettings(data, type);
   });

@@ -2,22 +2,29 @@ extends base
 
 block content
 	main.main
+	section(class="section-editUser")
+		div(class="container")
+			div(class="editUser")
+				div(class="editUser-text-box") 
+					h1(class="heading-secondary") Edit User
+					p(class="editUser-text") The "go to" place to book all your pickle ball games
 
-	.user-view__content
+					form(class="editUser-form")
+						div
+							label(for='name') Name
+							input(id="name" type='text' value=`${user.name}`,required name='name')
+						div
+							label(for='email') Email address
+							input(id="email" type='email' value=`${user.email}` required name='email')
+						div
+							label(for='mobile') Mobile Phone number
+							input(id="mobile" type='number' value=`${user.mobile}` required name='mobile')
+						div
+							p(id="userId" class="hiddenField")=`${user._id}`
+					div(class="button-container")
+						div 
+							a(class="btn btn--form" id="saveUserButton" href="#") Save
+						div 
+							a(class="btn btn--outline" id="cancelButton" href="/users/showall") Cancel
 
-		.user-view__form-container
-			h2.heading-secondary.ma-bt-md Details
-			form.form.form-edit-user-data
-				.form__group
-					label.form__label(for='name') Name
-					input#name.form__input(type='text', value=`${user.name}`, required, name='name')
-				.form__group.ma-bt-md
-					label.form__label(for='email') Email address
-					input#email.form__input(type='email', value=`${user.email}`, required, name='email')
-				.form__group.ma-bt-md
-					label.form__label(for='mobile') Mobile Phone number
-					input#mobile.form__input(type='number', value=`${user.mobile}`, required, name='mobile')
-				.form__group
-					input#userId.form__input(type='hidden', value=user._id, required, name='User Id')
-				.form__group.right
-					button.btn.btn--small.btn--green Save settings
+				div(class="editUser-img-box" role="img" aria-label="Picture of a pickle court")

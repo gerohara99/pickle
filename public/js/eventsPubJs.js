@@ -7,7 +7,7 @@ export const createEventPubJs = async (
   eventName,
   eventDate,
   eventStartTime,
-  eventLocation
+  eventOrganiser
 ) => {
   try {
     const res = await axios({
@@ -17,7 +17,7 @@ export const createEventPubJs = async (
         eventName,
         eventDate,
         eventStartTime,
-        eventLocation,
+        eventOrganiser,
       },
     });
     if (res.data.status === "success") {
@@ -37,7 +37,7 @@ export const updateEventPubJs = async (
   eventName,
   eventDate,
   eventStartTime,
-  eventLocation
+  eventOrganiser
 ) => {
   try {
     const res = await axios({
@@ -47,7 +47,7 @@ export const updateEventPubJs = async (
         eventName,
         eventDate,
         eventStartTime,
-        eventLocation,
+        eventOrganiser,
       },
     });
     if (res.status === 204) {
@@ -68,7 +68,6 @@ export const deleteEventPubJs = async (eventId) => {
       method: "DELETE",
       url: `/api/v1/events/${eventId}`,
     });
-    console.log(res.status);
     if (res.status === 204) {
       showAlert("success", "Event successfully deleted");
 
@@ -87,7 +86,6 @@ export const eventCreateBookingPubJs = async (
   numPlayers
 ) => {
   try {
-    console.log("hithere");
     const res = await axios({
       method: "PATCH",
       url: `/api/v1/events/bookingd/create`,

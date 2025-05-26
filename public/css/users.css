@@ -1,0 +1,115 @@
+/*********************************/
+/* Users                         */
+/*********************************/
+
+/* See general.css for how tbles are formatted. */
+
+.users-table {
+  display: grid;
+  grid-template-columns: 30fr 30fr 30fr 5fr 5fr;
+  column-gap: 0rem;
+  row-gap: 1rem;
+}
+
+.section-createUser,
+.section-editUser {
+  /* top / right / bottom / left */
+  /* padding: 9.6rem 0 12.8rem 0; */
+
+  /* top / horizontal / left */
+  padding: 4.8rem 0 12.8rem;
+}
+
+.createUser,
+.editUser {
+  display: grid;
+  /* 2/3 = 66.6% + 1/3 = 33.3% */
+  grid-template-columns: 2fr 1fr;
+  /* background-color: #e67e22; */
+  box-shadow: 0 2.4rem 4.8rem rgba(0, 0, 0, 0.15);
+  border-radius: 11px;
+
+  background-image: linear-gradient(to right bottom, #eb984e, #e67e22);
+  overflow: hidden;
+}
+
+.createUser-text-box,
+.editUser-text-box {
+  padding: 4.8rem 6.4rem 6.4rem 6.4rem;
+  color: #45260a;
+}
+
+.createUser .heading-secondary,
+.createUser .heading-secondary {
+  /* color: #45260a; */
+  color: inherit;
+  margin-bottom: 3.2rem;
+}
+
+.createUser-text,
+.editUser-text {
+  font-size: 1.8rem;
+  line-height: 1.8;
+  margin-bottom: 4.8rem;
+}
+
+.createUser-img-box,
+.editUser-img-box {
+  background-image: linear-gradient(
+      to right bottom,
+      rgba(235, 151, 78, 0.35),
+      rgba(230, 125, 34, 0.35)
+    ),
+    url("../img/pickle.png");
+  background-size: cover;
+  background-position: center;
+}
+
+.createUser-form,
+.editUser-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 3.2rem;
+  row-gap: 2.4rem;
+}
+
+.createUser-form label,
+.editUser-form label {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 500;
+  margin-bottom: 1.2rem;
+}
+
+.createUser-form input,
+.editUser-form input {
+  width: 100%;
+  padding: 1.2rem;
+  font-size: 1.8rem;
+  font-family: inherit;
+  color: inherit;
+  border: none;
+  background-color: #fdf2e9;
+  border-radius: 9px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.createUser-form input::placeholder,
+.editUser-form input::placeholder {
+  color: #aaa;
+}
+
+.signUp *:focus,
+.login *:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.8rem rgba(253, 242, 233, 0.5);
+}
+
+/* NOTE - It's super important that this class exists. */
+/* The "hiddenField" class takes care of this data not */
+/* not being diplayed. However this is needed to       */
+/* ensure the correct user id is passed to related     */
+/* edit and delete functions                           */
+userId {
+  display: none;
+}

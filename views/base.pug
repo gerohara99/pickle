@@ -1,23 +1,36 @@
 doctype html
 
 html 
-    head
-        block head
-            meta(charset='UTF-8')
-            meta(name='viewport' content='width=device-width, initial-scale=1.0')
-            link(rel='stylesheet' href='/css/style.css')
-            link(rel='shortcut icon', type='image/png' href='/img/favicon.png')
-            linj(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Lato:300,300i,700')
-                    title Pickle | #{title}
+	head
+		block head
+			meta(charset='UTF-8')
+			meta( http-equiv="X-UA-Compatible" content="IE=edge")
+			meta(name="description" content="Pickleball admin")
+			link(rel="icon" href='/img/favicon.png')
+			link(rel="apple-touch-icon" href="/img/apple-touch-icon.png")
+			meta(name='viewport' content='width=device-width, initial-scale=1.0')
+			link(rel="preconnect" href="https://fonts.gstatic.com")
+			link(href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet")
+			link(rel='stylesheet' href='/css/auth.css')
+			link(rel='stylesheet' href='/css/events.css')
+			link(rel='stylesheet' href='/css/general.css')
+			link(rel='stylesheet' href='/css/headersFooters.css')
+			link(rel='stylesheet' href='/css/homepage.css')
+			link(rel='stylesheet' href='/css/locations.css')
+			link(rel='stylesheet' href='/css/navigation.css')
+			link(rel='stylesheet' href='/css/myAccount.css')
+			link(rel='stylesheet' href='/css/users.css')
+			link(rel='stylesheet' href='/css/queries.css')
+			script(type="module" src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.esm.js")
+			script(src="/js/stickyNavigation.js" defer)
+			script(nomodule="" src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.js")
+			title Pickleball| Admin
+	
+	body
+		include includes/_header
 
-    body
-    // HEADER
-    include _header
+	block content
+		h1 This is a placeholder heading
 
-    // Content
-    block content
-        h1 This is a placeholder heading
-
-    // Footer
-    include _footer
-    script(src='/js/bundle.js')
+	include includes/_footer
+	script(src='/js/bundle.js')

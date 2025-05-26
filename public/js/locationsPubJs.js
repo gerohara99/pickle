@@ -64,7 +64,6 @@ export const deleteLocationPubJs = async (locationId) => {
       method: "DELETE",
       url: `/api/v1/locations/${locationId}`,
     });
-    console.log(res.status);
     if (res.status === 204) {
       showAlert("success", "Location successfully deleted");
 

@@ -26,10 +26,19 @@ app.set("trust proxy", 1);
 app.use(express.static(path.join(__dirname, "public")));
 
 //Implement cors - Access-Control-Allow-Origin * for Get and Post for all routes
-app.use(cors());
+const corsOptions = {
+  credentials: true,
+  origin: [
+    "https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.esm.js",
+    "https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.js",
+    "https://fonts.gstatic.com",
+    "https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap",
+  ],
+};
+app.use(cors(corsOptions));
 
 // Alloow cors for 'complex' methods such as patch, put and delete for all routes
-app.options("*", cors());
+/* app.options("*", cors(corsOptions)); */
 
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));

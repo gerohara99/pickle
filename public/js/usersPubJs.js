@@ -7,7 +7,6 @@ export const createUserPubJs = async (
   name,
   email,
   mobile,
-  role,
   password,
   passwordConfirm
 ) => {
@@ -19,7 +18,6 @@ export const createUserPubJs = async (
         name,
         email,
         mobile,
-        role,
         password,
         passwordConfirm,
       },
@@ -65,7 +63,6 @@ export const deleteUserPubJs = async (userId) => {
       method: "DELETE",
       url: `/api/v1/users/${userId}`,
     });
-    console.log(res.status);
     if (res.status === 204) {
       showAlert("success", "User successfully deleted");
 

@@ -1,25 +1,35 @@
 extends base
 
-block content
-  main.main
-    .event-view
-      .event-view__content
-        .event__form-container
-          h2.heading-secondary.ma-bt-md Create an Event
-          
-          form.form.form-event-data
-            .form__group
-              label.form__label(for='eventName') Event Name
-              input#eventName.form__input(type='text', required, name='eventName')
-            .form__group
-              label.form__label(for='eventLocation') Event Location
-              input#eventLocation.form__input(type='text', required, name='eventLocation')
-            .form__group
-              label.form__label(for='eventDate') Event Date
-              input#eventDate.form__input(type='date', required, name='eventDate')
-            .form__group
-              label.form__label(for='eventStartTime') Event Time
-              input#eventStartTime.form__input(type='time', required, name='eventStartTime')
+block content 
 
-            .form__group.right
-              button.btn.btn--small.btn--green Create Event
+	main.main
+		section(class="section-createEvent")
+			div(class="container")
+				div(class="createEvent")
+					div(class="createEvent-text-box") 
+						h1(class="heading-secondary") Create a Pickle Ball Event !!
+						p(class="createEvent-text") The "go to" place to book all your pickle ball games
+
+						form(class="createEvent-form")
+							div
+								label(for="eventName") Event name
+								input(name="eventName" type="text" id="eventName" required)
+							div
+								label(for="eventLocation") Event location
+								input(name="eventLocation" type="text" id="eventLocation" required)
+							div 
+								label(for="eventDate") Event date
+								input(name="eventDate" type="date" id="eventDate" required)
+							div 
+								label(for="eventStartTime") Event time
+								input(name="eventStartTime" type="time" id="eventStartTime" required)
+							div 
+								label(for="eventOrganiser") Event organiser
+								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
+						div(class="button-container")
+							div 
+								a(class="btn btn--form" id="createEventButton" href="#") Create
+							div 
+								a(class="btn btn--outline" id="cancelButton" href="/") Cancel
+
+					div(class="createUser-img-box" role="img" aria-label="Picture of a pickle court")

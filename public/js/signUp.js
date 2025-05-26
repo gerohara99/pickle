@@ -3,7 +3,7 @@ import "@babel/polyfill";
 import axios from "axios";
 import { showAlert } from "./alerts";
 
-export const signup = async (
+export const signUp = async (
   name,
   email,
   mobile,
@@ -22,10 +22,11 @@ export const signup = async (
         passwordConfirm,
       },
     });
+
     if (res.data.status === "success") {
       showAlert("success", "Account successfully created");
       window.setTimeout(() => {
-        location.assign("/");
+        location.assign("/events/showall");
       }, 1500);
     }
   } catch (err) {

@@ -1,6 +1,16 @@
-extends base
+extend base
 
-block content
+block content 
+
 	main.main
-		.heading-secondary
-			a.label This is the Home Page --- we need a fancy splash background for this page !!!
+		section(class="section-homepage")
+			div(class="homepage")
+				div(class="homepage-text-box") 
+					h1(class="heading-primary") Let's play pickle ball !!
+					p(class="homepage-description")
+						|Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+						|Lorem Ipsum has been the industry's standard dummy text ever since the 1500s
+					a(href="me/signUp" class="btn btn--full margin-right-sm") Signup
+					a(href="/me/login" class="btn btn--outline") Login
+				div( class="homepage-img-box")
+					img(src="img/homepage.png" class="homepage-img" alt="PickleBall Picture")

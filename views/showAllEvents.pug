@@ -1,44 +1,30 @@
 extends base
 
 block content
-	main.main
-		.heading-secondary
-			a.label All Events 
-			a.btn--green.btn--small.btn(href=`/events/create`) Create an Event
-		.card_container
-			each event in events
-				.card
-					.card_header
-					.card__details
-						h4.card__sub-heading= `${event.eventName} (Organiser : ${event.eventOrganiser})`
-						.card__data
-							svg.card__icon
-								use(xlink:href='/img/icons.	svg#icon-map-pin')
-							span=event.eventLocation
-						.card__data
-							svg.card__icon
-								use(xlink:href='/img/icons.	svg#icon-calendar')
-							span=event.eventDate.toLocaleString('en-GB',{day:'numeric',weekday: 'short', month: 'short'})					
-						.card__data
-							svg.card__icon
-								use(xlink:href='/img/icons.svg#icon-user')
-							- const spacesleft = event.bookings.length > 0 ? (event.courtCapacity * event.numCourts) - event.bookings.length : 0
-							span=`${spacesleft} spaces left`
-						.card__data
-							svg.card__icon
-								use(xlink:href='/img/icons.svg#icon-clock')
-							span=`${event.eventStartTime}`
-						.card__data
-							h4.card__sub-heading= 'Current Players -  '
-								each booking in event.bookings
-									span=`${booking.name}`
-					.card__footer
-						a.btn.btn--green.btn--small(href=`/events/get/${event._id}`) Edit
-						.form__group.bookEventButton
-							input#eventId.form__input(type='hidden',value=`${event._id}`, name='Event Id')
-							input#eventBookings.form__input(type='hidden',value=`${event.bookings}`, name='Event Bookings')
-							input#numPlayers.form__input(type='hidden',value=11, name='Number Of Players')
-							button.btn.btn--small.btn--green Book
-						.form__group.deleteEventButton
-							input#eventId.form__input(type='hidden',value=`${event._id}`, name='Event Id')
-							button.btn.btn--small.btn--green Delete
+
+	main
+		section(class="section-list")
+			div(class="container")
+				div(class="events-table")
+					p(class="subheading")="Name"
+					p(class="subheading")="Organiser"
+					p(class="subheading")="Date"
+					p(class="subheading")="Time"
+					a(href="/events/create")
+						ion-icon(class="subheading" name="add-outline")
+					p(class="subheading")=""
+					
+					each event in events
+						div(class="table-row")
+							p(class="listItemText")=`${event.eventName}`
+							p(class="listItemText")=`${event.eventOrganiser}`
+							- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"}
+							- const eventDate = event.eventDate.toLocaleDateString('en-GB',options)
+							p(class="listItemText")=`${eventDate}`
+							p(class="listItemText")=`${event.eventStartTime}`
+							a(href="#" class="deleteEventButtons")
+								p(class="eventId hiddenField")=`${event._id}`
+								ion-icon(class="listItemText actions-icon" name="trash-outline")
+							a(href="#" class="editEventButtons")
+								p(class="eventId hiddenField")=`${event._id}`
+								ion-icon(class="listItemText actions-icon" name="pencil-outline")

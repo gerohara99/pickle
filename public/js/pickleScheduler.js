@@ -1,8 +1,4 @@
-exports.const = generateStandOutsPubJs = (
-  playersList,
-  numOfRounds,
-  numStandOuts
-) => {
+const generateStandOutsPubJs = (playersList, numOfRounds, numStandOuts) => {
   // Calculate Standouts
   let roundsFilled = false;
   let i = 0;
