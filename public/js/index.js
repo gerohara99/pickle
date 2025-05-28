@@ -4,7 +4,7 @@ import { login } from "./login";
 import { logOut } from "./logout";
 import { signUp } from "./signUp";
 import { adminCreateUser } from "./_deprecated_adminCreateUser";
-import { updateAcSettings } from "./updateAcSettings";
+import { updateAc } from "./updateAc";
 import {
   createEventPubJs,
   updateEventPubJs,
@@ -15,6 +15,8 @@ import {
   updateUserPubJs,
   deleteUserPubJs,
 } from "./usersPubJs";
+import { forgotPasswordPubJs } from "./forgotPasswordPubJs";
+import { resetPasswordPubJs } from "./resetPasswordPubJs";
 
 // DOM ELements
 
@@ -35,7 +37,10 @@ const deleteEventButtons = document.querySelectorAll("a.deleteEventButtons");
 const editEventButtons = document.querySelectorAll("a.editEventButtons");
 
 //******************** User Elements for editing profile, booking and cencelling events
-const saveAcSettingsButton = document.getElementById("saveAcSettingsButton");
+const saveAcDetailsButton = document.getElementById("saveAcDetailsButton");
+const updatePasswordButton = document.getElementById("updatePasswordButton");
+const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+const resetPasswordButton = document.getElementById("resetPasswordButton");
 
 //******************** Authorization functions
 if (logInButton)
@@ -60,7 +65,6 @@ if (signUpButton)
 if (logOutButton)
   logOutButton.addEventListener("click", (e) => {
     e.preventDefault();
-    console.log("got here");
     logOut();
   });
 
@@ -151,7 +155,6 @@ if (editEventButtons)
       e.preventDefault();
       const eventId = e.target.parentElement.querySelector(".eventId");
       const locationPath = "/events/get/" + eventId.textContent;
-      console.log(locationPath);
       location.assign(locationPath);
     })
   );
@@ -183,15 +186,45 @@ if (saveEventButton)
   });
 
 /******** User functions    ************************/
-if (saveAcSettingsButton)
-  saveAcSettingsButton.addEventListener("click", (e) => {
+if (saveAcDetailsButton)
+  saveAcDetailsButton.addEventListener("click", (e) => {
     e.preventDefault();
     let data = {};
-    data.userName = document.getElementById("name").value;
-    data.userEmail = document.getElementById("email").value;
-    data.userMobile = document.getElementById("mobile").value;
-    data.userId = document.getElementById("mobile").textContent;
+    data.name = document.getElementById("name").value;
+    data.email = document.getElementById("email").value;
+    data.mobile = document.getElementById("mobile").value;
+    data.userId = document.getElementById("userId").textContent;
     const type = "account";
+    updateAc(data, type);
+  });
 
-    updateAcSettings(data, type);
+if (updatePasswordButton)
+  updatePasswordButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    let data = {};
+    data.currentPassword = document.getElementById("currentPassword").value;
+    data.newPassword = document.getElementById("newPassword").value;
+    data.newPasswordConfirm =
+      document.getElementById("newPasswordConfirm").value;
+    data.userId = document.getElementById("userId").textContent;
+    const type = "password";
+    updateAc(data, type);
+  });
+
+if (forgotPasswordLink)
+  forgotPasswordLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    let data = {};
+    data.email = document.getElementById("email").value;
+    forgotPasswordPubJs(data);
+  });
+
+if (resetPasswordButton)
+  resetPasswordButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    let data = {};
+    data.password = document.getElementById("newPassword").value;
+    data.passwordConfirm = document.getElementById("newPasswordConfirm").value;
+    data.resetToken = document.getElementById("resetToken").textContent;
+    resetPasswordPubJs(data);
   });

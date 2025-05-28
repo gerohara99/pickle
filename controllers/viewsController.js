@@ -24,9 +24,25 @@ exports.getsignupForm = (req, res) => {
   });
 };
 
-exports.getMyAccount = (req, res) => {
-  res.status(200).render("myaccount", {
+exports.getMyAccountDetails = (req, res) => {
+  res.status(200).render("myAccountDetails", {
     title: "Your account",
+  });
+};
+
+exports.myPasswordUpdate = (req, res) => {
+  res.status(200).render("myPasswordUpdate", {
+    title: "Update Password",
+  });
+};
+
+exports.myPasswordReset = (req, res) => {
+  const resetToken = req.params.resetToken;
+  let data = {};
+  data.resetToken = resetToken;
+  res.status(200).render("myPasswordReset", {
+    title: "Reset Password",
+    data,
   });
 };
 

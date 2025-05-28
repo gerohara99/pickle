@@ -1,5 +1,5 @@
 //const { send } = require('express/lib/response');
-const nodeMailer = require('nodemailer');
+const nodeMailer = require("nodemailer");
 
 const sendEmail = async (options) => {
   // 1) Create a transporter
@@ -13,7 +13,7 @@ const sendEmail = async (options) => {
   });
   // 2) Define email options
   const mailOptions = {
-    from: 'Test <test@gemail.com',
+    from: "Club Admin <clubadmin@gmail.com>",
     to: options.email,
     subject: options.subject,
     text: options.message,

@@ -10,36 +10,51 @@ router.post("/login", authController.login);
 router.get("/logout", authController.logout);
 
 router.post("/forgotPassword", authController.forgotPassword);
-router.patch("/resetPassword/:token", authController.resetPassword);
+router.patch("/passwordReset", authController.passwordReset);
+
 router.patch(
   "/updateMyPassword",
   authController.protect,
-  authController.updatePassword
+  authController.updateMyPassword
 );
-
-//From here on user needs to be verified
-router.use(authController.protect);
 
 router.get("/me", userController.getMe, userController.getUser);
 router.patch(
-  "/updateMe",
-  //  userController.uploadUserPhoto,
-  //  userController.reSizeUserPhoto,
-  userController.updateMe
+  "/updateAcDetails",
+  authController.protect,
+  userController.updateAcDetails
 );
-router.delete("/deleteMe", userController.deleteMe);
-
-// From here on only admin can perform these functions
-router.use(authController.restrictTo("clubAdmin", "pickleAdmin"));
+/* router.patch("/myPasswordReset", authController.myPasswordReset); */
+router.delete("/deleteMe", authController.protect, userController.deleteMe);
 
 router
   .route("/")
-  .get(userController.getAllUsers)
-  .post(userController.createUser);
+  .get(
+    authController.protect,
+    authController.restrictTo("clubAdmin", "pickleAdmin"),
+    userController.getAllUsers
+  )
+  .post(
+    authController.protect,
+    authController.restrictTo("clubAdmin", "pickleAdmin"),
+    userController.createUser
+  );
 router
   .route("/:id")
-  .get(userController.getUser)
-  .patch(userController.updateUser)
-  .delete(userController.deleteUser);
+  .get(
+    authController.protect,
+    authController.restrictTo("clubAdmin", "pickleAdmin"),
+    userController.getUser
+  )
+  .patch(
+    authController.protect,
+    authController.restrictTo("clubAdmin", "pickleAdmin"),
+    userController.updateUser
+  )
+  .delete(
+    authController.protect,
+    authController.restrictTo("clubAdmin", "pickleAdmin"),
+    userController.deleteUser
+  );
 
 module.exports = router;

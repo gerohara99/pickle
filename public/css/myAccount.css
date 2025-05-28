@@ -1,12 +1,16 @@
-.section-acSettings {
+.section-acSettings,
+.section-acUpdatePassword,
+.section-acResetPassword {
   /* top / right / bottom / left */
   /* padding: 9.6rem 0 12.8rem 0; */
 
   /* top / horizontal / left */
-  padding: 4.8rem 0 12.8rem;
+  padding: 4.8rem 0 8rem;
 }
 
-.acSettings {
+.acSettings,
+.acUpdatePassword,
+.acResetPassword {
   display: grid;
   /* 2/3 = 66.6% + 1/3 = 33.3% */
   grid-template-columns: 2fr 1fr;
@@ -18,24 +22,32 @@
   overflow: hidden;
 }
 
-.acSettings-text-box {
-  padding: 4.8rem 6.4rem 6.4rem 6.4rem;
+.acSettings-text-box,
+.acUpdatePassword-text-box,
+.acResetPassword-text-box {
+  padding: 2.4rem 6.4rem 2.4rem 6.4rem;
   color: #45260a;
 }
 
-.acSettings .heading-secondary {
+.acSettings .heading-secondary,
+.acUpdatePassword .heading-secondary,
+.acResetPassword .heading-secondary {
   /* color: #45260a; */
   color: inherit;
   margin-bottom: 3.2rem;
 }
 
-.acSettings-text {
+.acSettings-text,
+.acUpdatePassword-text,
+.acResetPassword-text {
   font-size: 1.8rem;
   line-height: 1.8;
   margin-bottom: 4.8rem;
 }
 
-.acSettings-img-box {
+.acSettings-img-box,
+.acUpdatePassword-img-box,
+.acResetPassword-img-box {
   background-image: linear-gradient(
       to right bottom,
       rgba(235, 151, 78, 0.35),
@@ -46,21 +58,27 @@
   background-position: center;
 }
 
-.acSettings-form {
+.acSettings-form,
+.acUpdatePassword-form,
+.acResetPassword-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 3.2rem;
   row-gap: 2.4rem;
 }
 
-.acSettings-form label {
+.acSettings-form label,
+.acUpdatePassword-form label,
+.acResetPassword-form label {
   display: block;
   font-size: 1.6rem;
   font-weight: 500;
   margin-bottom: 1.2rem;
 }
 
-.acSettings-form input {
+.acSettings-form input,
+.acUpdatePassword-form input,
+.acResetPassword-form input {
   width: 100%;
   padding: 1.2rem;
   font-size: 1.8rem;
@@ -72,11 +90,13 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.acSettings-form input::placeholder {
+.acSettings-form input::placeholder,
+.acUpdatePassword-form input::placeholder {
   color: #aaa;
 }
 
-.acSettings *:focus {
+.acSettings *:focus,
+.acUpdatePassword *:focus {
   outline: none;
   box-shadow: 0 0 0 0.8rem rgba(253, 242, 233, 0.5);
 }

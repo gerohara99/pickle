@@ -194,6 +194,18 @@ body {
   border-bottom: 1px solid transparent;
 }
 
+.text-link:link,
+.text-link:visited {
+  font-size: 1.6rem;
+  color: #fff;
+  transition: all 0.3s;
+}
+
+.text-link:hover,
+.text-link:active {
+  color: #555;
+}
+
 .list {
   list-style: none;
   display: flex;

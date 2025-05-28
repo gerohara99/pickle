@@ -14,7 +14,19 @@ router.get(
   viewsController.getLoginForm
 );
 router.get("/me/signup", viewsController.getsignupForm);
-router.get("/me/account", authController.protect, viewsController.getMyAccount);
+router.get(
+  "/me/myAccountDetails",
+  authController.protect,
+  viewsController.getMyAccountDetails
+);
+
+router.get(
+  "/me/myPasswordUpdate",
+  authController.protect,
+  viewsController.myPasswordUpdate
+);
+
+router.get("/me/myPasswordReset/:resetToken", viewsController.myPasswordReset);
 
 //Admin user functionality
 router.get(
