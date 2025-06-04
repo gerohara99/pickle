@@ -49,20 +49,12 @@ eventSchema.pre("save", function (next) {
   next();
 });
 
-// Using virtual populate to join event bookings and users but don't bring over _v, password changed or role fields
-eventSchema.pre(/^find/, function (next) {
-  this.populate({
-    path: "bookings",
-    select: "-__v -passwordChangedAt -role",
-  });
-  next();
-});
-
 // Using virtual populate to populate location from locations schema
 eventSchema.pre(/^find/, function (next) {
   this.populate({
-    path: "location",
-    select: "-__v",
+    path: "bookings",
+    select:
+      "-__v -passwordChangedAt -role -active -email -mobile -password -passwordResetEaxpires -passwordResetToken -passwordChangedAt",
   });
   next();
 });

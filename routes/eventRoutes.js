@@ -26,8 +26,8 @@ router
     eventController.deleteEvent
   );
 
-router.route("/bookings/create/").patch(eventController.createBooking);
+router.route("/booking/create/").patch(eventController.createBooking);
 
-router.route("/bookings/cancel/").patch(eventController.cancelBooking);
+router.route("/booking/cancel/").patch(eventController.cancelBooking);
 
 module.exports = router;

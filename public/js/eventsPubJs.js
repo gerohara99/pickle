@@ -80,26 +80,37 @@ export const deleteEventPubJs = async (eventId) => {
   }
 };
 
-export const eventCreateBookingPubJs = async (
-  eventId,
-  eventBookings,
-  numPlayers
-) => {
+export const eventCreateBookingPubJs = async (eventId) => {
   try {
     const res = await axios({
       method: "PATCH",
-      url: `/api/v1/events/bookingd/create`,
-      data: {
-        eventId,
-        eventBookings,
-        numPlayers,
-      },
+      url: `/api/v1/events/booking/create`,
+      data: { eventId },
     });
-    if (res.status === 204) {
+    if (res.status === 200) {
       showAlert("success", "Booking successfully created");
 
       window.setTimeout(() => {
-        location.assign("/events/showAll");
+        location.assign("/events/myBrowse");
+      }, 1500);
+    }
+  } catch (err) {
+    showAlert("error", err.response.data.message);
+  }
+};
+
+export const eventCancelBookingPubJs = async (eventId) => {
+  try {
+    const res = await axios({
+      method: "PATCH",
+      url: `/api/v1/events/booking/cancel`,
+      data: { eventId },
+    });
+    if (res.status === 200) {
+      showAlert("success", "Booking successfully cancelled");
+
+      window.setTimeout(() => {
+        location.assign("/events/myBrowse");
       }, 1500);
     }
   } catch (err) {

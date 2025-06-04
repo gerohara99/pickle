@@ -71,6 +71,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError("Inccorect email or password", 401));
   }
 
+  req.session.userId = user._id;
   // 3) If everything is ok send token to the client
   createSendToken(user._id, 200, req, res);
 });
@@ -80,6 +81,7 @@ exports.logout = (req, res) => {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
   });
+  req.session.userId = undefined;
   res.status(200).json({ status: "success" });
 };
 
@@ -159,7 +161,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 exports.restrictTo =
   (...roles) =>
   (req, res, next) => {
-    if (!roles.includes(req.body.role)) {
+    if (!roles.includes(req.user.role)) {
       return next(
         new AppError("You do not have permission to perform this action", 403)
       );

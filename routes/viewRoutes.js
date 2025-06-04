@@ -49,6 +49,19 @@ router.get(
   authController.isLoggedIn,
   viewsController.showAllEvents
 );
+
+router.get(
+  "/events/newBrowse",
+  authController.isLoggedIn,
+  viewsController.browseNewEvents
+);
+
+router.get(
+  "/events/myBrowse",
+  authController.isLoggedIn,
+  viewsController.browseMyEvents
+);
+
 router.get(
   "/events/create",
   authController.protect,

@@ -1,4 +1,8 @@
+const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const session = require("express-session");
+
+/* const MongoStore = require("connect-mongo")(session); */
 
 // This is for actual system issues i.e. memory corruption and so on
 process.on("uncaughtException", (err) => {
@@ -9,6 +13,21 @@ process.on("uncaughtException", (err) => {
 
 dotenv.config({ path: "./config.env" }); // Point to config file for env variables
 const app = require("./app");
+
+const DB = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
+);
+
+mongoose
+  .connect(DB, {
+    //    useNewUrlParser: true,
+    // useCreateIndex: true,
+    // useFindAndModify: false,
+    userNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Database connection successful !! "));
 
 //START SERVER
 const port = process.env.PORT || 3000;
@@ -24,6 +43,9 @@ process.on("unhandledRejection", (err) => {
   });
 });
 
+/* const sessionStore = new MongoStore ({
+  mongooseConnection: 
+}) */
 //Handling heroku kills processes every 24 hours via SIGTERM signal
 process.on("SIGTERM", () => {
   console.log("SIGTERM RECIEVED. Shutting down gracefully ");

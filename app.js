@@ -15,9 +15,52 @@ const userRouter = require("./routes/userRoutes");
 const eventRouter = require("./routes/eventRoutes");
 const viewRouter = require("./routes/viewRoutes");
 const locationRouter = require("./routes/locationRoutes");
+const mongoose = require("mongoose");
+const MongoStore = require("connect-mongo");
+const session = require("express-session");
 
 //Start express app
 const app = express();
+
+// ***************** DATABASE Setup ***************************************
+const DATABASE = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
+);
+
+const clientPromise = mongoose
+  .connect(DATABASE, {
+    useNewUrlParser: true,
+    createIndexes: true,
+    useFindAndModify: true,
+    // useFindAndModify: false,
+    userNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then((m) => {
+    console.log("MongoDB connected.");
+    return m.connection.getClient();
+  })
+  .catch((err) => {
+    console.log("MongoDB connection failed.");
+    console.log(`Error: ${err.message}`);
+  });
+
+// ***************** SESSION Setup ***************************************
+
+app.use(
+  session({
+    secret: process.env.SESSIONS_SECRET,
+    store: MongoStore.create({
+      clientPromise: clientPromise,
+    }),
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  })
+);
 
 app.enable("trust proxy");
 app.set("trust proxy", 1);

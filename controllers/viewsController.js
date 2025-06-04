@@ -96,6 +96,29 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.browseMyEvents = catchAsync(async (req, res, next) => {
+  // 1) Get event data from collection
+  const userId = req.session.userId;
+
+  const events = await Event.find({ bookings: { $eq: userId } });
+  // 2) Render template using tour data
+  res.status(200).render("browseMyEvents", {
+    title: "Browse Events",
+    events: events,
+  });
+});
+
+exports.browseNewEvents = catchAsync(async (req, res, next) => {
+  // 1) Get event data from collection
+  const userId = req.session.userId;
+  const events = await Event.find({ bookings: { $ne: userId } });
+  // 2) Render template using tour data
+  res.status(200).render("browseNewEvents", {
+    title: "Browse Events",
+    events: events,
+  });
+});
+
 exports.editEvent = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
 

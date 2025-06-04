@@ -9,6 +9,8 @@ import {
   createEventPubJs,
   updateEventPubJs,
   deleteEventPubJs,
+  eventCreateBookingPubJs,
+  eventCancelBookingPubJs,
 } from "./eventsPubJs";
 import {
   createUserPubJs,
@@ -36,11 +38,13 @@ const saveEventButton = document.getElementById("saveEventButton");
 const deleteEventButtons = document.querySelectorAll("a.deleteEventButtons");
 const editEventButtons = document.querySelectorAll("a.editEventButtons");
 
-//******************** User Elements for editing profile, booking and cencelling events
+// User Elements for editing profile, booking and cencelling events
 const saveAcDetailsButton = document.getElementById("saveAcDetailsButton");
 const updatePasswordButton = document.getElementById("updatePasswordButton");
 const forgotPasswordLink = document.getElementById("forgotPasswordLink");
 const resetPasswordButton = document.getElementById("resetPasswordButton");
+const bookEventButtons = document.querySelectorAll("a.bookEventButtons");
+const cancelEventButtons = document.querySelectorAll("a.cancelEventButtons");
 
 //******************** Authorization functions
 if (logInButton)
@@ -228,3 +232,21 @@ if (resetPasswordButton)
     data.resetToken = document.getElementById("resetToken").textContent;
     resetPasswordPubJs(data);
   });
+
+if (bookEventButtons)
+  bookEventButtons.forEach((item) =>
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      const eventId = e.target.parentElement.querySelector(".eventId");
+      eventCreateBookingPubJs(eventId.textContent);
+    })
+  );
+
+if (cancelEventButtons)
+  cancelEventButtons.forEach((item) =>
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      const eventId = e.target.parentElement.querySelector(".eventId");
+      eventCancelBookingPubJs(eventId.textContent);
+    })
+  );

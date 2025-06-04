@@ -56,6 +56,12 @@
   margin-left: auto;
 }
 
+.main {
+  display: block;
+  unicode-bidi: isolate;
+  background-color: #fdf2e9;
+}
+
 .main-nav-list.l1:first-child {
   margin-right: auto;
 }

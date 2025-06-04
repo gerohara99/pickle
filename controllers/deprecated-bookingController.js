@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 exports.createBooking = catchAsync(async (req, res, next) => {
   // 1) CONDUCT VALIDATIONS
   // Check for Duplicate Booking
-  if (req.body.bookings.includes(req.userId)) {
+  if (req.body.bookings.includes(req.user.id)) {
     return next(
       new AppError("You have already made a booking for this event.", 400)
     );
@@ -18,7 +18,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
 
   // UPDATE EVENT WITH BOOKING
   let newBookings = req.body.bookings;
-  newBookings.push(new mongoose.Types.ObjectId(req.body.userId));
+  newBookings.push(new mongoose.Types.ObjectId(req.user.id));
   await Event.findByIdAndUpdate(req.body.eventId, {
     bookings: newBookings,
     runValidators: false,
