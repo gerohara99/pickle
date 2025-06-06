@@ -73,21 +73,4 @@ router.get(
   viewsController.editEvent
 );
 
-//Locations
-router.get(
-  "/locations/showAll",
-  authController.isLoggedIn,
-  viewsController.showAllLocations
-);
-router.get(
-  "/locations/create",
-  authController.protect,
-  viewsController.createLocation
-);
-router.get(
-  "/locations/get/:id",
-  authController.isLoggedIn,
-  viewsController.editLocation
-);
-
 module.exports = router;

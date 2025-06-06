@@ -18,24 +18,19 @@ const eventSchema = new mongoose.Schema(
       type: String,
       //required: [true, "Please enter an organiser name for the event"],
     },
-    eventDurationMins: {
-      type: Number,
-      /* required: [
-      true,
-      "Please enter a value for duration of an event in minutes",
-    ], */
-      default: 60,
-    },
-    gameDurationMins: {
-      type: Number,
-      //required: [true, "Please enter a value for duration of a game in minutes"],
-      default: 10,
-    },
-    numOfRounds: {
-      type: Number,
-    },
+    eventSchedule: [
+      {
+        round: { type: Number },
+        players: [
+          {
+            playerA: { type: mongoose.Schema.ObjectId },
+            playerB: { type: mongoose.Schema.ObjectId },
+          },
+        ],
+        standouts: [{ standOut: { type: mongoose.Schema.ObjectId } }],
+      },
+    ],
     bookings: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
-    location: { type: mongoose.Schema.ObjectId, ref: "Location" },
   },
   {
     // enable virtual fields

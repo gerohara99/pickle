@@ -3,12 +3,13 @@ const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const mongoose = require("mongoose");
+const pickleScheduler = require("../public/js/pickleScheduler");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   const userId = req.session.userId;
   const eventId = req.body.eventId;
 
-  const event = await Event.findById(eventId);
+  let event = await Event.findById(eventId);
   if (!event) {
     return next(new AppError("No event found with that ID", 404));
   }
@@ -26,6 +27,12 @@ exports.createBooking = catchAsync(async (req, res, next) => {
     bookings: newBookings,
     runValidators: false,
   });
+
+  // If this booking fills up the event then it's time to schedule it
+  event = await Event.findById(eventId);
+  if (event.bookings.length == process.env.NUM_PLAYERS) {
+    scheduleEvent(event, 201, req, res);
+  }
 
   res.status(200).json({
     status: "Booking successfully created",
@@ -55,6 +62,16 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     data: { booking: req.body.userId },
   });
 });
+
+exports.scheduleEvent = catchAsync(
+  async (event, statusCode, req, res, next) => {
+    res.status(statusCode).json({
+      status: "success",
+      token,
+      data: { event },
+    });
+  }
+);
 
 exports.getEvent = factory.getOne(Event);
 exports.getAllEvents = factory.getAll(Event);

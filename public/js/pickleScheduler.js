@@ -60,7 +60,7 @@ exports.const = generateSchedulePubJs = (availablePairings, standOuts) => {
 
   for (let i = 0; i < standOuts.length; i++) {
     let pairingsUsed = 0;
-    let pairings = [{}];
+    let pairings = [];
     for (let j = 0; j < availablePairing.length; j++) {
       if (
         !standOuts[i].includes(availablePairing[j].playerA) &&
@@ -88,17 +88,23 @@ exports.const = generateSchedulePubJs = (availablePairings, standOuts) => {
   return schedule;
 };
 
-const playersList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-let standOuts = [];
-const numStandOuts = 3;
-const numOfRounds = 11;
-const numPairings = 4;
+exports.const = main = (event) => {
+  const playersList = event.bookings;
+  let standOuts = [];
+  const numStandOuts = process.env.NUM_STANDOUTS;
+  const numOfRounds = process.env.NUM_OF_ROUNDS;
+  const numPairings = process.env.NUM_PAIRINGS;
 
-standOuts = generateStandOutsPubJs(playersList, numOfRounds, numStandOuts);
-availablePairings = generateAvailablePairingsPubJs(playersList);
-schedule = generateSchedulePubJs(availablePairings, standOuts, numPairings);
+  console.log("Inside scheduler !!!!!");
+  console.log("Event:", event);
+  console.log(playersList);
+  console.log(numStandOuts, numOfRounds, numPairings);
 
-const values = Object.values(schedule.rounds);
-for (const round of values) {
-  console.log(round);
-}
+  //const playersList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+  //standOuts = generateStandOutsPubJs(playersList, numOfRounds, numStandOuts);
+  //availablePairings = generateAvailablePairingsPubJs(playersList);
+  //schedule = generateSchedulePubJs(availablePairings, standOuts, numPairings);
+
+  return schedule;
+};

@@ -2,7 +2,6 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
 const Event = require("../models/eventModel");
-const Location = require("../models/locationModel");
 
 // Display HOMEPAGE
 exports.getHomePage = catchAsync(async (req, res, next) => {
@@ -132,37 +131,5 @@ exports.editEvent = catchAsync(async (req, res, next) => {
   res.status(200).render("editEvent", {
     title: `${event.eventName} Event`,
     event,
-  });
-});
-
-// LOCATION FUNCTIONALITY
-exports.createLocation = (req, res) => {
-  res.status(200).render("createLocation", {
-    title: "Location",
-  });
-};
-
-exports.showAllLocations = catchAsync(async (req, res, next) => {
-  // 1) Get data from collection
-  const locations = await Location.find();
-  // 2) Render template using tour data
-  res.status(200).render("showAllLocations", {
-    title: "All Locations",
-    locations: locations,
-  });
-});
-
-exports.editLocation = catchAsync(async (req, res, next) => {
-  // 1) Get data from collection
-  const location = await Location.findOne({ id: req.params._id });
-
-  if (!location) {
-    return next(new AppError("There is no location with that name", 404));
-  }
-
-  // 3) Render template using tour data
-  res.status(200).render("editLocation", {
-    title: `${location.locationName} Location`,
-    location,
   });
 });

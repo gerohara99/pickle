@@ -71,8 +71,11 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError("Inccorect email or password", 401));
   }
 
+  //  3) Setup re session variables
   req.session.userId = user._id;
-  // 3) If everything is ok send token to the client
+  req.session.role = user.role;
+
+  // 4) If everything is ok send token to the client
   createSendToken(user._id, 200, req, res);
 });
 
@@ -82,6 +85,8 @@ exports.logout = (req, res) => {
     httpOnly: true,
   });
   req.session.userId = undefined;
+  req.session.role = undefined;
+  res.locals.user = undefined;
   res.status(200).json({ status: "success" });
 };
 
