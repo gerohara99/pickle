@@ -1,0 +1,12 @@
+/*********************************/
+/* Events                        */
+/*********************************/
+
+/* See general.css for how tbles are formatted. */
+
+.schedule-table {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 2rem;
+  row-gap: 1rem;
+}

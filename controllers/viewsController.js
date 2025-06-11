@@ -133,3 +133,18 @@ exports.editEvent = catchAsync(async (req, res, next) => {
     event,
   });
 });
+
+exports.viewSchedule = catchAsync(async (req, res, next) => {
+  // 1) Get event data from collection
+  const event = await Event.findOne({ _id: req.params.id });
+
+  if (!event) {
+    return next(new AppError("There is no event with that name", 404));
+  }
+
+  // 3) Render template using tour data
+  res.status(200).render("viewSchedule", {
+    title: `${event.eventName} Event`,
+    event,
+  });
+});

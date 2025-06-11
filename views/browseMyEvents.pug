@@ -6,16 +6,20 @@ block content
 			div(class="container")
 				div(class="eventContainer")
 					each event in events
-						div(class="eventCard")
-							p(class="event-title event-content")=`${event.eventName}`
-							p(class="event-title") Location Hardcoded
+						div(class="eventCardHeader")
 							- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
 							- const eventDate = event.eventDate.toLocaleDateString(undefined, options);
-							p(class="event-attribute")=`${eventDate}`
-							p(class="event-attribute")=`${event.eventStartTime}`
+							p(class="event-attribute") When :
+								span(class="event-attribute")=`${eventDate}`
+								span() @ 
+								span(class="event-attribute")=`${event.eventStartTime}`
+							p(class="event-attribute") Where:
+								span()=`${event.eventLocation}`
 							p(class="event-title") Players
-								each booking in event.bookings
-									p(class="event-attribute")=booking.name
+								div(class="eventCardDetails")
+									each booking in event.bookings
+										p(class="event-attribute")=booking.name
 							div(class="button-container")
+								a(class="btn btn--outline viewScheduleButtons" href="#") Schedule
 								a(class="btn btn--outline cancelEventButtons" href="#") Cancel
 									p(class="hiddenField eventId")=`${event._id}`

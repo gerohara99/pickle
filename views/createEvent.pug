@@ -8,7 +8,6 @@ block content
 				div(class="createEvent")
 					div(class="createEvent-text-box") 
 						h1(class="heading-secondary") Create a Pickle Ball Event !!
-						p(class="createEvent-text") The "go to" place to book all your pickle ball games
 
 						form(class="createEvent-form")
 							div
@@ -17,6 +16,9 @@ block content
 							div
 								label(for="eventLocation") Event location
 								input(name="eventLocation" type="text" id="eventLocation" required)
+							div
+								label(for="eventZipCode") Event location Eircode
+								input(name="eventZipCode" type="text" id="eventZipCode")
 							div 
 								label(for="eventDate") Event date
 								input(name="eventDate" type="date" id="eventDate" required)
@@ -26,6 +28,19 @@ block content
 							div 
 								label(for="eventOrganiser") Event organiser
 								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
+							div 
+								label(for="eventNumOfPLayers") Number of players in the event
+								input(name="eventNumOfPLayers" type="number" id="eventNumOfPlayers" value=`${process.env.NUM_OF_PLAYERS}` required)
+							div 
+								label(for="eventNumOfStandOuts") Number of players resting per round
+								input(name="eventNumOfStandOuts" type="number" id="eventNumOfStandOuts" value=`${process.env.NUM_OF_STANDOUTS}` required)
+							div 
+								label(for="eventNumOfPairings") Number of pairings per round
+								input(name="eventNumOfPairings" type="number" id="eventNumOfPairings"  value=`${process.env.NUM_OF_PAIRINGS}` required)
+							div 
+								label(for="eventNumOfRounds") Number of rounds in the event
+								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=`${process.env.NUM_OF_ROUNDS}` required)
+
 						div(class="button-container")
 							div 
 								a(class="btn btn--form" id="createEventButton" href="#") Create

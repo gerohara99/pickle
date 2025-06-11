@@ -5,14 +5,10 @@ const authController = require("../controllers/authController");
 const router = express.Router();
 
 //Homepage
-router.get("/", authController.isLoggedIn, viewsController.getHomePage);
+router.get("/", viewsController.getHomePage);
 
 //Indivdiual users
-router.get(
-  "/me/login",
-  authController.isLoggedIn,
-  viewsController.getLoginForm
-);
+router.get("/me/login", viewsController.getLoginForm);
 router.get("/me/signup", viewsController.getsignupForm);
 router.get(
   "/me/myAccountDetails",
@@ -51,7 +47,7 @@ router.get(
 );
 
 router.get(
-  "/events/newBrowse",
+  "/events/browseNew",
   authController.isLoggedIn,
   viewsController.browseNewEvents
 );
@@ -71,6 +67,12 @@ router.get(
   "/events/get/:id",
   authController.isLoggedIn,
   viewsController.editEvent
+);
+
+router.get(
+  "/events/viewSchedule/:id",
+  authController.isLoggedIn,
+  viewsController.viewSchedule
 );
 
 module.exports = router;

@@ -1,0 +1,17 @@
+extends base
+
+block content
+
+	main.main
+		section(class="section-list")
+			div(class="container")
+				div(class="schedule-table")
+					p(class="subheading")="Pairing 1"
+					p(class="subheading")="Pairing 2"
+					p(class="subheading")="Pairing 3"
+					p(class="subheading")="Pairing 4"
+						each schedule in event.schedule
+							each pairing in schedule.pairings
+								div(class="table-row")
+									p(class="listItemText")=`${pairing.playerA}`
+									p(class="listItemText")=`${pairing.playerB}`

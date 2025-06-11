@@ -45,6 +45,7 @@ const forgotPasswordLink = document.getElementById("forgotPasswordLink");
 const resetPasswordButton = document.getElementById("resetPasswordButton");
 const bookEventButtons = document.querySelectorAll("a.bookEventButtons");
 const cancelEventButtons = document.querySelectorAll("a.cancelEventButtons");
+const viewScheduleButtons = document.querySelectorAll("a.viewScheduleButtons");
 
 //******************** Authorization functions
 if (logInButton)
@@ -145,12 +146,23 @@ if (createUserButton)
 if (createEventButton)
   createEventButton.addEventListener("click", (e) => {
     e.preventDefault();
-    const eventName = document.getElementById("eventName").value;
-    const eventLocation = document.getElementById("eventLocation").value;
-    const eventDate = document.getElementById("eventDate").value;
-    const eventStartTime = document.getElementById("eventStartTime").value;
-    const eventOrganiser = document.getElementById("eventOrganiser").value;
-    createEventPubJs(eventName, eventDate, eventStartTime, eventOrganiser);
+    let data = {};
+    data.eventName = document.getElementById("eventName").value;
+    data.eventLocation = document.getElementById("eventLocation").value;
+    data.eventDate = document.getElementById("eventDate").value;
+    data.eventStartTime = document.getElementById("eventStartTime").value;
+    data.eventOrganiser = document.getElementById("eventOrganiser").value;
+    data.eventNumOfPlayers = document.getElementById("eventNumOfPlayers").value;
+    data.eventNumOfStandOuts = document.getElementById(
+      "eventNumOfStandOuts"
+    ).value;
+    data.eventNumOfStandOuts = document.getElementById(
+      "eventNumOfStandOuts"
+    ).value;
+    data.eventNumOfPairings =
+      document.getElementById("eventNumOfPairings").value;
+    data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
+    createEventPubJs(data);
   });
 
 if (editEventButtons)
@@ -174,19 +186,23 @@ if (deleteEventButtons)
 
 if (saveEventButton)
   saveEventButton.addEventListener("click", (e) => {
+    let data = {};
     e.preventDefault();
-    const eventId = document.getElementById("eventId").textContent;
-    const eventName = document.getElementById("eventName").value;
-    const eventDate = document.getElementById("eventDate").value;
-    const eventStartTime = document.getElementById("eventStartTime").value;
-    const eventOrganiser = document.getElementById("eventOrganiser").value;
-    updateEventPubJs(
-      eventId,
-      eventName,
-      eventDate,
-      eventStartTime,
-      eventOrganiser
-    );
+    data.eventId = document.getElementById("eventId").textContent;
+    data.eventName = document.getElementById("eventName").value;
+    data.evenLocation = document.getElementById("eventLocation").value;
+    data.eventZipCode = document.getElementById("eventZipCode").value;
+    data.eventDate = document.getElementById("eventDate").value;
+    data.eventStartTime = document.getElementById("eventStartTime").value;
+    data.eventOrganiser = document.getElementById("eventOrganiser").value;
+    data.eventNumOfPlayers = document.getElementById("eventNumOfPlayers").value;
+    data.eventNumOfStandOuts = document.getElementById(
+      "eventNumOfStandOuts"
+    ).value;
+    data.eventNumOfPairings =
+      document.getElementById("eventNumOfPairings").value;
+    data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
+    updateEventPubJs(data);
   });
 
 /******** User functions    ************************/
@@ -200,6 +216,7 @@ if (saveAcDetailsButton)
     data.userId = document.getElementById("userId").textContent;
     const type = "account";
     updateAc(data, type);
+    location.assign("/events/browseNew");
   });
 
 if (updatePasswordButton)
@@ -213,6 +230,7 @@ if (updatePasswordButton)
     data.userId = document.getElementById("userId").textContent;
     const type = "password";
     updateAc(data, type);
+    location.assign("/events/browseNew");
   });
 
 if (forgotPasswordLink)
@@ -248,5 +266,16 @@ if (cancelEventButtons)
       e.preventDefault();
       const eventId = e.target.parentElement.querySelector(".eventId");
       eventCancelBookingPubJs(eventId.textContent);
+    })
+  );
+
+if (viewScheduleButtons)
+  viewScheduleButtons.forEach((item) =>
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      const eventId = e.target.parentElement.querySelector(".eventId");
+      console.log("Event Id from index.js: ", eventId.textContent);
+      const locationPath = "/events/viewSchedule/" + eventId.textContent;
+      location.assign(locationPath);
     })
   );

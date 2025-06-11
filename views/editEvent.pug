@@ -7,12 +7,17 @@ block content
 			div(class="editEvent")
 				div(class="editEvent-text-box") 
 					h1(class="heading-secondary") Edit Event
-					p(class="editEvent-text") The "go to" place to book all your pickle ball games
 
 					form(class="editEvent-form")
 						div
 							label(for="eventName") Event name
 							input(name="eventName" type="text" value=`${event.eventName}` id="eventName" required)
+						div
+							label(for="eventLocation") Event Location
+							input(name="eventLocation" type="text" value=`${event.eventLocation}` id="eventLocation" required)
+						div
+							label(for="eventZipCode") Location Eircode
+							input(name="eventZipCode" type="text" value=`${event.eventZipCode}` id="eventZipCode")
 						div 
 							- const year = event.eventDate.toLocaleString("default", { year: "numeric" });
 							- const  month = event.eventDate.toLocaleString("default", { month: "2-digit" });
@@ -26,6 +31,19 @@ block content
 						div 
 							label(for="eventOrganiser") Event Organiser
 							input(name="eventOrganiser" type="text" value=`${event.eventOrganiser}` id="eventOrganiser" required)
+						div 
+							label(for="eventNumOfPLayers") Number of players in the event
+							input(name="eventNumOfPLayers" type="number" value=`${event.eventNumOfPlayers}` id="eventNumOfPlayers" required)
+						div 
+							label(for="eventNumOfStandOuts") Number of players resting per round
+							input(name="eventNumOfStandOuts" type="number" value=`${event.eventNumOfStandOuts}` id="eventNumOfStandOuts" required)
+						div 
+							label(for="eventNumOfPairings") Number of pairings per round
+							input(name="eventNumOfPairings" type="number" value=`${event.eventNumOfPairings}` id="eventNumOfPairings" required)
+						div 
+							label(for="eventNumOfRounds") Number of rounds in the event
+							input(name="eventNumOfRounds" type="number" value=`${event.eventNumOfRounds}` id="eventNumOfRounds" required)
+
 						p(class="hiddenField" id="eventId")=`${event._id}`
 					div(class="button-container")
 						div 

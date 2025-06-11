@@ -9177,7 +9177,7 @@ function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyri
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; } /* eslint-disable */
 var createEventPubJs = exports.createEventPubJs = /*#__PURE__*/function () {
-  var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(eventName, eventDate, eventStartTime, eventOrganiser) {
+  var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(data) {
     var res;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
@@ -9187,12 +9187,7 @@ var createEventPubJs = exports.createEventPubJs = /*#__PURE__*/function () {
           return (0, _axios.default)({
             method: "POST",
             url: "/api/v1/events",
-            data: {
-              eventName: eventName,
-              eventDate: eventDate,
-              eventStartTime: eventStartTime,
-              eventOrganiser: eventOrganiser
-            }
+            data: data
           });
         case 3:
           res = _context.sent;
@@ -9214,12 +9209,12 @@ var createEventPubJs = exports.createEventPubJs = /*#__PURE__*/function () {
       }
     }, _callee, null, [[0, 7]]);
   }));
-  return function createEventPubJs(_x, _x2, _x3, _x4) {
+  return function createEventPubJs(_x) {
     return _ref.apply(this, arguments);
   };
 }();
 var updateEventPubJs = exports.updateEventPubJs = /*#__PURE__*/function () {
-  var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(eventId, eventName, eventDate, eventStartTime, eventOrganiser) {
+  var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(data) {
     var res;
     return _regeneratorRuntime().wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
@@ -9228,13 +9223,8 @@ var updateEventPubJs = exports.updateEventPubJs = /*#__PURE__*/function () {
           _context2.next = 3;
           return (0, _axios.default)({
             method: "PATCH",
-            url: "/api/v1/events/".concat(eventId),
-            data: {
-              eventName: eventName,
-              eventDate: eventDate,
-              eventStartTime: eventStartTime,
-              eventOrganiser: eventOrganiser
-            }
+            url: "/api/v1/events/".concat(data.eventId),
+            data: data
           });
         case 3:
           res = _context2.sent;
@@ -9256,7 +9246,7 @@ var updateEventPubJs = exports.updateEventPubJs = /*#__PURE__*/function () {
       }
     }, _callee2, null, [[0, 7]]);
   }));
-  return function updateEventPubJs(_x5, _x6, _x7, _x8, _x9) {
+  return function updateEventPubJs(_x2) {
     return _ref2.apply(this, arguments);
   };
 }();
@@ -9292,7 +9282,7 @@ var deleteEventPubJs = exports.deleteEventPubJs = /*#__PURE__*/function () {
       }
     }, _callee3, null, [[0, 7]]);
   }));
-  return function deleteEventPubJs(_x10) {
+  return function deleteEventPubJs(_x3) {
     return _ref3.apply(this, arguments);
   };
 }();
@@ -9331,7 +9321,7 @@ var eventCreateBookingPubJs = exports.eventCreateBookingPubJs = /*#__PURE__*/fun
       }
     }, _callee4, null, [[0, 7]]);
   }));
-  return function eventCreateBookingPubJs(_x11) {
+  return function eventCreateBookingPubJs(_x4) {
     return _ref4.apply(this, arguments);
   };
 }();
@@ -9370,7 +9360,7 @@ var eventCancelBookingPubJs = exports.eventCancelBookingPubJs = /*#__PURE__*/fun
       }
     }, _callee5, null, [[0, 7]]);
   }));
-  return function eventCancelBookingPubJs(_x12) {
+  return function eventCancelBookingPubJs(_x5) {
     return _ref5.apply(this, arguments);
   };
 }();
@@ -9904,6 +9894,7 @@ var forgotPasswordLink = document.getElementById("forgotPasswordLink");
 var resetPasswordButton = document.getElementById("resetPasswordButton");
 var bookEventButtons = document.querySelectorAll("a.bookEventButtons");
 var cancelEventButtons = document.querySelectorAll("a.cancelEventButtons");
+var viewScheduleButtons = document.querySelectorAll("a.viewScheduleButtons");
 
 //******************** Authorization functions
 if (logInButton) logInButton.addEventListener("click", function (e) {
@@ -9975,12 +9966,18 @@ if (createUserButton) createUserButton.addEventListener("click", function (e) {
 
 if (createEventButton) createEventButton.addEventListener("click", function (e) {
   e.preventDefault();
-  var eventName = document.getElementById("eventName").value;
-  var eventLocation = document.getElementById("eventLocation").value;
-  var eventDate = document.getElementById("eventDate").value;
-  var eventStartTime = document.getElementById("eventStartTime").value;
-  var eventOrganiser = document.getElementById("eventOrganiser").value;
-  (0, _eventsPubJs.createEventPubJs)(eventName, eventDate, eventStartTime, eventOrganiser);
+  var data = {};
+  data.eventName = document.getElementById("eventName").value;
+  data.eventLocation = document.getElementById("eventLocation").value;
+  data.eventDate = document.getElementById("eventDate").value;
+  data.eventStartTime = document.getElementById("eventStartTime").value;
+  data.eventOrganiser = document.getElementById("eventOrganiser").value;
+  data.eventNumOfPlayers = document.getElementById("eventNumOfPlayers").value;
+  data.eventNumOfStandOuts = document.getElementById("eventNumOfStandOuts").value;
+  data.eventNumOfStandOuts = document.getElementById("eventNumOfStandOuts").value;
+  data.eventNumOfPairings = document.getElementById("eventNumOfPairings").value;
+  data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
+  (0, _eventsPubJs.createEventPubJs)(data);
 });
 if (editEventButtons) editEventButtons.forEach(function (item) {
   return item.addEventListener("click", function (e) {
@@ -9998,13 +9995,20 @@ if (deleteEventButtons) deleteEventButtons.forEach(function (item) {
   });
 });
 if (saveEventButton) saveEventButton.addEventListener("click", function (e) {
+  var data = {};
   e.preventDefault();
-  var eventId = document.getElementById("eventId").textContent;
-  var eventName = document.getElementById("eventName").value;
-  var eventDate = document.getElementById("eventDate").value;
-  var eventStartTime = document.getElementById("eventStartTime").value;
-  var eventOrganiser = document.getElementById("eventOrganiser").value;
-  (0, _eventsPubJs.updateEventPubJs)(eventId, eventName, eventDate, eventStartTime, eventOrganiser);
+  data.eventId = document.getElementById("eventId").textContent;
+  data.eventName = document.getElementById("eventName").value;
+  data.evenLocation = document.getElementById("eventLocation").value;
+  data.eventZipCode = document.getElementById("eventZipCode").value;
+  data.eventDate = document.getElementById("eventDate").value;
+  data.eventStartTime = document.getElementById("eventStartTime").value;
+  data.eventOrganiser = document.getElementById("eventOrganiser").value;
+  data.eventNumOfPlayers = document.getElementById("eventNumOfPlayers").value;
+  data.eventNumOfStandOuts = document.getElementById("eventNumOfStandOuts").value;
+  data.eventNumOfPairings = document.getElementById("eventNumOfPairings").value;
+  data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
+  (0, _eventsPubJs.updateEventPubJs)(data);
 });
 
 /******** User functions    ************************/
@@ -10017,6 +10021,7 @@ if (saveAcDetailsButton) saveAcDetailsButton.addEventListener("click", function 
   data.userId = document.getElementById("userId").textContent;
   var type = "account";
   (0, _updateAc.updateAc)(data, type);
+  location.assign("/events/browseNew");
 });
 if (updatePasswordButton) updatePasswordButton.addEventListener("click", function (e) {
   e.preventDefault();
@@ -10027,6 +10032,7 @@ if (updatePasswordButton) updatePasswordButton.addEventListener("click", functio
   data.userId = document.getElementById("userId").textContent;
   var type = "password";
   (0, _updateAc.updateAc)(data, type);
+  location.assign("/events/browseNew");
 });
 if (forgotPasswordLink) forgotPasswordLink.addEventListener("click", function (e) {
   e.preventDefault();
@@ -10056,6 +10062,15 @@ if (cancelEventButtons) cancelEventButtons.forEach(function (item) {
     (0, _eventsPubJs.eventCancelBookingPubJs)(eventId.textContent);
   });
 });
+if (viewScheduleButtons) viewScheduleButtons.forEach(function (item) {
+  return item.addEventListener("click", function (e) {
+    e.preventDefault();
+    var eventId = e.target.parentElement.querySelector(".eventId");
+    console.log("Event Id from index.js: ", eventId.textContent);
+    var locationPath = "/events/viewSchedule/" + eventId.textContent;
+    location.assign(locationPath);
+  });
+});
 },{"core-js/modules/es6.array.copy-within.js":"../../node_modules/core-js/modules/es6.array.copy-within.js","core-js/modules/es6.array.fill.js":"../../node_modules/core-js/modules/es6.array.fill.js","core-js/modules/es6.array.filter.js":"../../node_modules/core-js/modules/es6.array.filter.js","core-js/modules/es6.array.find.js":"../../node_modules/core-js/modules/es6.array.find.js","core-js/modules/es6.array.find-index.js":"../../node_modules/core-js/modules/es6.array.find-index.js","core-js/modules/es7.array.flat-map.js":"../../node_modules/core-js/modules/es7.array.flat-map.js","core-js/modules/es6.array.from.js":"../../node_modules/core-js/modules/es6.array.from.js","core-js/modules/es7.array.includes.js":"../../node_modules/core-js/modules/es7.array.includes.js","core-js/modules/es6.array.iterator.js":"../../node_modules/core-js/modules/es6.array.iterator.js","core-js/modules/es6.array.map.js":"../../node_modules/core-js/modules/es6.array.map.js","core-js/modules/es6.array.of.js":"../../node_modules/core-js/modules/es6.array.of.js","core-js/modules/es6.array.slice.js":"../../node_modules/core-js/modules/es6.array.slice.js","core-js/modules/es6.array.species.js":"../../node_modules/core-js/modules/es6.array.species.js","core-js/modules/es6.date.to-primitive.js":"../../node_modules/core-js/modules/es6.date.to-primitive.js","core-js/modules/es6.function.has-instance.js":"../../node_modules/core-js/modules/es6.function.has-instance.js","core-js/modules/es6.function.name.js":"../../node_modules/core-js/modules/es6.function.name.js","core-js/modules/es6.map.js":"../../node_modules/core-js/modules/es6.map.js","core-js/modules/es6.math.acosh.js":"../../node_modules/core-js/modules/es6.math.acosh.js","core-js/modules/es6.math.asinh.js":"../../node_modules/core-js/modules/es6.math.asinh.js","core-js/modules/es6.math.atanh.js":"../../node_modules/core-js/modules/es6.math.atanh.js","core-js/modules/es6.math.cbrt.js":"../../node_modules/core-js/modules/es6.math.cbrt.js","core-js/modules/es6.math.clz32.js":"../../node_modules/core-js/modules/es6.math.clz32.js","core-js/modules/es6.math.cosh.js":"../../node_modules/core-js/modules/es6.math.cosh.js","core-js/modules/es6.math.expm1.js":"../../node_modules/core-js/modules/es6.math.expm1.js","core-js/modules/es6.math.fround.js":"../../node_modules/core-js/modules/es6.math.fround.js","core-js/modules/es6.math.hypot.js":"../../node_modules/core-js/modules/es6.math.hypot.js","core-js/modules/es6.math.imul.js":"../../node_modules/core-js/modules/es6.math.imul.js","core-js/modules/es6.math.log1p.js":"../../node_modules/core-js/modules/es6.math.log1p.js","core-js/modules/es6.math.log10.js":"../../node_modules/core-js/modules/es6.math.log10.js","core-js/modules/es6.math.log2.js":"../../node_modules/core-js/modules/es6.math.log2.js","core-js/modules/es6.math.sign.js":"../../node_modules/core-js/modules/es6.math.sign.js","core-js/modules/es6.math.sinh.js":"../../node_modules/core-js/modules/es6.math.sinh.js","core-js/modules/es6.math.tanh.js":"../../node_modules/core-js/modules/es6.math.tanh.js","core-js/modules/es6.math.trunc.js":"../../node_modules/core-js/modules/es6.math.trunc.js","core-js/modules/es6.number.constructor.js":"../../node_modules/core-js/modules/es6.number.constructor.js","core-js/modules/es6.number.epsilon.js":"../../node_modules/core-js/modules/es6.number.epsilon.js","core-js/modules/es6.number.is-finite.js":"../../node_modules/core-js/modules/es6.number.is-finite.js","core-js/modules/es6.number.is-integer.js":"../../node_modules/core-js/modules/es6.number.is-integer.js","core-js/modules/es6.number.is-nan.js":"../../node_modules/core-js/modules/es6.number.is-nan.js","core-js/modules/es6.number.is-safe-integer.js":"../../node_modules/core-js/modules/es6.number.is-safe-integer.js","core-js/modules/es6.number.max-safe-integer.js":"../../node_modules/core-js/modules/es6.number.max-safe-integer.js","core-js/modules/es6.number.min-safe-integer.js":"../../node_modules/core-js/modules/es6.number.min-safe-integer.js","core-js/modules/es6.number.parse-float.js":"../../node_modules/core-js/modules/es6.number.parse-float.js","core-js/modules/es6.number.parse-int.js":"../../node_modules/core-js/modules/es6.number.parse-int.js","core-js/modules/es6.object.assign.js":"../../node_modules/core-js/modules/es6.object.assign.js","core-js/modules/es7.object.define-getter.js":"../../node_modules/core-js/modules/es7.object.define-getter.js","core-js/modules/es7.object.define-setter.js":"../../node_modules/core-js/modules/es7.object.define-setter.js","core-js/modules/es7.object.entries.js":"../../node_modules/core-js/modules/es7.object.entries.js","core-js/modules/es6.object.freeze.js":"../../node_modules/core-js/modules/es6.object.freeze.js","core-js/modules/es6.object.get-own-property-descriptor.js":"../../node_modules/core-js/modules/es6.object.get-own-property-descriptor.js","core-js/modules/es7.object.get-own-property-descriptors.js":"../../node_modules/core-js/modules/es7.object.get-own-property-descriptors.js","core-js/modules/es6.object.get-own-property-names.js":"../../node_modules/core-js/modules/es6.object.get-own-property-names.js","core-js/modules/es6.object.get-prototype-of.js":"../../node_modules/core-js/modules/es6.object.get-prototype-of.js","core-js/modules/es7.object.lookup-getter.js":"../../node_modules/core-js/modules/es7.object.lookup-getter.js","core-js/modules/es7.object.lookup-setter.js":"../../node_modules/core-js/modules/es7.object.lookup-setter.js","core-js/modules/es6.object.prevent-extensions.js":"../../node_modules/core-js/modules/es6.object.prevent-extensions.js","core-js/modules/es6.object.to-string.js":"../../node_modules/core-js/modules/es6.object.to-string.js","core-js/modules/es6.object.is.js":"../../node_modules/core-js/modules/es6.object.is.js","core-js/modules/es6.object.is-frozen.js":"../../node_modules/core-js/modules/es6.object.is-frozen.js","core-js/modules/es6.object.is-sealed.js":"../../node_modules/core-js/modules/es6.object.is-sealed.js","core-js/modules/es6.object.is-extensible.js":"../../node_modules/core-js/modules/es6.object.is-extensible.js","core-js/modules/es6.object.keys.js":"../../node_modules/core-js/modules/es6.object.keys.js","core-js/modules/es6.object.seal.js":"../../node_modules/core-js/modules/es6.object.seal.js","core-js/modules/es7.object.values.js":"../../node_modules/core-js/modules/es7.object.values.js","core-js/modules/es6.promise.js":"../../node_modules/core-js/modules/es6.promise.js","core-js/modules/es7.promise.finally.js":"../../node_modules/core-js/modules/es7.promise.finally.js","core-js/modules/es6.reflect.apply.js":"../../node_modules/core-js/modules/es6.reflect.apply.js","core-js/modules/es6.reflect.construct.js":"../../node_modules/core-js/modules/es6.reflect.construct.js","core-js/modules/es6.reflect.define-property.js":"../../node_modules/core-js/modules/es6.reflect.define-property.js","core-js/modules/es6.reflect.delete-property.js":"../../node_modules/core-js/modules/es6.reflect.delete-property.js","core-js/modules/es6.reflect.get.js":"../../node_modules/core-js/modules/es6.reflect.get.js","core-js/modules/es6.reflect.get-own-property-descriptor.js":"../../node_modules/core-js/modules/es6.reflect.get-own-property-descriptor.js","core-js/modules/es6.reflect.get-prototype-of.js":"../../node_modules/core-js/modules/es6.reflect.get-prototype-of.js","core-js/modules/es6.reflect.has.js":"../../node_modules/core-js/modules/es6.reflect.has.js","core-js/modules/es6.reflect.is-extensible.js":"../../node_modules/core-js/modules/es6.reflect.is-extensible.js","core-js/modules/es6.reflect.own-keys.js":"../../node_modules/core-js/modules/es6.reflect.own-keys.js","core-js/modules/es6.reflect.prevent-extensions.js":"../../node_modules/core-js/modules/es6.reflect.prevent-extensions.js","core-js/modules/es6.reflect.set.js":"../../node_modules/core-js/modules/es6.reflect.set.js","core-js/modules/es6.reflect.set-prototype-of.js":"../../node_modules/core-js/modules/es6.reflect.set-prototype-of.js","core-js/modules/es6.regexp.constructor.js":"../../node_modules/core-js/modules/es6.regexp.constructor.js","core-js/modules/es6.regexp.flags.js":"../../node_modules/core-js/modules/es6.regexp.flags.js","core-js/modules/es6.regexp.match.js":"../../node_modules/core-js/modules/es6.regexp.match.js","core-js/modules/es6.regexp.replace.js":"../../node_modules/core-js/modules/es6.regexp.replace.js","core-js/modules/es6.regexp.split.js":"../../node_modules/core-js/modules/es6.regexp.split.js","core-js/modules/es6.regexp.search.js":"../../node_modules/core-js/modules/es6.regexp.search.js","core-js/modules/es6.regexp.to-string.js":"../../node_modules/core-js/modules/es6.regexp.to-string.js","core-js/modules/es6.set.js":"../../node_modules/core-js/modules/es6.set.js","core-js/modules/es6.symbol.js":"../../node_modules/core-js/modules/es6.symbol.js","core-js/modules/es7.symbol.async-iterator.js":"../../node_modules/core-js/modules/es7.symbol.async-iterator.js","core-js/modules/es6.string.anchor.js":"../../node_modules/core-js/modules/es6.string.anchor.js","core-js/modules/es6.string.big.js":"../../node_modules/core-js/modules/es6.string.big.js","core-js/modules/es6.string.blink.js":"../../node_modules/core-js/modules/es6.string.blink.js","core-js/modules/es6.string.bold.js":"../../node_modules/core-js/modules/es6.string.bold.js","core-js/modules/es6.string.code-point-at.js":"../../node_modules/core-js/modules/es6.string.code-point-at.js","core-js/modules/es6.string.ends-with.js":"../../node_modules/core-js/modules/es6.string.ends-with.js","core-js/modules/es6.string.fixed.js":"../../node_modules/core-js/modules/es6.string.fixed.js","core-js/modules/es6.string.fontcolor.js":"../../node_modules/core-js/modules/es6.string.fontcolor.js","core-js/modules/es6.string.fontsize.js":"../../node_modules/core-js/modules/es6.string.fontsize.js","core-js/modules/es6.string.from-code-point.js":"../../node_modules/core-js/modules/es6.string.from-code-point.js","core-js/modules/es6.string.includes.js":"../../node_modules/core-js/modules/es6.string.includes.js","core-js/modules/es6.string.italics.js":"../../node_modules/core-js/modules/es6.string.italics.js","core-js/modules/es6.string.iterator.js":"../../node_modules/core-js/modules/es6.string.iterator.js","core-js/modules/es6.string.link.js":"../../node_modules/core-js/modules/es6.string.link.js","core-js/modules/es7.string.pad-start.js":"../../node_modules/core-js/modules/es7.string.pad-start.js","core-js/modules/es7.string.pad-end.js":"../../node_modules/core-js/modules/es7.string.pad-end.js","core-js/modules/es6.string.raw.js":"../../node_modules/core-js/modules/es6.string.raw.js","core-js/modules/es6.string.repeat.js":"../../node_modules/core-js/modules/es6.string.repeat.js","core-js/modules/es6.string.small.js":"../../node_modules/core-js/modules/es6.string.small.js","core-js/modules/es6.string.starts-with.js":"../../node_modules/core-js/modules/es6.string.starts-with.js","core-js/modules/es6.string.strike.js":"../../node_modules/core-js/modules/es6.string.strike.js","core-js/modules/es6.string.sub.js":"../../node_modules/core-js/modules/es6.string.sub.js","core-js/modules/es6.string.sup.js":"../../node_modules/core-js/modules/es6.string.sup.js","core-js/modules/es7.string.trim-left.js":"../../node_modules/core-js/modules/es7.string.trim-left.js","core-js/modules/es7.string.trim-right.js":"../../node_modules/core-js/modules/es7.string.trim-right.js","core-js/modules/es6.typed.array-buffer.js":"../../node_modules/core-js/modules/es6.typed.array-buffer.js","core-js/modules/es6.typed.int8-array.js":"../../node_modules/core-js/modules/es6.typed.int8-array.js","core-js/modules/es6.typed.uint8-array.js":"../../node_modules/core-js/modules/es6.typed.uint8-array.js","core-js/modules/es6.typed.uint8-clamped-array.js":"../../node_modules/core-js/modules/es6.typed.uint8-clamped-array.js","core-js/modules/es6.typed.int16-array.js":"../../node_modules/core-js/modules/es6.typed.int16-array.js","core-js/modules/es6.typed.uint16-array.js":"../../node_modules/core-js/modules/es6.typed.uint16-array.js","core-js/modules/es6.typed.int32-array.js":"../../node_modules/core-js/modules/es6.typed.int32-array.js","core-js/modules/es6.typed.uint32-array.js":"../../node_modules/core-js/modules/es6.typed.uint32-array.js","core-js/modules/es6.typed.float32-array.js":"../../node_modules/core-js/modules/es6.typed.float32-array.js","core-js/modules/es6.typed.float64-array.js":"../../node_modules/core-js/modules/es6.typed.float64-array.js","core-js/modules/es6.weak-map.js":"../../node_modules/core-js/modules/es6.weak-map.js","core-js/modules/es6.weak-set.js":"../../node_modules/core-js/modules/es6.weak-set.js","core-js/modules/web.timers.js":"../../node_modules/core-js/modules/web.timers.js","core-js/modules/web.immediate.js":"../../node_modules/core-js/modules/web.immediate.js","core-js/modules/web.dom.iterable.js":"../../node_modules/core-js/modules/web.dom.iterable.js","regenerator-runtime/runtime.js":"../../node_modules/regenerator-runtime/runtime.js","./login":"login.js","./logout":"logout.js","./signUp":"signUp.js","./_deprecated_adminCreateUser":"_deprecated_adminCreateUser.js","./updateAc":"updateAc.js","./eventsPubJs":"eventsPubJs.js","./usersPubJs":"usersPubJs.js","./forgotPasswordPubJs":"forgotPasswordPubJs.js","./resetPasswordPubJs":"resetPasswordPubJs.js"}],"../../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -10081,7 +10096,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63384" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51935" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

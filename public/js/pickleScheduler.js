@@ -1,4 +1,8 @@
-const generateStandOutsPubJs = (playersList, numOfRounds, numStandOuts) => {
+exports.const = generateStandOutsPubJs = (
+  playersList,
+  numOfRounds,
+  numStandOuts
+) => {
   // Calculate Standouts
   let roundsFilled = false;
   let i = 0;
@@ -85,26 +89,5 @@ exports.const = generateSchedulePubJs = (availablePairings, standOuts) => {
       }
     }
   }
-  return schedule;
-};
-
-exports.const = main = (event) => {
-  const playersList = event.bookings;
-  let standOuts = [];
-  const numStandOuts = process.env.NUM_STANDOUTS;
-  const numOfRounds = process.env.NUM_OF_ROUNDS;
-  const numPairings = process.env.NUM_PAIRINGS;
-
-  console.log("Inside scheduler !!!!!");
-  console.log("Event:", event);
-  console.log(playersList);
-  console.log(numStandOuts, numOfRounds, numPairings);
-
-  //const playersList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-
-  //standOuts = generateStandOutsPubJs(playersList, numOfRounds, numStandOuts);
-  //availablePairings = generateAvailablePairingsPubJs(playersList);
-  //schedule = generateSchedulePubJs(availablePairings, standOuts, numPairings);
-
   return schedule;
 };

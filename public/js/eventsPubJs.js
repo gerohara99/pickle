@@ -3,22 +3,12 @@ import "@babel/polyfill";
 import axios from "axios";
 import { showAlert } from "./alerts";
 
-export const createEventPubJs = async (
-  eventName,
-  eventDate,
-  eventStartTime,
-  eventOrganiser
-) => {
+export const createEventPubJs = async (data) => {
   try {
     const res = await axios({
       method: "POST",
       url: "/api/v1/events",
-      data: {
-        eventName,
-        eventDate,
-        eventStartTime,
-        eventOrganiser,
-      },
+      data: data,
     });
     if (res.data.status === "success") {
       showAlert("success", "Event successfully created");
@@ -32,23 +22,12 @@ export const createEventPubJs = async (
   }
 };
 
-export const updateEventPubJs = async (
-  eventId,
-  eventName,
-  eventDate,
-  eventStartTime,
-  eventOrganiser
-) => {
+export const updateEventPubJs = async (data) => {
   try {
     const res = await axios({
       method: "PATCH",
-      url: `/api/v1/events/${eventId}`,
-      data: {
-        eventName,
-        eventDate,
-        eventStartTime,
-        eventOrganiser,
-      },
+      url: `/api/v1/events/${data.eventId}`,
+      data: data,
     });
     if (res.status === 204) {
       showAlert("success", "Event successfully updated");

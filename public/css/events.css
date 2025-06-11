@@ -140,6 +140,21 @@ eventId {
   padding: 1.6rem;
 }
 
+.eventCardHeader {
+  display: flex;
+  flex-direction: column;
+  background-color: #e67e22;
+  border-radius: 11px;
+  padding: 1.6rem;
+}
+.eventCardDetails {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #e67e22;
+  border-radius: 11px;
+  padding: 1.6rem;
+}
+
 .event-title {
   font-size: 1.8rem;
   color: #333;

@@ -71,10 +71,6 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError("Inccorect email or password", 401));
   }
 
-  //  3) Setup re session variables
-  req.session.userId = user._id;
-  req.session.role = user.role;
-
   // 4) If everything is ok send token to the client
   createSendToken(user._id, 200, req, res);
 });
@@ -114,9 +110,10 @@ exports.isLoggedIn = async (req, res, next) => {
 
       // THERE IS A LOGGED IN USER
       res.locals.user = currentUser;
-      return next();
+      req.session.userId = currentUser.id;
+      req.session.role = currentUser.role;
     } catch (err) {
-      return next();
+      return next(new AppError("Issue with Authentication", 401));
     }
   }
   next();

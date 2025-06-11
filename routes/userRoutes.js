@@ -18,41 +18,33 @@ router.patch(
   authController.updateMyPassword
 );
 
+router.use(authController.protect);
+
 router.get("/me", userController.getMe, userController.getUser);
-router.patch(
-  "/updateAcDetails",
-  authController.protect,
-  userController.updateAcDetails
-);
-/* router.patch("/myPasswordReset", authController.myPasswordReset); */
-router.delete("/deleteMe", authController.protect, userController.deleteMe);
+router.patch("/updateAcDetails", userController.updateAcDetails);
+router.delete("/deleteMe", userController.deleteMe);
 
 router
   .route("/")
   .get(
-    authController.protect,
     authController.restrictTo("clubAdmin", "pickleAdmin"),
     userController.getAllUsers
   )
   .post(
-    authController.protect,
     authController.restrictTo("clubAdmin", "pickleAdmin"),
     userController.createUser
   );
 router
   .route("/:id")
   .get(
-    authController.protect,
     authController.restrictTo("clubAdmin", "pickleAdmin"),
     userController.getUser
   )
   .patch(
-    authController.protect,
     authController.restrictTo("clubAdmin", "pickleAdmin"),
     userController.updateUser
   )
   .delete(
-    authController.protect,
     authController.restrictTo("clubAdmin", "pickleAdmin"),
     userController.deleteUser
   );
