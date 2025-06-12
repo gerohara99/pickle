@@ -20,6 +20,7 @@ block content
 									each booking in event.bookings
 										p(class="event-attribute")=booking.name
 							div(class="button-container")
-								a(class="btn btn--outline viewScheduleButtons" href="#") Schedule
+								if `${event.schedule}`
+									a(class="btn btn--outline viewScheduleButtons" href="#") Schedule
 								a(class="btn btn--outline cancelEventButtons" href="#") Cancel
 									p(class="hiddenField eventId")=`${event._id}`

@@ -42,6 +42,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
 
   await Event.findByIdAndUpdate(req.body.eventId, {
     bookings: newBookings,
+    schedule: [],
     runValidators: false,
   });
 
