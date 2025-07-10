@@ -92,10 +92,7 @@ eventSchema.pre(/^find/, function (next) {
 
 eventSchema.pre(/^find/, function (next) {
   this.populate({
-    path: "standOuts",
-    populate: {
-      path: "schedule.standOuts.standOuts",
-    },
+    path: "schedule.standOuts.standOuts",
   });
   next();
 });
