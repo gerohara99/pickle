@@ -10,8 +10,8 @@ block content
 					p(class="subheading")="Pairing 2"
 					p(class="subheading")="Pairing 3"
 					p(class="subheading")="Pairing 4"
-						each schedule in event.schedule
-							each pairing in schedule.pairings
+						each schedule in event.eventSchedule
+							each pairing in schedule.eventPairings
 								div(class="table-row")
-									p(class="listItemText")=`${pairing.playerA}`
-									p(class="listItemText")=`${pairing.playerB}`
+									p(class="listItemText")=`${pairing.playerA.userName}`
+									p(class="listItemText")=`${pairing.playerB.userName}`

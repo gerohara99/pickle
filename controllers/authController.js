@@ -5,6 +5,7 @@ const User = require("../models/userModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const sendEMail = require("../utils/email");
+const mongoose = require("mongoose");
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -71,6 +72,10 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError("Inccorect email or password", 401));
   }
 
+  req.session.userId = user._id.toString();
+  req.session.userName = user.name;
+  req.session.userRole = user.role;
+
   // 4) If everything is ok send token to the client
   createSendToken(user._id, 200, req, res);
 });
@@ -80,8 +85,6 @@ exports.logout = (req, res) => {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
   });
-  req.session.userId = undefined;
-  req.session.role = undefined;
   res.locals.user = undefined;
   res.status(200).json({ status: "success" });
 };
@@ -110,8 +113,6 @@ exports.isLoggedIn = async (req, res, next) => {
 
       // THERE IS A LOGGED IN USER
       res.locals.user = currentUser;
-      req.session.userId = currentUser.id;
-      req.session.role = currentUser.role;
     } catch (err) {
       return next(new AppError("Issue with Authentication", 401));
     }

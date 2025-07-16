@@ -149,18 +149,16 @@ if (createEventButton)
     let data = {};
     data.eventName = document.getElementById("eventName").value;
     data.eventLocation = document.getElementById("eventLocation").value;
+    data.eventType = document.getElementById("eventType").value;
     data.eventDate = document.getElementById("eventDate").value;
     data.eventStartTime = document.getElementById("eventStartTime").value;
     data.eventOrganiser = document.getElementById("eventOrganiser").value;
-    data.eventNumOfPlayers = document.getElementById("eventNumOfPlayers").value;
-    data.eventNumOfStandOuts = document.getElementById(
-      "eventNumOfStandOuts"
+    data.numOfPairingsPerRound = document.getElementById(
+      "numOfPairingsPerRound"
     ).value;
-    data.eventNumOfStandOuts = document.getElementById(
-      "eventNumOfStandOuts"
+    data.numOfStandOutsPerRound = document.getElementById(
+      "numOfStandOutsPerRound"
     ).value;
-    data.eventNumOfPairings =
-      document.getElementById("eventNumOfPairings").value;
     data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
     createEventPubJs(data);
   });
@@ -190,17 +188,17 @@ if (saveEventButton)
     e.preventDefault();
     data.eventId = document.getElementById("eventId").textContent;
     data.eventName = document.getElementById("eventName").value;
-    data.evenLocation = document.getElementById("eventLocation").value;
-    data.eventZipCode = document.getElementById("eventZipCode").value;
+    data.eventLocation = document.getElementById("eventLocation").value;
+    data.eventType = document.getElementById("eventType").value;
     data.eventDate = document.getElementById("eventDate").value;
     data.eventStartTime = document.getElementById("eventStartTime").value;
     data.eventOrganiser = document.getElementById("eventOrganiser").value;
-    data.eventNumOfPlayers = document.getElementById("eventNumOfPlayers").value;
-    data.eventNumOfStandOuts = document.getElementById(
-      "eventNumOfStandOuts"
+    data.numOfPairingsPerRound = document.getElementById(
+      "numOfPairingsPerRound"
     ).value;
-    data.eventNumOfPairings =
-      document.getElementById("eventNumOfPairings").value;
+    data.numOfStandOutsPerRound = document.getElementById(
+      "numOfStandOutsPerRound"
+    ).value;
     data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
     updateEventPubJs(data);
   });
@@ -274,7 +272,6 @@ if (viewScheduleButtons)
     item.addEventListener("click", (e) => {
       e.preventDefault();
       const eventId = e.target.parentElement.querySelector(".eventId");
-      console.log("Event Id from index.js: ", eventId.textContent);
       const locationPath = "/events/viewSchedule/" + eventId.textContent;
       location.assign(locationPath);
     })

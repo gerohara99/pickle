@@ -16,8 +16,8 @@ block content
 							label(for="eventLocation") Event Location
 							input(name="eventLocation" type="text" value=`${event.eventLocation}` id="eventLocation" required)
 						div
-							label(for="eventZipCode") Location Eircode
-							input(name="eventZipCode" type="text" value=`${event.eventZipCode}` id="eventZipCode")
+							label(for="eventType") Event Type
+							input(name="eventType" type="text" value=`${event.eventType}` id="eventType")
 						div 
 							- const year = event.eventDate.toLocaleString("default", { year: "numeric" });
 							- const  month = event.eventDate.toLocaleString("default", { month: "2-digit" });
@@ -26,20 +26,17 @@ block content
 							label(for="eventDate") Event date
 							input(name="eventDate" type="date" value=`${formattedDate}` id="eventDate" required)
 						div 
-							label(for="eventStartTime") Event time
+							label(for="eventStartTime") Event start time
 							input(name="eventStartTime" type="time" value=`${event.eventStartTime}` id="eventStartTime" required)
 						div 
 							label(for="eventOrganiser") Event Organiser
 							input(name="eventOrganiser" type="text" value=`${event.eventOrganiser}` id="eventOrganiser" required)
 						div 
-							label(for="eventNumOfPLayers") Number of players in the event
-							input(name="eventNumOfPLayers" type="number" value=`${event.eventNumOfPlayers}` id="eventNumOfPlayers" required)
+							label(for="numOfPairingsPerRound") Number of pairings per round 
+							input(name="numOfPairingsPerRound" type="number" value=`${event.numOfPairingsPerRound}` id="numOfPairingsPerRound" required)
 						div 
-							label(for="eventNumOfStandOuts") Number of players resting per round
-							input(name="eventNumOfStandOuts" type="number" value=`${event.eventNumOfStandOuts}` id="eventNumOfStandOuts" required)
-						div 
-							label(for="eventNumOfPairings") Number of pairings per round
-							input(name="eventNumOfPairings" type="number" value=`${event.eventNumOfPairings}` id="eventNumOfPairings" required)
+							label(for="numOfStandOutsPerRound") Number of players resting per round
+							input(name="numOfStandOutsPerRound" type="number" value=`${event.numOfStandOutsPerRound}` id="numOfStandOutsPerRound" required)
 						div 
 							label(for="eventNumOfRounds") Number of rounds in the event
 							input(name="eventNumOfRounds" type="number" value=`${event.eventNumOfRounds}` id="eventNumOfRounds" required)

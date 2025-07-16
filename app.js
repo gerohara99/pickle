@@ -10,13 +10,15 @@ const cookieParser = require("cookie-parser");
 const AppError = require("./utils/appError");
 const compression = require("compression");
 const cors = require("cors");
+
+const session = require("express-session");
+const mongoose = require("mongoose");
+const MongoDBStore = require("connect-mongodb-session")(session);
+
 const globalErrorHandler = require("./controllers/errorController");
 const userRouter = require("./routes/userRoutes");
 const eventRouter = require("./routes/eventRoutes");
 const viewRouter = require("./routes/viewRoutes");
-const mongoose = require("mongoose");
-const MongoStore = require("connect-mongo");
-const session = require("express-session");
 
 //Start express app
 const app = express();
@@ -47,17 +49,28 @@ const clientPromise = mongoose
 
 // ***************** SESSION Setup ***************************************
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const store = new MongoDBStore({
+  uri: DATABASE,
+  collection: "session",
+});
+
+// Catch errors
+store.on("error", function (error) {
+  console.log(error);
+});
+
 app.use(
   session({
     secret: process.env.SESSIONS_SECRET,
-    store: MongoStore.create({
-      clientPromise: clientPromise,
-    }),
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+    },
+    store: store,
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24,
-    },
   })
 );
 

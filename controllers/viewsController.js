@@ -99,7 +99,10 @@ exports.browseMyEvents = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
   const userId = req.session.userId;
 
-  const events = await Event.find({ bookings: { $eq: userId } });
+  const events = await Event.find({
+    "eventBookings.userId": { $in: userId },
+  });
+
   // 2) Render template using tour data
   res.status(200).render("browseMyEvents", {
     title: "Browse Events",
@@ -110,7 +113,9 @@ exports.browseMyEvents = catchAsync(async (req, res, next) => {
 exports.browseNewEvents = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
   const userId = req.session.userId;
-  const events = await Event.find({ bookings: { $ne: userId } });
+  const events = await Event.find({
+    "eventBookings.userId": { $nin: userId },
+  });
   // 2) Render template using tour data
   res.status(200).render("browseNewEvents", {
     title: "Browse Events",

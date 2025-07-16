@@ -17,26 +17,23 @@ block content
 								label(for="eventLocation") Event location
 								input(name="eventLocation" type="text" id="eventLocation" required)
 							div
-								label(for="eventZipCode") Event Type
-								input(name="eventZipCode" type="text" id="eventZipCode")
+								label(for="eventType") Event Type
+								input(name="eventType" type="text" id="eventType")
 							div 
 								label(for="eventDate") Event date
 								input(name="eventDate" type="date" id="eventDate" required)
 							div 
-								label(for="eventStartTime") Event time
+								label(for="eventStartTime") Event start time
 								input(name="eventStartTime" type="time" id="eventStartTime" required)
 							div 
 								label(for="eventOrganiser") Event organiser
 								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
 							div 
-								label(for="eventNumOfPLayers") Number of players in the event
-								input(name="eventNumOfPLayers" type="number" id="eventNumOfPlayers" value=`${process.env.NUM_OF_PLAYERS}` required)
+								label(for="numOfPairingsPerRound") Number of pairings per round
+								input(name="numOfPairingsPerRound" type="number" id="numOfPairingsPerRound" value=`${process.env.NUM_OF_PAIRINGS}` required)
 							div 
-								label(for="eventNumOfStandOuts") Number of players resting per round
-								input(name="eventNumOfStandOuts" type="number" id="eventNumOfStandOuts" value=`${process.env.NUM_OF_STANDOUTS}` required)
-							div 
-								label(for="eventNumOfPairings") Number of pairings per round
-								input(name="eventNumOfPairings" type="number" id="eventNumOfPairings"  value=`${process.env.NUM_OF_PAIRINGS}` required)
+								label(for="numOfStandOutsPerRound") Number of players resting per round
+								input(name="enumOfStandOutsPerRound" type="number" id="numOfStandOutsPerRound" value=`${process.env.NUM_OF_STANDOUTS}` required)
 							div 
 								label(for="eventNumOfRounds") Number of rounds in the event
 								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=`${process.env.NUM_OF_ROUNDS}` required)

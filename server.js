@@ -1,4 +1,7 @@
+const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const MongoStore = require("connect-mongo");
+const session = require("express-session");
 
 // This is for actual system issues i.e. memory corruption and so on
 process.on("uncaughtException", (err) => {

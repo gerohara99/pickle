@@ -1,18 +1,29 @@
 const mongoose = require("mongoose");
 
-const playerSchema = new mongoose.Schema({
-  playerA: { type: mongoose.Schema.ObjectId, ref: "User" },
-  playerB: { type: mongoose.Schema.ObjectId, ref: "User" },
-});
+const eventPairingSchema = new mongoose.Schema([
+  {
+    playerA: {
+      userId: { type: mongoose.Schema.ObjectId },
+      userName: { type: String },
+    },
+    playerB: {
+      userId: { type: mongoose.Schema.ObjectId },
+      userName: { type: String },
+    },
+  },
+]);
 
-const standOutSchema = new mongoose.Schema({
-  standOuts: { type: mongoose.Schema.ObjectId, ref: "User" },
-});
+const eventStandoutSchema = new mongoose.Schema([
+  {
+    userId: { type: mongoose.Schema.ObjectId },
+    userName: { type: String },
+  },
+]);
 
-const scheduleSchema = new mongoose.Schema({
+const eventScheduleSchema = new mongoose.Schema({
   round: { type: Number },
-  pairings: [playerSchema],
-  standOuts: [standOutSchema],
+  eventPairings: [eventPairingSchema],
+  eventStandOuts: [eventStandoutSchema],
 });
 
 const eventSchema = new mongoose.Schema(
@@ -25,7 +36,7 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter location of the event"],
     },
-    eventZipCode: {
+    eventType: {
       type: String,
     },
     eventDate: {
@@ -40,11 +51,11 @@ const eventSchema = new mongoose.Schema(
       type: String,
       //required: [true, "Please enter an organiser name for the event"],
     },
-    eventNumOfPlayers: {
+    numOfPairingsPerRound: {
       type: Number,
-      required: [true, "Please enter number of players for the event"],
+      required: [true, "Please enter number of player pairings per round"],
     },
-    eventNumOfStandOuts: {
+    numOfStandOutsPerRound: {
       type: Number,
       required: [true, "Please enter number of standout players per round"],
     },
@@ -52,12 +63,16 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Please enter number of rounds per event"],
     },
-    eventNumOfPairings: {
+    eventNumOfPlayers: {
       type: Number,
-      required: [true, "Please enter number of player pairings per round"],
     },
-    bookings: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
-    schedule: [scheduleSchema],
+    eventBookings: [
+      {
+        userId: { type: mongoose.Schema.ObjectId },
+        userName: { type: String },
+      },
+    ],
+    eventSchedule: [eventScheduleSchema],
   },
   {
     // enable virtual fields
@@ -67,33 +82,7 @@ const eventSchema = new mongoose.Schema(
 );
 
 eventSchema.pre("save", function (next) {
-  this.numOfRounds = this.eventDurationMins / this.gameDurationMins;
-  next();
-});
-
-// Using virtual populate to populate location from locations schema
-eventSchema.pre(/^find/, function (next) {
-  this.populate({
-    path: "bookings",
-    select:
-      "-__v -passwordChangedAt -role -active -email -mobile -password -passwordResetEaxpires -passwordResetToken -passwordChangedAt",
-  });
-  next();
-});
-
-/*standOutSchema.pre(/^find/, function (next) {
-  this.populate({
-    path: "standOuts",
-    select:
-      "-__v -passwordChangedAt -role -active -email -mobile -password -passwordResetEaxpires -passwordResetToken -passwordChangedAt",
-  });
-  next();
-}); */
-
-eventSchema.pre(/^find/, function (next) {
-  this.populate({
-    path: "schedule.standOuts.standOuts",
-  });
+  this.eventNumOfPlayers = this.numOfPairingsPerRound * 2;
   next();
 });
 

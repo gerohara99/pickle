@@ -5,23 +5,28 @@ const AppError = require("../utils/appError");
 const mongoose = require("mongoose");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
-  const userId = req.session.userId;
   let event = await Event.findById(req.body.eventId);
   if (!event) {
-    return next(new AppError("No event found with that ID", 404));
+    return next(new AppError("No event found with that ID ", 404));
   }
 
   // 1) CONDUCT VALIDATIONS
-
   // Check if there are still spaces available
-  if (event.bookings.length > process.env.NUM_OF_PLAYERS) {
+  if (event.eventBookings.length == event.eventNumOfPlayers) {
     return next(new AppError("There are no spaces left for this event", 400));
   }
+
   // UPDATE EVENT WITH BOOKING
-  let newBookings = event.bookings;
-  newBookings.push(new mongoose.Types.ObjectId(userId));
+  let newBookings = event.eventBookings;
+  let newBooking = {
+    userId: req.session.userId,
+    userName: req.session.userName,
+  };
+
+  newBookings.push(newBooking);
+
   await Event.findByIdAndUpdate(req.body.eventId, {
-    bookings: newBookings,
+    eventBookings: newBookings,
     runValidators: false,
   });
 
@@ -38,17 +43,17 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     return next(new AppError("No event found with that ID", 404));
   }
 
-  let newBookings = event.bookings.filter((val) => val._id != userId);
+  let newBookings = event.eventBookings.filter((val) => val.userId != userId);
 
   await Event.findByIdAndUpdate(req.body.eventId, {
-    bookings: newBookings,
+    eventBookings: newBookings,
     schedule: [],
     runValidators: false,
   });
 
   res.status(200).json({
     status: "Booking successfully cancelled",
-    data: { booking: req.body.userId },
+    data: { eventBooking: req.body.userId },
   });
 });
 
@@ -60,23 +65,25 @@ exports.checkSchedule = catchAsync(async (req, res, next) => {
     return next(new AppError("No event found with that ID", 404));
   }
 
-  if (event.bookings.length == process.env.NUM_OF_PLAYERS) {
+  if (event.eventBookings.length == event.eventNumOfPlayers) {
     const standOuts = generateStandOutsPubJs(
-      event.bookings,
+      event.eventBookings,
       event.eventNumOfRounds,
-      event.eventNumOfStandOuts
+      event.numOfStandOutsPerRound
     );
 
-    const availablePairings = generateAvailablePairingsPubJs(event.bookings);
+    const availablePairings = generateAvailablePairingsPubJs(
+      event.eventBookings
+    );
 
     const schedule = generateSchedulePubJs(
       availablePairings,
       standOuts,
-      event.eventNumOfPairings
+      event.numOfPairingsPerRound
     );
 
     await Event.findByIdAndUpdate(req.body.eventId, {
-      schedule: schedule.rounds,
+      eventSchedule: schedule.rounds,
       runValidators: false,
     });
   }
@@ -125,18 +132,22 @@ exports.const = generateStandOutsPubJs = (
 exports.const = generateAvailablePairingsPubJs = (playersList) => {
   // Declare variables
   const DUMMY = -1;
-  let avaibalePairings = [];
+  let availablePairings = [];
 
   if (!playersList) return -1;
 
   if (playersList.length % 2 === 1) {
-    playersList.push(DUMMY); // so we can match algorithm for even numbers
+    playersList.push({ userName: "DUMMY" }); // so we can match algorithm for even numbers
   }
+
   for (let j = 0; j < playersList.length - 1; j += 1) {
     for (let i = 0; i < playersList.length / 2; i += 1) {
       const o = playersList.length - 1 - i;
-      if (playersList[i] !== DUMMY && playersList[o] !== DUMMY) {
-        avaibalePairings.push({
+      if (
+        playersList[i].userName !== "DUMMY" &&
+        playersList[o].userName !== "DUMMY"
+      ) {
+        availablePairings.push({
           playerA: playersList[o],
           playerB: playersList[i],
           pairingUsed: false,
@@ -145,13 +156,13 @@ exports.const = generateAvailablePairingsPubJs = (playersList) => {
     }
     playersList.splice(1, 0, playersList.pop()); // permutate for next round
   }
-  return avaibalePairings;
+  return availablePairings;
 };
 
 exports.const = generateSchedulePubJs = (
   availablePairings,
   standOuts,
-  eventNumOfPairings
+  numOfPairingsPerRound
 ) => {
   let schedule = { rounds: [] };
   let availablePairing = availablePairings;
@@ -161,11 +172,15 @@ exports.const = generateSchedulePubJs = (
     let pairings = [];
     for (let j = 0; j < availablePairing.length; j++) {
       if (
-        !standOuts[i].includes(availablePairing[j].playerA) &&
-        !standOuts[i].includes(availablePairing[j].playerB) &&
+        standOuts[i].find(
+          (element) => element.userId !== availablePairing[j].playerA.userId
+        ) &&
+        standOuts[i].find(
+          (element) => element.userId !== availablePairing[j].playerB.userId
+        ) &&
         availablePairing[j].pairingUsed === false
       ) {
-        if (pairingsUsed < eventNumOfPairings) {
+        if (pairingsUsed < numOfPairingsPerRound) {
           pairings.push({
             playerA: availablePairing[j].playerA,
             playerB: availablePairing[j].playerB,
@@ -175,14 +190,15 @@ exports.const = generateSchedulePubJs = (
         } else {
           schedule.rounds.push({
             round: i,
-            pairings: pairings,
-            standOuts: standOuts[i],
+            eventPairings: pairings,
+            eventStandOuts: standOuts[i],
           });
           j = 99;
         }
       }
     }
   }
+
   return schedule;
 };
 
