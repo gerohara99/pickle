@@ -26,12 +26,14 @@ exports.getsignupForm = (req, res) => {
 exports.getMyAccountDetails = (req, res) => {
   res.status(200).render("myAccountDetails", {
     title: "Your account",
+    userRole: req.session.userRole,
   });
 };
 
 exports.myPasswordUpdate = (req, res) => {
   res.status(200).render("myPasswordUpdate", {
     title: "Update Password",
+    userRole: req.session.userRole,
   });
 };
 
@@ -42,6 +44,7 @@ exports.myPasswordReset = (req, res) => {
   res.status(200).render("myPasswordReset", {
     title: "Reset Password",
     data,
+    userRole: req.session.userRole,
   });
 };
 
@@ -53,12 +56,14 @@ exports.showAllUsers = catchAsync(async (req, res, next) => {
   res.status(200).render("showAllUsers", {
     title: "All Users",
     users: users,
+    userRole: req.session.userRole,
   });
 });
 
 exports.createUser = (req, res) => {
   res.status(200).render("createUser", {
     title: "Events",
+    userRole: req.session.userRole,
   });
 };
 
@@ -75,6 +80,7 @@ exports.editUser = catchAsync(async (req, res, next) => {
   res.status(200).render("editUser", {
     title: `${user.name} Name`,
     user,
+    userRole: req.session.userRole,
   });
 });
 
@@ -82,6 +88,7 @@ exports.editUser = catchAsync(async (req, res, next) => {
 exports.createEvent = (req, res) => {
   res.status(200).render("createEvent", {
     title: "Events",
+    userRole: req.session.userRole,
   });
 };
 
@@ -92,6 +99,7 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
   res.status(200).render("showAllEvents", {
     title: "All Events",
     events: events,
+    userRole: req.session.userRole,
   });
 });
 
@@ -107,6 +115,7 @@ exports.browseMyEvents = catchAsync(async (req, res, next) => {
   res.status(200).render("browseMyEvents", {
     title: "Browse Events",
     events: events,
+    userRole: req.session.userRole,
   });
 });
 
@@ -120,6 +129,7 @@ exports.browseNewEvents = catchAsync(async (req, res, next) => {
   res.status(200).render("browseNewEvents", {
     title: "Browse Events",
     events: events,
+    userRole: req.session.userRole,
   });
 });
 
@@ -136,6 +146,7 @@ exports.editEvent = catchAsync(async (req, res, next) => {
   res.status(200).render("editEvent", {
     title: `${event.eventName} Event`,
     event,
+    userRole: req.session.userRole,
   });
 });
 
@@ -151,5 +162,6 @@ exports.viewSchedule = catchAsync(async (req, res, next) => {
   res.status(200).render("viewSchedule", {
     title: `${event.eventName} Event`,
     event,
+    userRole: req.session.userRole,
   });
 });

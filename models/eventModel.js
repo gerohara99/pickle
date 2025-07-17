@@ -49,15 +49,18 @@ const eventSchema = new mongoose.Schema(
     },
     eventOrganiser: {
       type: String,
-      //required: [true, "Please enter an organiser name for the event"],
+      required: [true, "Please enter an organiser name for the event"],
     },
-    numOfPairingsPerRound: {
+    eventNumOfCourts: {
       type: Number,
-      required: [true, "Please enter number of player pairings per round"],
+      required: [
+        true,
+        "Please enter number of courts available for this event",
+      ],
     },
     numOfStandOutsPerRound: {
       type: Number,
-      required: [true, "Please enter number of standout players per round"],
+      required: [true, "Please enter number of players resting per round"],
     },
     eventNumOfRounds: {
       type: Number,
@@ -82,7 +85,8 @@ const eventSchema = new mongoose.Schema(
 );
 
 eventSchema.pre("save", function (next) {
-  this.eventNumOfPlayers = this.numOfPairingsPerRound * 2;
+  this.eventNumOfPlayers =
+    this.eventNumOfCourts * 4 + this.numOfStandOutsPerRound;
   next();
 });
 

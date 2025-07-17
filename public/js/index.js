@@ -153,9 +153,7 @@ if (createEventButton)
     data.eventDate = document.getElementById("eventDate").value;
     data.eventStartTime = document.getElementById("eventStartTime").value;
     data.eventOrganiser = document.getElementById("eventOrganiser").value;
-    data.numOfPairingsPerRound = document.getElementById(
-      "numOfPairingsPerRound"
-    ).value;
+    data.eventNumOfCourts = document.getElementById("eventNumOfCourts").value;
     data.numOfStandOutsPerRound = document.getElementById(
       "numOfStandOutsPerRound"
     ).value;
@@ -193,9 +191,7 @@ if (saveEventButton)
     data.eventDate = document.getElementById("eventDate").value;
     data.eventStartTime = document.getElementById("eventStartTime").value;
     data.eventOrganiser = document.getElementById("eventOrganiser").value;
-    data.numOfPairingsPerRound = document.getElementById(
-      "numOfPairingsPerRound"
-    ).value;
+    data.eventNumOfCourts = document.getElementById("eventNumOfCourts").value;
     data.numOfStandOutsPerRound = document.getElementById(
       "numOfStandOutsPerRound"
     ).value;

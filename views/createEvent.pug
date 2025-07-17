@@ -29,11 +29,11 @@ block content
 								label(for="eventOrganiser") Event organiser
 								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
 							div 
-								label(for="numOfPairingsPerRound") Number of pairings per round
-								input(name="numOfPairingsPerRound" type="number" id="numOfPairingsPerRound" value=`${process.env.NUM_OF_PAIRINGS}` required)
+								label(for="neventNumOfCourts") Number of available courts for event
+								input(name="eventNumOfCourts" type="number" id="eventNumOfCourts" value=`${process.env.NUM_OF_COURTS}` required)
 							div 
 								label(for="numOfStandOutsPerRound") Number of players resting per round
-								input(name="enumOfStandOutsPerRound" type="number" id="numOfStandOutsPerRound" value=`${process.env.NUM_OF_STANDOUTS}` required)
+								input(name="numOfStandOutsPerRound" type="number" id="numOfStandOutsPerRound" value=`${process.env.NUM_OF_STANDOUTS}` required)
 							div 
 								label(for="eventNumOfRounds") Number of rounds in the event
 								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=`${process.env.NUM_OF_ROUNDS}` required)

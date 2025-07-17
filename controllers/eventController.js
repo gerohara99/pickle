@@ -2,7 +2,6 @@ const Event = require("../models/eventModel");
 const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
-const mongoose = require("mongoose");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   let event = await Event.findById(req.body.eventId);
@@ -76,11 +75,15 @@ exports.checkSchedule = catchAsync(async (req, res, next) => {
       event.eventBookings
     );
 
+    console.log("event.eventNumOfCourts", event.eventNumOfCourts);
+
     const schedule = generateSchedulePubJs(
       availablePairings,
       standOuts,
-      event.numOfPairingsPerRound
+      event.eventNumOfCourts
     );
+
+    console.log("Schedule --->", schedule);
 
     await Event.findByIdAndUpdate(req.body.eventId, {
       eventSchedule: schedule.rounds,
@@ -162,30 +165,32 @@ exports.const = generateAvailablePairingsPubJs = (playersList) => {
 exports.const = generateSchedulePubJs = (
   availablePairings,
   standOuts,
-  numOfPairingsPerRound
+  eventNumOfCourts
 ) => {
   let schedule = { rounds: [] };
-  let availablePairing = availablePairings;
+
+  console.log("standOuts.length----->", standOuts.length);
+  console.log("availablePairings.length----->", availablePairings.length);
 
   for (let i = 0; i < standOuts.length; i++) {
     let pairingsUsed = 0;
     let pairings = [];
-    for (let j = 0; j < availablePairing.length; j++) {
+    for (let j = 0; j < availablePairings.length; j++) {
       if (
         standOuts[i].find(
-          (element) => element.userId !== availablePairing[j].playerA.userId
+          (element) => element.userId !== availablePairings[j].playerA.userId
         ) &&
         standOuts[i].find(
-          (element) => element.userId !== availablePairing[j].playerB.userId
+          (element) => element.userId !== availablePairings[j].playerB.userId
         ) &&
-        availablePairing[j].pairingUsed === false
+        availablePairings[j].pairingUsed === false
       ) {
-        if (pairingsUsed < numOfPairingsPerRound) {
+        if (pairingsUsed < 6) {
           pairings.push({
-            playerA: availablePairing[j].playerA,
-            playerB: availablePairing[j].playerB,
+            playerA: availablePairings[j].playerA,
+            playerB: availablePairings[j].playerB,
           });
-          availablePairing[j].pairingUsed = true;
+          availablePairings[j].pairingUsed = true;
           pairingsUsed++;
         } else {
           schedule.rounds.push({
@@ -193,12 +198,11 @@ exports.const = generateSchedulePubJs = (
             eventPairings: pairings,
             eventStandOuts: standOuts[i],
           });
-          j = 99;
+          j = availablePairings.length;
         }
       }
     }
   }
-
   return schedule;
 };
 

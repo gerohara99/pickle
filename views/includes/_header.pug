@@ -2,10 +2,12 @@ header.header
     a(href="#")  
         img(class="logo" alt="Pickle ball logo", src='/img/logo.png')
 
-    - if (user && user.role ==='clubAdmin')
+    include _usernameGreeting
+
+    - if (user && userRole ==='clubAdmin')
         include _navLoggedInAsAdmin
 
-    - if (user && user.role ==='user')
+    - if (user && userRole  ==='user')
         include _navLoggedInAsUser
 
     - if (user)
