@@ -8362,7 +8362,7 @@ function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; } /* eslint-disable */
 var login = exports.login = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee(email, password) {
-    var res;
+    var res, landingPage;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
@@ -8379,9 +8379,15 @@ var login = exports.login = /*#__PURE__*/function () {
         case 3:
           res = _context.sent;
           if (res.data.status === "success") {
+            landingPage = "";
             (0, _alerts.showAlert)("success", "Logged in successfully");
+            if (res.data.user.role === "clubAdmin") {
+              landingPage = "/events/showAll";
+            } else {
+              landingPage = "/events/myBrowse";
+            }
             window.setTimeout(function () {
-              location.assign("/events/showall");
+              location.assign(landingPage);
             }, 1500);
           }
           _context.next = 10;
@@ -10165,7 +10171,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58947" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58920" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

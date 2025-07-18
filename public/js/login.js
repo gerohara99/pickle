@@ -14,10 +14,17 @@ export const login = async (email, password) => {
       },
     });
     if (res.data.status === "success") {
+      let landingPage = "";
+
       showAlert("success", "Logged in successfully");
+      if (res.data.user.role === "clubAdmin") {
+        landingPage = "/events/showAll";
+      } else {
+        landingPage = "/events/myBrowse";
+      }
 
       window.setTimeout(() => {
-        location.assign("/events/showall");
+        location.assign(landingPage);
       }, 1500);
     }
   } catch (err) {

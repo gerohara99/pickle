@@ -13,7 +13,7 @@ const signToken = (id) =>
   });
 
 const createSendToken = (user, statusCode, req, res) => {
-  const token = signToken(user);
+  const token = signToken(user._id);
 
   res.cookie("jwt", token, {
     expiresIn: new Date(
@@ -27,7 +27,7 @@ const createSendToken = (user, statusCode, req, res) => {
   res.status(statusCode).json({
     status: "success",
     token,
-    data: { user },
+    user: user,
   });
 };
 
@@ -77,7 +77,7 @@ exports.login = catchAsync(async (req, res, next) => {
   req.session.userRole = user.role;
 
   // 4) If everything is ok send token to the client
-  createSendToken(user._id, 200, req, res);
+  createSendToken(user, 200, req, res);
 });
 
 exports.logout = (req, res) => {
