@@ -40,6 +40,9 @@ block content
 						div 
 							label(for="eventNumOfRounds") Number of rounds in the event
 							input(name="eventNumOfRounds" type="number" value=`${event.eventNumOfRounds}` id="eventNumOfRounds" required)
+						div 
+							label(for="eventWaitListSize") Max number of players on wait list
+							input(name="eventWaitListSize" type="number" value=`${event.eventWaitListSize}` id="eventWaitListSize" required)
 
 						p(class="hiddenField" id="eventId")=`${event._id}`
 					div(class="button-container")

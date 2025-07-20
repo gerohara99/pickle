@@ -23,6 +23,10 @@ const createSendToken = (user, statusCode, req, res) => {
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
   });
 
+  req.session.userId = user._id.toString();
+  req.session.userName = user.name;
+  req.session.userRole = user.role;
+
   user.password = undefined;
   res.status(statusCode).json({
     status: "success",
@@ -71,10 +75,6 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Inccorect email or password", 401));
   }
-
-  req.session.userId = user._id.toString();
-  req.session.userName = user.name;
-  req.session.userRole = user.role;
 
   // 4) If everything is ok send token to the client
   createSendToken(user, 200, req, res);

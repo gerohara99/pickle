@@ -10054,6 +10054,7 @@ if (createEventButton) createEventButton.addEventListener("click", function (e) 
   data.eventNumOfCourts = document.getElementById("eventNumOfCourts").value;
   data.numOfStandOutsPerRound = document.getElementById("numOfStandOutsPerRound").value;
   data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
+  data.eventWaitListSize = document.getElementById("eventWaitListSize").value;
   (0, _eventsPubJs.createEventPubJs)(data);
 });
 if (editEventButtons) editEventButtons.forEach(function (item) {
@@ -10084,6 +10085,7 @@ if (saveEventButton) saveEventButton.addEventListener("click", function (e) {
   data.eventNumOfCourts = document.getElementById("eventNumOfCourts").value;
   data.numOfStandOutsPerRound = document.getElementById("numOfStandOutsPerRound").value;
   data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
+  data.eventWaitListSize = document.getElementById("eventWaitListSize").value;
   (0, _eventsPubJs.updateEventPubJs)(data);
 });
 
@@ -10171,7 +10173,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58920" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55009" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

@@ -66,7 +66,17 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Please enter number of rounds per event"],
     },
+    eventWaitListSize: {
+      type: Number,
+      required: [
+        true,
+        "Please enter max number of players allowed on wait list",
+      ],
+    },
     eventNumOfPlayers: {
+      type: Number,
+    },
+    eventWaitListSize: {
       type: Number,
     },
     eventBookings: [

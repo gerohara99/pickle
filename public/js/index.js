@@ -158,6 +158,7 @@ if (createEventButton)
       "numOfStandOutsPerRound"
     ).value;
     data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
+    data.eventWaitListSize = document.getElementById("eventWaitListSize").value;
     createEventPubJs(data);
   });
 
@@ -196,6 +197,7 @@ if (saveEventButton)
       "numOfStandOutsPerRound"
     ).value;
     data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
+    data.eventWaitListSize = document.getElementById("eventWaitListSize").value;
     updateEventPubJs(data);
   });
 

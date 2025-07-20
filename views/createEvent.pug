@@ -37,6 +37,9 @@ block content
 							div 
 								label(for="eventNumOfRounds") Number of rounds in the event
 								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=`${process.env.NUM_OF_ROUNDS}` required)
+							div 
+								label(for="eventWaitListSize") Max number of players on wait list
+								input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=`${process.env.WAITLIST_SIZE}` required)
 
 						div(class="button-container")
 							div 

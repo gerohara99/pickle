@@ -17,8 +17,17 @@ block content
 								span()=`${event.eventLocation}`
 							p(class="event-title") Players
 								div(class="eventCardDetails")
+									- let i =0;
 									each booking in event.eventBookings
-										p(class="event-attribute")=booking.userName							
+										if i === event.eventNumOfPlayers
+											p(class="event-title") Wait List
+											p(class="event-attribute")=booking.userName
+										else
+											p(class="event-attribute")=booking.userName
+										- i++;					
 							div(class="button-container")
-								a(class="btn btn--outline bookEventButtons" href="#") Book
-									p(class="hiddenField eventId")=`${event._id}`
+								if event.eventBookings.length > event.eventNumOfPlayers
+									a(class="btn btn--outline bookEventButtons" href="#") WaitList
+								else 
+									a(class="btn btn--outline bookEventButtons" href="#") Book
+								p(class="hiddenField eventId")=`${event._id}`

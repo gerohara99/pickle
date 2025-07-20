@@ -5,13 +5,17 @@ const AppError = require("../utils/appError");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   let event = await Event.findById(req.body.eventId);
+
   if (!event) {
     return next(new AppError("No event found with that ID ", 404));
   }
 
   // 1) CONDUCT VALIDATIONS
   // Check if there are still spaces available
-  if (event.eventBookings.length == event.eventNumOfPlayers) {
+  if (
+    event.eventBookings.length ===
+    event.eventNumOfPlayers + event.eventWaitListSize
+  ) {
     return next(new AppError("There are no spaces left for this event", 400));
   }
 
@@ -72,18 +76,11 @@ exports.checkSchedule = catchAsync(async (req, res, next) => {
     );
 
     const availablePairings = generateAvailablePairingsPubJs(
-      event.eventBookings
+      event.eventBookings,
+      event.eventNumOfPlayers
     );
 
-    console.log("event.eventNumOfCourts", event.eventNumOfCourts);
-
-    const schedule = generateSchedulePubJs(
-      availablePairings,
-      standOuts,
-      event.eventNumOfCourts
-    );
-
-    console.log("Schedule --->", schedule);
+    const schedule = generateSchedulePubJs(availablePairings, standOuts);
 
     await Event.findByIdAndUpdate(req.body.eventId, {
       eventSchedule: schedule.rounds,
@@ -132,7 +129,10 @@ exports.const = generateStandOutsPubJs = (
   return standOutsPerRound;
 };
 
-exports.const = generateAvailablePairingsPubJs = (playersList) => {
+exports.const = generateAvailablePairingsPubJs = (
+  playersList,
+  numOfPlayers
+) => {
   // Declare variables
   const DUMMY = -1;
   let availablePairings = [];
@@ -143,9 +143,9 @@ exports.const = generateAvailablePairingsPubJs = (playersList) => {
     playersList.push({ userName: "DUMMY" }); // so we can match algorithm for even numbers
   }
 
-  for (let j = 0; j < playersList.length - 1; j += 1) {
-    for (let i = 0; i < playersList.length / 2; i += 1) {
-      const o = playersList.length - 1 - i;
+  for (let j = 0; j < numOfPlayers; j += 1) {
+    for (let i = 0; i < numOfPlayers / 2; i += 1) {
+      const o = numOfPlayers - 1 - i;
       if (
         playersList[i].userName !== "DUMMY" &&
         playersList[o].userName !== "DUMMY"
@@ -162,15 +162,8 @@ exports.const = generateAvailablePairingsPubJs = (playersList) => {
   return availablePairings;
 };
 
-exports.const = generateSchedulePubJs = (
-  availablePairings,
-  standOuts,
-  eventNumOfCourts
-) => {
+exports.const = generateSchedulePubJs = (availablePairings, standOuts) => {
   let schedule = { rounds: [] };
-
-  console.log("standOuts.length----->", standOuts.length);
-  console.log("availablePairings.length----->", availablePairings.length);
 
   for (let i = 0; i < standOuts.length; i++) {
     let pairingsUsed = 0;

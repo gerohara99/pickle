@@ -17,8 +17,14 @@ block content
 								span()=`${event.eventLocation}`
 							p(class="event-title") Players
 								div(class="eventCardDetails")
+									- let i =0;
 									each booking in event.eventBookings
-										p(class="event-attribute")=booking.userName
+										if i === event.eventNumOfPlayers
+											p(class="event-title") Wait List
+											p(class="event-attribute")=booking.userName
+										else
+											p(class="event-attribute")=booking.userName
+										- i++;
 							div(class="button-container")
 								if `${event.schedule}`
 									a(class="btn btn--outline viewScheduleButtons" href="#") Schedule
