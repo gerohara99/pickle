@@ -3,13 +3,13 @@ extends base
 block content 
 
 	main.main
-		section(class="section-createEvent")
+		section(class="section")
 			div(class="container")
-				div(class="createEvent")
-					div(class="createEvent-text-box") 
+				div(class="crudContainer")
+					div(class="text-box") 
 						h1(class="heading-secondary") Create a Pickleball Event
 
-						form(class="createEvent-form")
+						form(class="form-2-cols")
 							div
 								label(for="eventName") Event name
 								input(name="eventName" type="text" id="eventName" required)
@@ -46,5 +46,3 @@ block content
 								a(class="btn btn--form" id="createEventButton" href="#") Create
 							div 
 								a(class="btn btn--outline" id="cancelButton" href="/") Cancel
-
-					div(class="createUser-img-box" role="img" aria-label="Picture of a pickle court")

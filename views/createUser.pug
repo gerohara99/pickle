@@ -3,14 +3,14 @@ extends base
 block content
 
 	main.main
-		section(class="section-createUser")
+		section(class="section")
 			div(class="container")
-				div(class="createUser")
-					div(class="createUser-text-box") 
+				div(class="crudContainer")
+					div(class="text-box") 
 						h1(class="heading-secondary") Create a user
-						p(class="createUser-text") The "go to" place to book all your pickle ball games
+						p(class="normal-text") The "go to" place to book all your pickle ball games
 
-						form(class="createUser-form")
+						form(class="form-2-cols")
 							div 
 								label.form__label(for='name') Name 
 								input(name="name" type="text" id="name" required) 
@@ -31,5 +31,3 @@ block content
 								a(class="btn btn--form" id="createUserButton" href="#") Create
 							div 
 								a(class="btn btn--outline" id="cancelButton" href="/") Cancel
-
-					div(class="createUser-img-box" role="img" aria-label="Picture of a pickle court")

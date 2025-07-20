@@ -2,14 +2,14 @@ extends base
 
 block content
 	main.main
-	section(class="section-editUser")
+	section(class="section")
 		div(class="container")
-			div(class="editUser")
-				div(class="editUser-text-box") 
+			div(class="crudContainer")
+				div(class="text-box") 
 					h1(class="heading-secondary") Edit User
-					p(class="editUser-text") The "go to" place to book all your pickle ball games
+					p(class="normal-text") The "go to" place to book all your pickle ball games
 
-					form(class="editUser-form")
+					form(class="form-2-cols")
 						div
 							label(for='name') Name
 							input(id="name" type='text' value=`${user.name}`,required name='name')
@@ -26,5 +26,3 @@ block content
 							a(class="btn btn--form" id="saveUserButton" href="#") Save
 						div 
 							a(class="btn btn--outline" id="cancelButton" href="/users/showall") Cancel
-
-				div(class="editUser-img-box" role="img" aria-label="Picture of a pickle court")

@@ -2,13 +2,13 @@ extends base
 
 block content
 	main.main
-	section(class="section-editEvent")
+	section(class="section")
 		div(class="container")
-			div(class="editEvent")
-				div(class="editEvent-text-box") 
+			div(class="crudContainer")
+				div(class="text-box") 
 					h1(class="heading-secondary") Edit Event
 
-					form(class="editEvent-form")
+					form(class="form-2-cols")
 						div
 							label(for="eventName") Event name
 							input(name="eventName" type="text" value=`${event.eventName}` id="eventName" required)
@@ -50,5 +50,3 @@ block content
 							a(class="btn btn--form" id="saveEventButton" href="#") Save
 						div 
 							a(class="btn btn--outline" id="cancelButton" href="/events/showall") Cancel
-
-				div(class="editUser-img-box" role="img" aria-label="Picture of a pickle court")
