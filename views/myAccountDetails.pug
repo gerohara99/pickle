@@ -3,13 +3,13 @@ extends base
 block content
 
 	main.main
-		section(class="section-acSettings")
+		section(class="section")
 			div(class="container")
-				div(class="acSettings")
-					div(class="acSettings-text-box") 
+				div(class="crudContainer")
+					div(class="text-box") 
 						h1(class="heading-secondary") Edit your account settings
 
-						form(class="login-form")
+						form(class="form-2-cols")
 							div
 								label(for="name") Name
 								input(name="name" type="email" id="name" value=`${user.name}` required)
@@ -25,5 +25,3 @@ block content
 								a(class="btn btn--form" id="saveAcDetailsButton" href="#") Save Details
 							div 
 								a(class="btn btn--outline" id="cancelButton" href="/") Cancel
-
-					div(class="acSettings-img-box" role="img" aria-label="Picture of a pickle court")

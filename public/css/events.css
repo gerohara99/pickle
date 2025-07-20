@@ -2,41 +2,6 @@
 /* Events                        */
 /*********************************/
 
-/************************* Admin functions ---- Create, Update, Delete & Show events ********************************
-
-/* See general.css for how tbles are formatted. */
-
-.events-table {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  column-gap: 0rem;
-  row-gap: 1rem;
-}
-
-.event *:focus {
-  outline: none;
-  box-shadow: 0 0 0 0.8rem rgba(253, 242, 233, 0.5);
-}
-
-/* NOTE - It's super important that this class exists. */
-/* The "hiddenField" class takes care of this data not */
-/* not being diplayed. However this is needed to       */
-/* ensure the correct user id is passed to related     */
-/* edit and delete functions                           */
-eventId {
-  display: none;
-}
-
-/************************* User funcrions - Browse Events ********************************/
-
-.section-browseEvents {
-  /* top / right / bottom / left */
-  /* padding: 9.6rem 0 12.8rem 0; */
-
-  /* top / horizontal / left */
-  padding: 4.8rem 0 8rem;
-}
-
 .eventContainer {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -75,37 +40,15 @@ eventId {
   justify-self: center;
   padding: 1.2rem;
 }
-
 .event-attributes {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-
 .event-attribute {
   font-size: 1.6rem;
   display: flex;
   align-items: center;
   gap: 1.6rem;
-}
-
-.players {
-  font-size: 2.4rem;
-  color: #333;
-  font-weight: 600;
-  margin-bottom: 1.2rem !important;
-  grid-column: span 2;
-  justify-self: center;
-}
-
-.browseEvents-img-box {
-  background-image: linear-gradient(
-      to right bottom,
-      rgba(235, 151, 78, 0.35),
-      rgba(230, 125, 34, 0.35)
-    ),
-    url("../img/pickle.png");
-  background-size: cover;
-  background-position: center;
 }
