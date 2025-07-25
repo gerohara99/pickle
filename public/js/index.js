@@ -45,7 +45,9 @@ const forgotPasswordLink = document.getElementById("forgotPasswordLink");
 const resetPasswordButton = document.getElementById("resetPasswordButton");
 const bookEventButtons = document.querySelectorAll("a.bookEventButtons");
 const cancelEventButtons = document.querySelectorAll("a.cancelEventButtons");
-const viewScheduleButtons = document.querySelectorAll("a.viewScheduleButtons");
+const viewMyScheduleButtons = document.querySelectorAll(
+  "a.viewMyScheduleButtons"
+);
 
 //******************** Authorization functions
 if (logInButton)
@@ -265,12 +267,13 @@ if (cancelEventButtons)
     })
   );
 
-if (viewScheduleButtons)
-  viewScheduleButtons.forEach((item) =>
+if (viewMyScheduleButtons)
+  viewMyScheduleButtons.forEach((item) =>
     item.addEventListener("click", (e) => {
       e.preventDefault();
       const eventId = e.target.parentElement.querySelector(".eventId");
-      const locationPath = "/events/viewSchedule/" + eventId.textContent;
+      const locationPath = "/events/viewMySchedule/" + eventId.textContent;
+      console.log(locationPath);
       location.assign(locationPath);
     })
   );

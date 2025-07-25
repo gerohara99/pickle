@@ -1,0 +1,33 @@
+extends base
+
+block content
+
+	main.main
+		- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
+		- const eventDate = event.eventDate.toLocaleDateString(undefined, options);
+		- const nameDateTimeSring = `${event.eventName}` + " on " + `${eventDate}` + " @ " + `${event.eventStartTime}` + " in " + `${event.eventLocation}`
+		p(class="subheading center-text")=`${nameDateTimeSring}`
+		section(class="section-list")
+			div(class="container")
+				div(class="mySchedule-table")
+					// Headers
+					p(class="subheading") Match
+					p(class="subheading") Court
+					p(class="subheading") Team A
+					p(class="subheading") Team B
+      
+					// Loop through filteredMatches and display data
+					each matchData in filteredMatches
+						div(class="table-row")
+							p(class="listItemText")=`${matchData.round}`
+							p(class="listItemText")=`${matchData.match.court}`
+
+							// Team A Player Names (Stacked in one column)
+							div(class="team-column")
+								each player in matchData.match.teamA
+									span(class="listItemText")=`${player.name}`
+          
+							// Team B Player Names (Stacked in one column)
+							div(class="team-column")
+								each player in matchData.match.teamB
+									span(class="listItemText")=`${player.name}`

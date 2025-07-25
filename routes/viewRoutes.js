@@ -47,6 +47,12 @@ router.get(
 );
 
 router.get(
+  "/events/showAllSchedules",
+  authController.isLoggedIn,
+  viewsController.showAllSchedules
+);
+
+router.get(
   "/events/browseNew",
   authController.isLoggedIn,
   viewsController.browseNewEvents
@@ -70,9 +76,9 @@ router.get(
 );
 
 router.get(
-  "/events/viewSchedule/:id",
+  "/events/viewMySchedule/:id",
   authController.isLoggedIn,
-  viewsController.viewSchedule
+  viewsController.viewMySchedule
 );
 
 module.exports = router;

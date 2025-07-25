@@ -50,7 +50,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
 
   await Event.findByIdAndUpdate(req.body.eventId, {
     eventBookings: newBookings,
-    schedule: [],
+    rounds: [],
     runValidators: false,
   });
 
@@ -68,24 +68,28 @@ exports.checkSchedule = catchAsync(async (req, res, next) => {
     return next(new AppError("No event found with that ID", 404));
   }
 
-  if (event.eventBookings.length == event.eventNumOfPlayers) {
+  let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
+
+  if (event.eventBookings.length >= event.eventNumOfPlayers) {
     const standOuts = generateStandOutsPubJs(
-      event.eventBookings,
+      playerslist,
       event.eventNumOfRounds,
       event.numOfStandOutsPerRound
     );
 
-    const availablePairings = generateAvailablePairingsPubJs(
-      event.eventBookings,
-      event.eventNumOfPlayers
+    const availablePairings = generateAvailablePairingsPubJs(playerslist);
+
+    const schedule = generateSchedulePubJs(
+      availablePairings,
+      standOuts,
+      event.eventNumOfCourts
     );
 
-    const schedule = generateSchedulePubJs(availablePairings, standOuts);
-
-    await Event.findByIdAndUpdate(req.body.eventId, {
-      eventSchedule: schedule.rounds,
-      runValidators: false,
-    });
+    await Event.findByIdAndUpdate(
+      req.body.eventId,
+      { $set: { rounds: schedule } },
+      { new: true, runValidators: false }
+    );
   }
 
   res.status(200).json({
@@ -129,10 +133,7 @@ exports.const = generateStandOutsPubJs = (
   return standOutsPerRound;
 };
 
-exports.const = generateAvailablePairingsPubJs = (
-  playersList,
-  numOfPlayers
-) => {
+exports.const = generateAvailablePairingsPubJs = (playersList) => {
   // Declare variables
   const DUMMY = -1;
   let availablePairings = [];
@@ -143,12 +144,13 @@ exports.const = generateAvailablePairingsPubJs = (
     playersList.push({ userName: "DUMMY" }); // so we can match algorithm for even numbers
   }
 
-  for (let j = 0; j < numOfPlayers; j += 1) {
-    for (let i = 0; i < numOfPlayers / 2; i += 1) {
-      const o = numOfPlayers - 1 - i;
+  for (let j = 0; j < playersList.length - 1; j += 1) {
+    for (let i = 0; i < playersList.length / 2; i += 1) {
+      const o = playersList.length - 1 - i;
       if (
         playersList[i].userName !== "DUMMY" &&
-        playersList[o].userName !== "DUMMY"
+        playersList[o].userName !== "DUMMY" &&
+        playersList[o].userId !== playersList[i].userId
       ) {
         availablePairings.push({
           playerA: playersList[o],
@@ -162,40 +164,65 @@ exports.const = generateAvailablePairingsPubJs = (
   return availablePairings;
 };
 
-exports.const = generateSchedulePubJs = (availablePairings, standOuts) => {
-  let schedule = { rounds: [] };
+exports.const = generateSchedulePubJs = (
+  availablePairings,
+  standOuts,
+  numOfCourts
+) => {
+  let schedule = [];
+  let teamA = {};
+  let teamB = {};
+  let pairingsPerCourt = 2;
+
+  // Initialize each round as an empty array to hold matches
+  for (let round = 0; round < standOuts.length; round++) {
+    schedule[round] = { matches: [] };
+  }
 
   for (let i = 0; i < standOuts.length; i++) {
-    let pairingsUsed = 0;
-    let pairings = [];
-    for (let j = 0; j < availablePairings.length; j++) {
-      if (
-        standOuts[i].find(
-          (element) => element.userId !== availablePairings[j].playerA.userId
-        ) &&
-        standOuts[i].find(
-          (element) => element.userId !== availablePairings[j].playerB.userId
-        ) &&
-        availablePairings[j].pairingUsed === false
-      ) {
-        if (pairingsUsed < 6) {
-          pairings.push({
-            playerA: availablePairings[j].playerA,
-            playerB: availablePairings[j].playerB,
-          });
-          availablePairings[j].pairingUsed = true;
-          pairingsUsed++;
-        } else {
-          schedule.rounds.push({
-            round: i,
-            eventPairings: pairings,
-            eventStandOuts: standOuts[i],
-          });
-          j = availablePairings.length;
+    for (let k = 0; k < numOfCourts; k++) {
+      for (let x = 0; x < pairingsPerCourt; x++) {
+        for (let j = 0; j < availablePairings.length; j++) {
+          if (
+            standOuts[i].find(
+              (element) =>
+                element.userId !== availablePairings[j].playerA.userId
+            ) &&
+            standOuts[i].find(
+              (element) =>
+                element.userId !== availablePairings[j].playerB.userId
+            ) &&
+            availablePairings[j].pairingUsed === false
+          ) {
+            availablePairings[j].pairingUsed = true;
+            if (x % 2 === 0) {
+              (teamA.playerA = availablePairings[j].playerA),
+                (teamA.playerB = availablePairings[j].playerB);
+            } else {
+              (teamB.playerA = availablePairings[j].playerA),
+                (teamB.playerB = availablePairings[j].playerB);
+            }
+            //j = availablePairings.length;
+            break;
+          }
         }
       }
+
+      let newMatch = {
+        teamA: [
+          { userId: teamA.playerA.userId, name: teamA.playerA.userName },
+          { userId: teamA.playerB.userId, name: teamA.playerB.userName },
+        ],
+        teamB: [
+          { userId: teamB.playerA.userId, name: teamB.playerA.userName },
+          { userId: teamB.playerB.userId, name: teamB.playerB.userName },
+        ],
+        court: k,
+      };
+      schedule[i].matches.push(newMatch);
     }
   }
+
   return schedule;
 };
 

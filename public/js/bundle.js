@@ -9972,7 +9972,7 @@ var forgotPasswordLink = document.getElementById("forgotPasswordLink");
 var resetPasswordButton = document.getElementById("resetPasswordButton");
 var bookEventButtons = document.querySelectorAll("a.bookEventButtons");
 var cancelEventButtons = document.querySelectorAll("a.cancelEventButtons");
-var viewScheduleButtons = document.querySelectorAll("a.viewScheduleButtons");
+var viewMyScheduleButtons = document.querySelectorAll("a.viewMyScheduleButtons");
 
 //******************** Authorization functions
 if (logInButton) logInButton.addEventListener("click", function (e) {
@@ -10140,11 +10140,12 @@ if (cancelEventButtons) cancelEventButtons.forEach(function (item) {
     (0, _eventsPubJs.eventCancelBookingPubJs)(eventId.textContent);
   });
 });
-if (viewScheduleButtons) viewScheduleButtons.forEach(function (item) {
+if (viewMyScheduleButtons) viewMyScheduleButtons.forEach(function (item) {
   return item.addEventListener("click", function (e) {
     e.preventDefault();
     var eventId = e.target.parentElement.querySelector(".eventId");
-    var locationPath = "/events/viewSchedule/" + eventId.textContent;
+    var locationPath = "/events/viewMySchedule/" + eventId.textContent;
+    console.log(locationPath);
     location.assign(locationPath);
   });
 });
@@ -10173,7 +10174,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55009" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53414" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

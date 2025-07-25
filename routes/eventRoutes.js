@@ -12,6 +12,7 @@ router
     authController.restrictTo("clubAdmin", "pickleAdmin"),
     eventController.createEvent
   );
+
 router
   .route("/:id")
   .get(eventController.getEvent)
@@ -30,6 +31,8 @@ router
   .route("/booking/create/")
   .patch(eventController.createBooking, eventController.checkSchedule);
 
-router.route("/booking/cancel/").patch(eventController.cancelBooking);
+router
+  .route("/booking/cancel/")
+  .patch(eventController.cancelBooking, eventController.checkSchedule);
 
 module.exports = router;

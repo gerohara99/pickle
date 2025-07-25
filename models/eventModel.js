@@ -1,29 +1,18 @@
 const mongoose = require("mongoose");
 
-const eventPairingSchema = new mongoose.Schema([
-  {
-    playerA: {
-      userId: { type: mongoose.Schema.ObjectId },
-      userName: { type: String },
-    },
-    playerB: {
-      userId: { type: mongoose.Schema.ObjectId },
-      userName: { type: String },
-    },
-  },
-]);
+const playerSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.ObjectId },
+  name: { type: String },
+});
 
-const eventStandoutSchema = new mongoose.Schema([
-  {
-    userId: { type: mongoose.Schema.ObjectId },
-    userName: { type: String },
-  },
-]);
+const matchSchema = new mongoose.Schema({
+  teamA: { type: [playerSchema] },
+  teamB: { type: [playerSchema] },
+  court: { type: Number },
+});
 
-const eventScheduleSchema = new mongoose.Schema({
-  round: { type: Number },
-  eventPairings: [eventPairingSchema],
-  eventStandOuts: [eventStandoutSchema],
+const roundSchema = new mongoose.Schema({
+  matches: { type: [matchSchema] },
 });
 
 const eventSchema = new mongoose.Schema(
@@ -85,7 +74,8 @@ const eventSchema = new mongoose.Schema(
         userName: { type: String },
       },
     ],
-    eventSchedule: [eventScheduleSchema],
+
+    rounds: { type: [roundSchema] },
   },
   {
     // enable virtual fields

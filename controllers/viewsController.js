@@ -103,6 +103,17 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.showAllSchedules = catchAsync(async (req, res, next) => {
+  // 1) Get event data from collection
+  const events = await Event.find({ "rounds.0": { $exists: true } });
+  // 2) Render template using tour data
+  res.status(200).render("showAllSchedules", {
+    title: "All Schedules",
+    events: events,
+    userRole: req.session.userRole,
+  });
+});
+
 exports.browseMyEvents = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
   const userId = req.session.userId;
@@ -150,7 +161,7 @@ exports.editEvent = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.viewSchedule = catchAsync(async (req, res, next) => {
+exports.viewMySchedule = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
   const event = await Event.findOne({ _id: req.params.id });
 
@@ -158,10 +169,49 @@ exports.viewSchedule = catchAsync(async (req, res, next) => {
     return next(new AppError("There is no event with that name", 404));
   }
 
-  // 3) Render template using tour data
-  res.status(200).render("viewSchedule", {
+  let filteredMatches = [];
+
+  // Loop through each round in the schedule
+  event.rounds.forEach((round, roundIndex) => {
+    round.matches.forEach((match) => {
+      // Check if the player is part of teamA or teamB
+      let playerInMatch =
+        match.teamA.some(
+          (player) => player.userId.toString() === req.session.userId.toString()
+        ) ||
+        match.teamB.some(
+          (player) => player.userId.toString() === req.session.userId.toString()
+        );
+
+      if (playerInMatch) {
+        // Determine which team the player is in
+        let playerTeam = match.teamA.some(
+          (player) => player.userId.toString() === req.session.userId.toString()
+        )
+          ? "teamA"
+          : "teamB";
+        // Push match to filteredMatches, along with the player's team info
+        filteredMatches.push({
+          round: roundIndex + 1, // Store the round number (1-based index)
+          match,
+          playerTeam, // Store the team the player is in
+        });
+      }
+    });
+  });
+});
+
+exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
+  // 1) Get event data from collection
+  const event = await Event.findOne({ _id: req.params.id });
+
+  if (!event) {
+    return next(new AppError("There is no event with that name", 404));
+  }
+
+  res.status(200).render("viewMySchedule", {
     title: `${event.eventName} Event`,
-    event,
+    event: event,
     userRole: req.session.userRole,
   });
 });

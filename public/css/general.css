@@ -318,10 +318,6 @@ strong {
 /***********************************/
 /* Tables                          */
 /***********************************/
-/* .users-table,
-.events-table {
-  display: contents;
-} */
 
 .events-table {
   display: grid;
@@ -337,15 +333,46 @@ strong {
   row-gap: 1rem;
 }
 
+.schedule-table {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  column-gap: 2rem;
+  row-gap: 1rem;
+}
+
+.mySchedule-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr 5fr 5fr;
+  column-gap: 2rem;
+  row-gap: 2rem;
+}
+
 .users-table .table-row,
-.events-table .table-row {
+.events-table .table-row,
+.mySchedule-table .table-row,
+.schedule-table .table-row {
   display: contents;
 }
 .users-table .table-row:nth-child(odd) *,
-.events-table .table-row:nth-child(odd) * {
+.events-table .table-row:nth-child(odd) *,
+.mySchedule-table .table-row:nth-child(odd) *,
+.schedule-table .table-row:nth-child(odd) * {
   background-color: #fae5d3;
 }
 
+.table-row {
+  display: contents;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #ddd; /* Adds a light border between rows */
+  background-color: #f9f9f9; /* Light background color */
+}
+
+/* Ensures player names stack vertically */
+.team-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 /*************************************/
 /* Icons                             */
 /*************************************/
