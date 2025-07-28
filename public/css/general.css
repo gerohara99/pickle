@@ -440,3 +440,9 @@ strong {
   border-radius: 9px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
+.enter-score-column {
+  display: flex;
+  justify-content: center; /* Center the button within the column */
+  align-items: center; /* Vertically center the button */
+}

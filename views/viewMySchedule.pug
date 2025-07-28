@@ -34,7 +34,8 @@ block content
                   span(class="listItemText")=`${player.name}`
 
               // Button to trigger the score entry popup
-              button(class="score-button", data-round=`${matchData.round}`, data-matchindex=`${matchData.matchIndex}`, data-eventid=`${event._id}`) Enter Score
+              div(class="enter-score-column")              
+                button(class="btn", data-round=`${matchData.round}`, data-matchindex=`${matchData.matchIndex}`, data-eventid=`${event._id}`) Enter Score
 
         // Popup Modal for entering scores
         div(id="scoreModal", class="modal")  // This is at the correct indentation level
