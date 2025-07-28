@@ -27,14 +27,14 @@ exports.getsignupForm = (req, res) => {
 exports.getMyAccountDetails = (req, res) => {
   res.status(200).render("myAccountDetails", {
     title: "Your account",
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 };
 
 exports.myPasswordUpdate = (req, res) => {
   res.status(200).render("myPasswordUpdate", {
     title: "Update Password",
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 };
 
@@ -45,7 +45,7 @@ exports.myPasswordReset = (req, res) => {
   res.status(200).render("myPasswordReset", {
     title: "Reset Password",
     data,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 };
 
@@ -57,14 +57,14 @@ exports.showAllUsers = catchAsync(async (req, res, next) => {
   res.status(200).render("showAllUsers", {
     title: "All Users",
     users: users,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 });
 
 exports.createUser = (req, res) => {
   res.status(200).render("createUser", {
     title: "Events",
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 };
 
@@ -81,7 +81,7 @@ exports.editUser = catchAsync(async (req, res, next) => {
   res.status(200).render("editUser", {
     title: `${user.name} Name`,
     user,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 });
 
@@ -89,7 +89,7 @@ exports.editUser = catchAsync(async (req, res, next) => {
 exports.createEvent = (req, res) => {
   res.status(200).render("createEvent", {
     title: "Events",
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 };
 
@@ -100,7 +100,7 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
   res.status(200).render("showAllEvents", {
     title: "All Events",
     events: events,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 });
 
@@ -111,13 +111,13 @@ exports.showAllSchedules = catchAsync(async (req, res, next) => {
   res.status(200).render("showAllSchedules", {
     title: "All Schedules",
     events: events,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 });
 
 exports.browseMyEvents = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
-  const userId = req.session.userId;
+  const userId = req.session.user.userId;
 
   const events = await Event.find({
     "eventBookings.userId": { $in: userId },
@@ -127,13 +127,13 @@ exports.browseMyEvents = catchAsync(async (req, res, next) => {
   res.status(200).render("browseMyEvents", {
     title: "Browse Events",
     events: events,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 });
 
 exports.browseNewEvents = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
-  const userId = req.session.userId;
+  const userId = req.session.user.userId;
   const events = await Event.find({
     "eventBookings.userId": { $nin: userId },
   });
@@ -141,7 +141,7 @@ exports.browseNewEvents = catchAsync(async (req, res, next) => {
   res.status(200).render("browseNewEvents", {
     title: "Browse Events",
     events: events,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 });
 
@@ -158,7 +158,7 @@ exports.editEvent = catchAsync(async (req, res, next) => {
   res.status(200).render("editEvent", {
     title: `${event.eventName} Event`,
     event,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 });
 
@@ -178,16 +178,19 @@ exports.viewMySchedule = catchAsync(async (req, res, next) => {
       // Check if the player is part of teamA or teamB
       let playerInMatch =
         match.teamA.some(
-          (player) => player.userId.toString() === req.session.userId.toString()
+          (player) =>
+            player.userId.toString() === req.session.user.userId.toString()
         ) ||
         match.teamB.some(
-          (player) => player.userId.toString() === req.session.userId.toString()
+          (player) =>
+            player.userId.toString() === req.session.user.userId.toString()
         );
 
       if (playerInMatch) {
         // Determine which team the player is in
         let playerTeam = match.teamA.some(
-          (player) => player.userId.toString() === req.session.userId.toString()
+          (player) =>
+            player.userId.toString() === req.session.user.userId.toString()
         )
           ? "teamA"
           : "teamB";
@@ -205,7 +208,7 @@ exports.viewMySchedule = catchAsync(async (req, res, next) => {
     title: `${event.eventName} Event`,
     event: event,
     filteredMatches: filteredMatches,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 });
 
@@ -220,6 +223,6 @@ exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
   res.status(200).render("viewMasterSchedule", {
     title: `${event.eventName} Event`,
     event: event,
-    userRole: req.session.userRole,
+    userRole: req.session.user.userRole,
   });
 });

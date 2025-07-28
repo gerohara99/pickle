@@ -23,9 +23,14 @@ const createSendToken = (user, statusCode, req, res) => {
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
   });
 
-  req.session.userId = user._id.toString();
-  req.session.userName = user.name;
-  req.session.userRole = user.role;
+  // Initialize session user object if not already initialized
+  if (!req.session.user) {
+    req.session.user = {}; // Initialize the user object in the session
+  }
+
+  req.session.user.userId = user._id.toString();
+  req.session.user.userName = user.name;
+  req.session.user.userRole = user.role;
 
   user.password = undefined;
   res.status(statusCode).json({

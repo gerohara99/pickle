@@ -22,8 +22,8 @@ exports.createBooking = catchAsync(async (req, res, next) => {
   // UPDATE EVENT WITH BOOKING
   let newBookings = event.eventBookings;
   let newBooking = {
-    userId: req.session.userId,
-    userName: req.session.userName,
+    userId: req.session.user.userId,
+    userName: req.session.user.userName,
   };
 
   newBookings.push(newBooking);
@@ -37,7 +37,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
 });
 
 exports.cancelBooking = catchAsync(async (req, res, next) => {
-  const userId = req.session.userId;
+  const userId = req.session.user.userId;
   const eventId = req.body.eventId;
 
   const event = await Event.findById(eventId);

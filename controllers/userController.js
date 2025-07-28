@@ -4,7 +4,7 @@ const AppError = require("../utils/appError");
 const factory = require("./handlerFactory");
 
 exports.getMe = (req, res, next) => {
-  req.params.id = req.session.userId;
+  req.params.id = req.session.user.userId;
   next();
 };
 

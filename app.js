@@ -29,18 +29,14 @@ const DATABASE = process.env.DATABASE.replace(
   process.env.DATABASE_PASSWORD
 );
 
-const clientPromise = mongoose
+mongoose
   .connect(DATABASE, {
     useNewUrlParser: true,
     createIndexes: true,
-    useFindAndModify: true,
-    // useFindAndModify: false,
-    userNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then((m) => {
+  .then(() => {
     console.log("MongoDB connected.");
-    return m.connection.getClient();
   })
   .catch((err) => {
     console.log("MongoDB connection failed.");
@@ -54,7 +50,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const store = new MongoDBStore({
   uri: DATABASE,
-  collection: "session",
+  collection: "sessions",
 });
 
 // Catch errors
