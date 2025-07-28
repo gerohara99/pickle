@@ -172,7 +172,6 @@ exports.const = generateSchedulePubJs = (
   let schedule = [];
   let teamA = {};
   let teamB = {};
-  let pairingsPerCourt = 2;
 
   // Initialize each round as an empty array to hold matches
   for (let round = 0; round < standOuts.length; round++) {
@@ -181,7 +180,7 @@ exports.const = generateSchedulePubJs = (
 
   for (let i = 0; i < standOuts.length; i++) {
     for (let k = 0; k < numOfCourts; k++) {
-      for (let x = 0; x < pairingsPerCourt; x++) {
+      for (let x = 0; x < process.env.NUM_OF_PAIRINGS_PER_COURT; x++) {
         for (let j = 0; j < availablePairings.length; j++) {
           if (
             standOuts[i].find(
