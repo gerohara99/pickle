@@ -9,7 +9,7 @@
   color: #333;
   /* color: #45260a; */
   /* color: #343a40; */
-  letter-spacing: -0.5px;
+  letter-spacing: -0.05rem;
 }
 
 .heading-primary {
@@ -37,7 +37,7 @@
   color: #cf711f;
   text-transform: uppercase;
   margin-bottom: 1.6rem;
-  letter-spacing: 0.75px;
+  letter-spacing: 0.075rem;
 }
 
 .header {
@@ -76,5 +76,5 @@
 
 .footer {
   padding: 12.8rem 0;
-  border-top: 1px solid #eee;
+  border-top: 0.1rem solid #eee;
 }

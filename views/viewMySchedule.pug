@@ -1,33 +1,55 @@
 extends base
 
 block content
+  main.main
+    - const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
+    - const eventDate = event.eventDate.toLocaleDateString(undefined, options);
+    - const nameDateTimeString = `${event.eventName}` + " on " + `${eventDate}` + " @ " + `${event.eventStartTime}` + " in " + `${event.eventLocation}`
+    p(class="subheading center-text")=`${nameDateTimeString}`
+    
+    section(class="section-list")
+      div(class="container")
+        div(class="mySchedule-table")
+          // Headers
+          p(class="subheading") Round
+          p(class="subheading") Court
+          p(class="subheading") My Team
+          p(class="subheading") Opposing Team
+          p(class="subheading") Score
 
-	main.main
-		- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
-		- const eventDate = event.eventDate.toLocaleDateString(undefined, options);
-		- const nameDateTimeSring = `${event.eventName}` + " on " + `${eventDate}` + " @ " + `${event.eventStartTime}` + " in " + `${event.eventLocation}`
-		p(class="subheading center-text")=`${nameDateTimeSring}`
-		section(class="section-list")
-			div(class="container")
-				div(class="mySchedule-table")
-					// Headers
-					p(class="subheading") Match
-					p(class="subheading") Court
-					p(class="subheading") My Team
-					p(class="subheading") Opposing Team
-      
-					// Loop through filteredMatches and display data
-					each matchData in filteredMatches
-						div(class="table-row")
-							p(class="listItemText")=`${matchData.round}`
-							p(class="listItemText")=`${matchData.match.court}`
+          // Loop through filteredMatches and display data
+          each matchData in filteredMatches
+            div(class="table-row")
+              p(class="listItemText")=`${matchData.round}`
+              p(class="listItemText")=`${matchData.match.court}`
 
-							// Team A Player Names (Stacked in one column)
-							div(class="team-column")
-								each player in matchData.match.teamA
-									span(class="listItemText")=`${player.name}`
-          
-							// Team B Player Names (Stacked in one column)
-							div(class="team-column")
-								each player in matchData.match.teamB
-									span(class="listItemText")=`${player.name}`
+              // Team A Player Names (Stacked in one column)
+              div(class="team-column")
+                each player in matchData.match.teamA
+                  span(class="listItemText")=`${player.name}`
+
+              // Team B Player Names (Stacked in one column)
+              div(class="team-column")
+                each player in matchData.match.teamB
+                  span(class="listItemText")=`${player.name}`
+
+              // Button to trigger the score entry popup
+              button(class="score-button", data-round=`${matchData.round}`, data-matchindex=`${matchData.matchIndex}`, data-eventid=`${event._id}`) Enter Score
+
+        // Popup Modal for entering scores
+        div(id="scoreModal", class="modal")  // This is at the correct indentation level
+          div(class="modal-content")
+            span(class="close") &times;
+            p(class="subheading") Enter Match Score
+            form(id="scoreForm" class="form-2-cols")
+              input(type="hidden", name="eventId", id="eventId", value=event._id)
+              input(type="hidden", name="roundIndex", id="roundIndex")
+              input(type="hidden", name="matchIndex", id="matchIndex")
+              div
+                label(for="teamAScore") Team A Score:
+                input(type="number", name="teamAScore", min="0", id="teamAScore" )
+              div
+                label(for="teamBScore") Team B Score:
+                input(type="number", name="teamBScore", min="0", id="teamBScore" )
+              div
+                button(type="submit", class="btn btn--form") Submit Score

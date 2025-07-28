@@ -2,6 +2,7 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
 const Event = require("../models/eventModel");
+const { filter } = require("compression");
 
 // Display HOMEPAGE
 exports.getHomePage = catchAsync(async (req, res, next) => {
@@ -173,7 +174,7 @@ exports.viewMySchedule = catchAsync(async (req, res, next) => {
 
   // Loop through each round in the schedule
   event.rounds.forEach((round, roundIndex) => {
-    round.matches.forEach((match) => {
+    round.matches.forEach((match, matchIndex) => {
       // Check if the player is part of teamA or teamB
       let playerInMatch =
         match.teamA.some(
@@ -192,12 +193,19 @@ exports.viewMySchedule = catchAsync(async (req, res, next) => {
           : "teamB";
         // Push match to filteredMatches, along with the player's team info
         filteredMatches.push({
-          round: roundIndex + 1, // Store the round number (1-based index)
+          round: roundIndex,
           match,
-          playerTeam, // Store the team the player is in
+          playerTeam,
+          matchIndex,
         });
       }
     });
+  });
+  res.status(200).render("viewMySchedule", {
+    title: `${event.eventName} Event`,
+    event: event,
+    filteredMatches: filteredMatches,
+    userRole: req.session.userRole,
   });
 });
 
@@ -209,7 +217,7 @@ exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
     return next(new AppError("There is no event with that name", 404));
   }
 
-  res.status(200).render("viewMySchedule", {
+  res.status(200).render("viewMasterSchedule", {
     title: `${event.eventName} Event`,
     event: event,
     userRole: req.session.userRole,

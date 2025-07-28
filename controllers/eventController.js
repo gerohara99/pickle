@@ -226,6 +226,44 @@ exports.const = generateSchedulePubJs = (
   return schedule;
 };
 
+exports.updateMatchScore = catchAsync(async (req, res, next) => {
+  const { eventId, roundIndex, matchIndex, teamAScore, teamBScore } = req.body;
+
+  // Validate that the scores are valid numbers
+  if (isNaN(teamAScore) || isNaN(teamBScore)) {
+    return next(new AppError("Scores must be valid numbers", 400));
+  }
+
+  // Find the event by its ID
+  const event = await Event.findById(eventId);
+  if (!event) {
+    return next(new AppError("No event found with that ID", 404));
+  }
+
+  // Ensure the round and match exist
+  const round = event.rounds[roundIndex];
+  const match = round.matches[matchIndex];
+
+  if (!round || !match) {
+    return next(new AppError("Match or Round not found", 400));
+  }
+
+  event.rounds[roundIndex].matches[matchIndex].teamAScore = teamAScore;
+  event.rounds[roundIndex].matches[matchIndex].teamBScore = teamBScore;
+
+  // Save the event with the updated scores
+  try {
+    await event.save(); // Wait for the document to be saved
+    res.status(200).json({
+      status: "success",
+      message: "Match score updated successfully",
+    });
+  } catch (error) {
+    console.error("Error saving event:", error);
+    next(new AppError("Failed to update match score", 500));
+  }
+});
+
 exports.getEvent = factory.getOne(Event);
 exports.getAllEvents = factory.getAll(Event);
 exports.createEvent = factory.createOne(Event);

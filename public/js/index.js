@@ -11,6 +11,7 @@ import {
   deleteEventPubJs,
   eventCreateBookingPubJs,
   eventCancelBookingPubJs,
+  eventUpdateMatchScorePubJs,
 } from "./eventsPubJs";
 import {
   createUserPubJs,
@@ -48,6 +49,11 @@ const cancelEventButtons = document.querySelectorAll("a.cancelEventButtons");
 const viewMyScheduleButtons = document.querySelectorAll(
   "a.viewMyScheduleButtons"
 );
+
+const modal = document.getElementById("scoreModal");
+const closeButton = document.querySelector(".close");
+const scoreButtons = document.querySelectorAll(".score-button");
+const scoreForm = document.getElementById("scoreForm");
 
 //******************** Authorization functions
 if (logInButton)
@@ -273,7 +279,62 @@ if (viewMyScheduleButtons)
       e.preventDefault();
       const eventId = e.target.parentElement.querySelector(".eventId");
       const locationPath = "/events/viewMySchedule/" + eventId.textContent;
-      console.log(locationPath);
       location.assign(locationPath);
     })
   );
+// Get the buttons to trigger the popup
+// Loop through all score buttons and add click event to trigger the modal
+if (scoreButtons)
+  scoreButtons.forEach((item) =>
+    item.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent default behavior
+
+      // Extract data attributes from the button
+      const round = item.getAttribute("data-round");
+      const matchIndex = item.getAttribute("data-matchindex");
+      const eventId = item.getAttribute("data-eventid"); // Extract eventId
+
+      // Set hidden input values (roundIndex, matchIndex, eventId)
+      document.getElementById("roundIndex").value = round;
+      document.getElementById("matchIndex").value = matchIndex;
+      document.getElementById("eventId").value = eventId; // Set eventId in the form
+
+      // Show the modal
+      modal.style.display = "block";
+    })
+  );
+
+// When the user clicks on <span> (x), close the modal
+if (closeButton)
+  closeButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    modal.style.display = "none"; // Close the modal
+  });
+
+// When the user clicks anywhere outside the modal, close it
+window.onclick = function (e) {
+  if (e.target == modal) {
+    modal.style.display = "none"; // Close the modal
+  }
+};
+
+// Handle form submission for the score
+if (scoreForm) {
+  scoreForm.addEventListener("submit", async (e) => {
+    e.preventDefault(); // Prevent default form submission
+
+    const formData = new FormData(scoreForm);
+    const data = {};
+    formData.forEach((value, key) => {
+      data[key] = value;
+    });
+
+    eventUpdateMatchScorePubJs(data);
+    modal.style.display = "none"; // Close the modal
+
+    //Navigate to the schedule page after submitting scores
+    const eventId = document.getElementById("eventId").value;
+    const locationPath = "/events/viewMySchedule/" + eventId;
+    location.assign(locationPath); // Navigate to the schedule page
+  });
+}

@@ -9,6 +9,8 @@ const matchSchema = new mongoose.Schema({
   teamA: { type: [playerSchema] },
   teamB: { type: [playerSchema] },
   court: { type: Number },
+  teamAScore: { type: Number, default: 0 },
+  teamBScore: { type: Number, default: 0 },
 });
 
 const roundSchema = new mongoose.Schema({

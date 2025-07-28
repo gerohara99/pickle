@@ -11,10 +11,6 @@
 /* Html                          */
 /*********************************/
 html {
-  /* font-size: 10px; */
-
-  /* 10px / 16px = 0.625 = 62.5% */
-  /* Percentage of user's browser font-size setting */
   font-size: 62.5%;
   overflow-x: hidden;
 }
@@ -35,7 +31,6 @@ body {
 /* Containers and Grids          */
 /*********************************/
 .container {
-  /* 1140px */
   max-width: 120rem;
   padding: 0 3.2rem;
   margin: 0 auto;
@@ -47,7 +42,7 @@ body {
   grid-template-columns: 2fr;
   /* background-color: #e67e22; */
   box-shadow: 0 2.4rem 4.8rem rgba(0, 0, 0, 0.15);
-  border-radius: 11px;
+  border-radius: 1rem;
 
   background-image: linear-gradient(to right bottom, #eb984e, #e67e22);
   overflow: hidden;
@@ -128,8 +123,8 @@ body {
   color: inherit;
   border: none;
   background-color: #fdf2e9;
-  border-radius: 9px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.1);
 }
 
 .form-2-cols input::placeholder {
@@ -147,7 +142,7 @@ body {
   font-size: 2rem;
   font-weight: 600;
   padding: 1.6rem 3.2rem;
-  border-radius: 9px;
+  border-radius: 1rem;
   border: none;
   cursor: pointer;
   font-family: inherit;
@@ -175,10 +170,8 @@ body {
 .btn--outline:active {
   background-color: #fdf2e9;
 
-  /* border: 3px solid #fff; */
-
   /* Trick to add border inside */
-  box-shadow: inset 0 0 0 3px #fff;
+  box-shadow: inset 0 0 0 0.3rem #fff;
 }
 
 .btn--form {
@@ -208,15 +201,15 @@ body {
   display: inline-block;
   color: #e67e22;
   text-decoration: none;
-  border-bottom: 1px solid currentColor;
-  padding-bottom: 2px;
+  border-bottom: 0.1rem solid currentColor;
+  padding-bottom: 0.2rem;
   transition: all 0.3s;
 }
 
 .link:hover,
 .link:active {
   color: #cf711f;
-  border-bottom: 1px solid transparent;
+  border-bottom: 0.1rem solid transparent;
 }
 
 .text-link:link,
@@ -266,8 +259,6 @@ body {
 
 *:focus {
   outline: none;
-  /* outline: 4px dotted #e67e22; */
-  /* outline-offset: 8px; */
   box-shadow: 0 0 0 0.8rem rgba(230, 125, 34, 0.5);
 }
 
@@ -285,8 +276,8 @@ body {
   font-size: 1.8rem;
   font-weight: 400;
   text-align: center;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
   padding: 1.6rem 15rem;
   -webkit-box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.25);
   box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.25);
@@ -342,7 +333,7 @@ strong {
 
 .mySchedule-table {
   display: grid;
-  grid-template-columns: 1fr 1fr 5fr 5fr;
+  grid-template-columns: 1fr 1fr 5fr 5fr 1fr;
   column-gap: 2rem;
   row-gap: 2rem;
 }
@@ -363,7 +354,7 @@ strong {
 .table-row {
   display: contents;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #ddd; /* Adds a light border between rows */
+  border-bottom: 0.1rem solid #ddd; /* Adds a light border between rows */
   background-color: #f9f9f9; /* Light background color */
 }
 
@@ -389,10 +380,63 @@ strong {
   display: none;
 }
 
-userId {
+.userId {
   display: none;
 }
 
-eventId {
+.eventId {
   display: none;
+}
+
+/***************************************/
+/* Modals.                             */
+/***************************************/
+/* Modal */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 2rem;
+  border: 0.1rem solid #888;
+  width: 80%; /* Adjust width to match your design */
+}
+
+/* Modal close button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 2.8rem;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+/**********************************/
+/* Forms                          */
+/**********************************/
+.form-input {
+  width: 100%;
+  padding: 1.2rem;
+  font-size: 1.8rem;
+  font-family: inherit;
+  color: inherit;
+  border: none;
+  background-color: #fdf2e9;
+  border-radius: 9px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }

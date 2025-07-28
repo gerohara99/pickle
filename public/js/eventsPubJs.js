@@ -96,3 +96,26 @@ export const eventCancelBookingPubJs = async (eventId) => {
     showAlert("error", err.response.data.message);
   }
 };
+
+export const eventUpdateMatchScorePubJs = async (formData) => {
+  try {
+    const res = await axios({
+      method: "PATCH",
+      url: `/api/v1/events/updateMatchScore`,
+      data: formData,
+    });
+
+    if (res.status === 200) {
+      showAlert("success", "Match score successfully saved");
+
+      window.setTimeout(() => {
+        location.assign("/events/myBrowse");
+      }, 1500);
+    }
+  } catch (err) {
+    showAlert("error", err.response.data.message);
+    window.setTimeout(() => {
+      location.assign("/events/myBrowse");
+    }, 1500);
+  }
+};

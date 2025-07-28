@@ -4,6 +4,20 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
+/// User functions
+router
+  .route("/updateMatchScore")
+  .patch(authController.protect, eventController.updateMatchScore);
+
+router
+  .route("/booking/create/")
+  .patch(eventController.createBooking, eventController.checkSchedule);
+
+router
+  .route("/booking/cancel/")
+  .patch(eventController.cancelBooking, eventController.checkSchedule);
+
+// Admin functions
 router
   .route("/")
   .get(eventController.getAllEvents)
@@ -26,13 +40,5 @@ router
     authController.restrictTo("clubAdmin", "pickleAdmin"),
     eventController.deleteEvent
   );
-
-router
-  .route("/booking/create/")
-  .patch(eventController.createBooking, eventController.checkSchedule);
-
-router
-  .route("/booking/cancel/")
-  .patch(eventController.cancelBooking, eventController.checkSchedule);
 
 module.exports = router;
