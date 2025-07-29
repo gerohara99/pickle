@@ -81,4 +81,11 @@ router.get(
   viewsController.viewMySchedule
 );
 
+router.get(
+  "/settings/get",
+  authController.isLoggedIn,
+  authController.restrictTo("clubAdmin", "pickleAdmin"),
+  viewsController.getSettings
+);
+
 module.exports = router;

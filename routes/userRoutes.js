@@ -34,6 +34,7 @@ router
     authController.restrictTo("clubAdmin", "pickleAdmin"),
     userController.createUser
   );
+
 router
   .route("/:id")
   .get(

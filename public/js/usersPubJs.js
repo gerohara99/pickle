@@ -13,7 +13,7 @@ export const createUserPubJs = async (
   try {
     const res = await axios({
       method: "POST",
-      url: "/api/v1/events",
+      url: "/api/v1/users",
       data: {
         name,
         email,

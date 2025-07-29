@@ -82,7 +82,8 @@ exports.checkSchedule = catchAsync(async (req, res, next) => {
     const schedule = generateSchedulePubJs(
       availablePairings,
       standOuts,
-      event.eventNumOfCourts
+      event.eventNumOfCourts,
+      event.eventNumOfPairings
     );
 
     await Event.findByIdAndUpdate(
@@ -167,11 +168,15 @@ exports.const = generateAvailablePairingsPubJs = (playersList) => {
 exports.const = generateSchedulePubJs = (
   availablePairings,
   standOuts,
-  numOfCourts
+  numOfCourts,
+  numOfPairings
 ) => {
   let schedule = [];
   let teamA = {};
   let teamB = {};
+
+  console.log("numOfcourts ---->", numOfCourts);
+  console.log("numOfPairingsPerCourt---->", numOfPairings);
 
   // Initialize each round as an empty array to hold matches
   for (let round = 0; round < standOuts.length; round++) {
@@ -180,7 +185,7 @@ exports.const = generateSchedulePubJs = (
 
   for (let i = 0; i < standOuts.length; i++) {
     for (let k = 0; k < numOfCourts; k++) {
-      for (let x = 0; x < process.env.NUM_OF_PAIRINGS_PER_COURT; x++) {
+      for (let x = 0; x < numOfPairings; x++) {
         for (let j = 0; j < availablePairings.length; j++) {
           if (
             standOuts[i].find(
@@ -201,7 +206,6 @@ exports.const = generateSchedulePubJs = (
               (teamB.playerA = availablePairings[j].playerA),
                 (teamB.playerB = availablePairings[j].playerB);
             }
-            //j = availablePairings.length;
             break;
           }
         }
@@ -221,7 +225,6 @@ exports.const = generateSchedulePubJs = (
       schedule[i].matches.push(newMatch);
     }
   }
-
   return schedule;
 };
 

@@ -3,6 +3,7 @@ const AppError = require("../utils/appError");
 const User = require("../models/userModel");
 const Event = require("../models/eventModel");
 const { filter } = require("compression");
+const settings = require("../models/settingsModel");
 
 // Display HOMEPAGE
 exports.getHomePage = catchAsync(async (req, res, next) => {
@@ -223,6 +224,19 @@ exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
   res.status(200).render("viewMasterSchedule", {
     title: `${event.eventName} Event`,
     event: event,
+    userRole: req.session.user.userRole,
+  });
+});
+
+exports.getSettings = catchAsync(async (req, res, next) => {
+  systemSettings = await settings.findOne();
+
+  if (!systemSettings) {
+    return next(new AppError("There are no system settings in place", 404));
+  }
+  res.status(200).render("editSystemSettings", {
+    title: "System Settings",
+    systemSettings: systemSettings,
     userRole: req.session.user.userRole,
   });
 });

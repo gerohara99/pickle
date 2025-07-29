@@ -20,6 +20,11 @@ import {
 } from "./usersPubJs";
 import { forgotPasswordPubJs } from "./forgotPasswordPubJs";
 import { resetPasswordPubJs } from "./resetPasswordPubJs";
+import {
+  getSystemSettingsPubJs,
+  manageSystemSettingsPubJs,
+} from "./settingsPubJs";
+const mongoose = require("mongoose");
 
 // DOM ELements
 
@@ -55,6 +60,10 @@ const closeButton = document.querySelector(".close");
 const scoreButtons = document.querySelectorAll(".score-button");
 const scoreForm = document.getElementById("scoreForm");
 
+const saveSystemSettingsButton = document.getElementById(
+  "saveSystemSettingsButton"
+);
+
 //******************** Authorization functions
 if (logInButton)
   logInButton.addEventListener("click", (e) => {
@@ -62,6 +71,7 @@ if (logInButton)
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     login(email, password);
+    getSystemSettingsPubJs();
   });
 
 if (signUpButton)
@@ -167,6 +177,8 @@ if (createEventButton)
     ).value;
     data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
     data.eventWaitListSize = document.getElementById("eventWaitListSize").value;
+    data.eventNumOfPairings =
+      document.getElementById("eventNumOfPairings").value;
     createEventPubJs(data);
   });
 
@@ -206,6 +218,8 @@ if (saveEventButton)
     ).value;
     data.eventNumOfRounds = document.getElementById("eventNumOfRounds").value;
     data.eventWaitListSize = document.getElementById("eventWaitListSize").value;
+    data.eventNumOfPairings =
+      document.getElementById("eventNumOfPairings").value;
     updateEventPubJs(data);
   });
 
@@ -338,3 +352,17 @@ if (scoreForm) {
     location.assign(locationPath); // Navigate to the schedule page
   });
 }
+
+if (saveSystemSettingsButton)
+  saveSystemSettingsButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    let data = {};
+    data.numOfStandOuts = document.getElementById("numOfStandOuts").value;
+    data.numOfRounds = document.getElementById("numOfRounds").value;
+    data.numOfCourts = document.getElementById("numOfCourts").value;
+    data.numOfPairingsPerCourt = document.getElementById(
+      "numOfPairingsPerCourt"
+    ).value;
+    data.waitListSize = document.getElementById("waitListSize").value;
+    manageSystemSettingsPubJs(data);
+  });

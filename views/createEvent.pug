@@ -29,17 +29,20 @@ block content
 								label(for="eventOrganiser") Event organiser
 								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
 							div 
-								label(for="neventNumOfCourts") Number of available courts for event
-								input(name="eventNumOfCourts" type="number" id="eventNumOfCourts" value=`${process.env.NUM_OF_COURTS}` required)
+								label(for="eventNumOfCourts") Number of available courts for event
+								input(name="eventNumOfCourts" type="number" id="eventNumOfCourts" value=`${req.session.systemDefaults.numOfCourts}` required)
 							div 
 								label(for="numOfStandOutsPerRound") Number of players resting per round
-								input(name="numOfStandOutsPerRound" type="number" id="numOfStandOutsPerRound" value=`${process.env.NUM_OF_STANDOUTS}` required)
+								input(name="numOfStandOutsPerRound" type="number" id="numOfStandOutsPerRound" value=`${req.session.systemDefaults.numOfStandOuts}` required)
 							div 
 								label(for="eventNumOfRounds") Number of rounds in the event
-								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=`${process.env.NUM_OF_ROUNDS}` required)
+								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=`${req.session.systemDefaults.numOfRounds}` required)
 							div 
 								label(for="eventWaitListSize") Max number of players on wait list
-								input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=`${process.env.WAITLIST_SIZE}` required)
+								input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=`${req.session.systemDefaults.waitListSize}` required)
+							div 
+								label(for="eventNumOfPairings") Number of pairings per court
+								input(name="eventNumOfPairings" type="number" id="eventNumOfPairings" value=`${req.session.systemDefaults.numOfPairingsPerCourt}` required)
 
 						div(class="button-container")
 							div 

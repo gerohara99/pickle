@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const Settings = require("../models/settingsModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const sendEMail = require("../utils/email");
@@ -23,10 +24,9 @@ const createSendToken = (user, statusCode, req, res) => {
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
   });
 
-  // Initialize session user object if not already initialized
-  if (!req.session.user) {
-    req.session.user = {}; // Initialize the user object in the session
-  }
+  // 3) Initialize session object
+  req.session.user = {};
+  req.session.systemDefaults = {};
 
   req.session.user.userId = user._id.toString();
   req.session.user.userName = user.name;
@@ -169,7 +169,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 exports.restrictTo =
   (...roles) =>
   (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes(req.session.user.userRole)) {
       return next(
         new AppError("You do not have permission to perform this action", 403)
       );

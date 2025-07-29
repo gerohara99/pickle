@@ -1,11 +1,6 @@
 const mongoose = require("mongoose");
 
-const sessionSchema = new mongoose.Schema({
-  user: {
-    userId: { type: mongoose.Schema.ObjectId },
-    userName: { type: String },
-    userRole: { type: String },
-  },
+const settingsSchema = new mongoose.Schema({
   systemDefaults: {
     numOfStandOuts: { type: Number, default: 0 },
     numOfRounds: { type: Number, default: 0 },
@@ -15,6 +10,6 @@ const sessionSchema = new mongoose.Schema({
   },
 });
 
-const Session = mongoose.model("Session", sessionSchema);
+const Settings = mongoose.model("Settings", settingsSchema);
 
-module.exports = Session;
+module.exports = Settings;
