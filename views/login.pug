@@ -1,28 +1,26 @@
 extends base
 
 block content
+  main.main
+    section(class="section")
+      div(class="container")
+        div(class="crudContainer")
+          div(class="text-box") 
+            h1(class="heading-secondary") Log into your account
+            p(class="normal-text") The "go to" place to book all your pickle ball games
 
-	main.main
-		section(class="section")
-			div(class="container")
-				div(class="crudContainer")
-					div(class="text-box") 
-						h1(class="heading-secondary") Log into your account
-						p(class="normal-text") The "go to" place to book all your pickle ball games
-
-						form(class="form-2-cols")
-							div
-								label(for="email") Email
-								input(name="email" type="email" placeholder='you@example.com' id="email" required)
-							div 
-								label(for="password") Password
-								input(name="Password" type="password" id="password" required)
-						div(class="button-container")
-							div 
-								a(class="btn btn--form" id="logInButton" href="#") Login
-								a( id="forgotPasswordLink" class="text-link" href="#") Forgot Password?
-
-							div 
-								a(class="btn btn--outline" id="cancelButton" href="/") Cancel
-
-					div(class="login-img-box" role="img" aria-label="Picture of a pickle court")
+            form(class="form-2-cols")
+              div
+                label(for="email") Email
+                input(name="email" type="email" placeholder='you@example.com' id="email" required)
+              div 
+                label(for="password") Password
+                input(name="Password" type="password" id="password" required)
+              
+              // No need for a separate button container now
+              div(class="form-buttons")
+                a(class="btn btn--form" id="logInButton" href="#") Login
+                a(id="forgotPasswordLink" class="text-link" href="#") Forgot Password?
+                
+                a(class="btn btn--outline" id="cancelButton" href="/") Cancel
+          div(class="login-img-box" role="img" aria-label="Picture of a pickle court")

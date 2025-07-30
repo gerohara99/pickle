@@ -31,6 +31,14 @@
     width: 100%;
     height: auto;
   }
+  .form-2-cols {
+    grid-template-columns: 1fr; /* Stack inputs vertically on small screens */
+  }
+
+  .form-buttons {
+    flex-direction: column; /* Stack buttons vertically */
+    align-items: center; /* Center align the buttons */
+  }
 }
 
 /* Tablet - Landscape */

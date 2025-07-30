@@ -134,6 +134,21 @@ body {
 /*********************************/
 /* Buttons                       */
 /*********************************/
+
+.form-buttons {
+  display: flex; /* Use Flexbox to align buttons side by side */
+  gap: 1.6rem; /* Space between buttons */
+  flex-wrap: wrap; /* Allow buttons to wrap if necessary */
+  grid-column: span 2; /* Make sure buttons span across both columns */
+  justify-content: space-between; /* Distribute space between buttons */
+  margin-top: 2.4rem; /* Add spacing above the buttons */
+}
+
+/* Ensure buttons are properly aligned */
+.form-buttons a {
+  text-align: center; /* Ensure buttons are centered */
+}
+
 .btn,
 .btn:link,
 .btn:visited {
