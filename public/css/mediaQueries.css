@@ -1,107 +1,69 @@
-/* Mobile - Portrait */
-@media (max-width: 767px) {
-  .homepage {
-    display: block; /* Stack homepage content vertically */
-    margin: 0 auto;
-    padding: 0 2rem;
-  }
-
-  .homepage-text-box {
+/* Below 944px (Tablets) */
+@media (max-width: 59em) {
+  .crudContainer {
+    grid-template-columns: 1fr;
     text-align: center;
   }
 
-  .homepage-description {
-    font-size: 1.6rem;
-    line-height: 1.6;
-    margin-bottom: 2rem;
+  .text-box {
+    padding: 3.2rem;
   }
 
-  .btn {
-    width: 100%; /* Make buttons full-width on mobile */
-    margin-bottom: 1rem; /* Add space between buttons */
+  .login-img-box {
+    display: none; /* Hide image on tablets/smaller devices for simplicity */
   }
 
-  .homepage-img-box {
-    width: 100%; /* Ensure image box takes full width */
-    display: block;
-    margin-top: 2rem; /* Space between text and image */
-  }
-
-  .homepage-img {
-    width: 100%;
-    height: auto;
-  }
   .form-2-cols {
-    grid-template-columns: 1fr; /* Stack inputs vertically on small screens */
-  }
-
-  .form-buttons {
-    flex-direction: column; /* Stack buttons vertically */
-    align-items: center; /* Center align the buttons */
-  }
-}
-
-/* Tablet - Landscape */
-@media (max-width: 1023px) {
-  .homepage {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two columns on tablets */
+    display: grid !important;
+    grid-template-columns: 1fr !important;
     gap: 2rem;
-    padding: 0 3.2rem;
   }
 
-  .homepage-text-box {
-    text-align: left;
+  .form-buttons,
+  .button-container {
+    flex-direction: column;
+    gap: 1.2rem;
+    align-items: stretch;
   }
 
-  .homepage-img-box {
-    display: block;
-    margin-top: 2rem; /* Add margin to separate from text */
-  }
-
-  .homepage-img {
+  .btn--form,
+  .btn--outline {
     width: 100%;
-    height: auto;
   }
 
-  .btn {
-    width: 100%; /* Buttons are still full-width */
-    margin-bottom: 1rem;
+  .text-link {
+    font-size: 1.4rem;
+    margin-top: 1rem;
   }
 }
 
-/* Desktop - Large screens */
-@media (min-width: 1024px) {
-  .homepage {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Two columns layout */
-    gap: 9.6rem;
-    padding: 0 3.2rem;
+/* Below 544px (Phones) */
+@media (max-width: 34em) {
+  .text-box {
+    padding: 2.4rem 2rem;
   }
 
-  .homepage-text-box {
-    text-align: left;
-    max-width: 50%; /* Ensure text does not occupy full width */
+  .heading-secondary {
+    font-size: 2.8rem;
   }
 
-  .homepage-description {
-    font-size: 2rem;
-    line-height: 1.8;
-    margin-bottom: 4.8rem;
+  .normal-text {
+    font-size: 1.6rem;
+    margin-bottom: 3.2rem;
+  }
+
+  .form-input,
+  .form-2-cols input {
+    font-size: 1.6rem;
+    padding: 1rem;
   }
 
   .btn {
-    width: auto; /* Reset button width */
-    margin-right: 1rem; /* Add spacing between buttons */
-    display: inline-block; /* Buttons side by side */
+    font-size: 1.6rem;
+    padding: 1rem 2rem;
   }
 
-  .homepage-img-box {
-    display: block;
-  }
-
-  .homepage-img {
-    width: 100%;
-    height: auto;
+  .text-link {
+    font-size: 1.3rem;
   }
 }

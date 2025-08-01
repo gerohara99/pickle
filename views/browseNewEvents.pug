@@ -25,9 +25,9 @@ block content
 										else
 											p(class="event-attribute")=booking.userName
 										- i++;					
-							div(class="button-container")
-								if event.eventBookings.length > event.eventNumOfPlayers
-									a(class="btn btn--outline bookEventButtons" href="#") WaitList
-								else 
-									a(class="btn btn--outline bookEventButtons" href="#") Book
-								p(class="hiddenField eventId")=`${event._id}`
+								div(class="form-buttons")
+									if event.eventBookings.length > event.eventNumOfPlayers
+										a(class="btn btn--outline bookEventButtons" href="#") WaitList
+									else 
+										a(class="btn btn--outline bookEventButtons" href="#") Book
+									p(class="hiddenField eventId")=`${event._id}`

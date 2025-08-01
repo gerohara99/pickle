@@ -461,3 +461,240 @@ strong {
   justify-content: center; /* Center the button within the column */
   align-items: center; /* Vertically center the button */
 }
+
+/*********************************/
+/* Events                        */
+/*********************************/
+
+.eventContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 3.2rem;
+  row-gap: 2.4rem;
+}
+
+.eventCard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #e67e22;
+  border-radius: 11px;
+  padding: 1.6rem;
+}
+
+.eventCardHeader {
+  display: flex;
+  flex-direction: column;
+  background-color: #e67e22;
+  border-radius: 11px;
+  padding: 1.6rem;
+}
+.eventCardDetails {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #e67e22;
+  border-radius: 11px;
+  padding: 1.6rem;
+}
+
+.event-title {
+  font-size: 1.8rem;
+  color: #333;
+  font-weight: 600;
+  grid-column: span 2;
+  justify-self: center;
+  padding: 1.2rem;
+}
+.event-attributes {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.event-attribute {
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+/**************************/
+/* HomePage                */
+/**************************/
+
+.homepage {
+  max-width: 130rem;
+  margin: 0 auto;
+  padding: 0 3.2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9.6rem;
+  align-items: center;
+}
+
+.homepage-description {
+  font-size: 2rem;
+  line-height: 1.6;
+  margin-bottom: 4.8rem;
+}
+
+.homepage-img {
+  width: 100%;
+}
+
+/**************************/
+/* NAVIGATION */
+/**************************/
+
+.main-nav-list {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 4.8rem;
+}
+
+.main-nav-link:link,
+.main-nav-link:visited {
+  display: inline-block;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 1.8rem;
+  transition: all 0.3s;
+}
+
+.main-nav-link:hover,
+.main-nav-link:active {
+  color: #cf711f;
+}
+
+.main-nav-link.nav-cta:link,
+.main-nav-link.nav-cta:visited {
+  padding: 1.2rem 2.4rem;
+  border-radius: 0.9rem;
+  color: #fff;
+  background-color: #e67e22;
+}
+
+.main-nav-link.nav-cta:hover,
+.main-nav-link.nav-cta:active {
+  background-color: #cf711f;
+}
+
+/* MOBILE */
+.btn-mobile-nav {
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  display: none;
+}
+
+.icon-mobile-nav {
+  height: 4.8rem;
+  width: 4.8rem;
+  color: #333;
+}
+
+.icon-mobile-nav[name="close-outline"] {
+  display: none;
+}
+
+/* Sticky navigation */
+
+.sticky .header {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  height: 8rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  /* background-color: rgba(255, 255, 255, 0.97); */
+  z-index: 999;
+  /*box-shadow: 0 1.2rem 3.2rem rgba(0, 0, 0, 0.3); */
+}
+
+.sticky .section-list {
+  margin-top: 8rem;
+}
+
+/**************************/
+/* HEADERS                 */
+/**************************/
+
+.heading-primary,
+.heading-secondary,
+.heading-tertiary {
+  font-weight: 700;
+  color: #333;
+  /* color: #45260a; */
+  /* color: #343a40; */
+  letter-spacing: -0.05rem;
+}
+
+.heading-primary {
+  font-size: 5.2rem;
+  line-height: 1.05;
+  margin-bottom: 3.2rem;
+}
+
+.heading-secondary {
+  font-size: 4.4rem;
+  line-height: 1.2;
+  margin-bottom: 9.6rem;
+}
+
+.heading-tertiary {
+  font-size: 3rem;
+  line-height: 1.2;
+  margin-bottom: 3.2rem;
+}
+
+.subheading {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: #cf711f;
+  text-transform: uppercase;
+  margin-bottom: 1.6rem;
+  letter-spacing: 0.075rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fdf2e9;
+
+  /* Because we want header to be sticky later */
+  height: 9.6rem;
+  padding: 0 4.8rem;
+  position: relative;
+}
+
+.main-nav-list.l1:last-child {
+  margin-left: auto;
+}
+
+.main {
+  display: block;
+  unicode-bidi: isolate;
+  background-color: #fdf2e9;
+}
+
+.main-nav-list.l1:first-child {
+  margin-right: auto;
+}
+
+.header .logo {
+  height: 9.6rem;
+}
+
+/**************************/
+/* FOOTER */
+/**************************/
+
+.footer {
+  padding: 12.8rem 0;
+  border-top: 0.1rem solid #eee;
+}
