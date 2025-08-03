@@ -175,9 +175,6 @@ exports.const = generateSchedulePubJs = (
   let teamA = {};
   let teamB = {};
 
-  console.log("numOfcourts ---->", numOfCourts);
-  console.log("numOfPairingsPerCourt---->", numOfPairings);
-
   // Initialize each round as an empty array to hold matches
   for (let round = 0; round < standOuts.length; round++) {
     schedule[round] = { matches: [] };

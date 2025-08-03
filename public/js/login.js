@@ -1,5 +1,6 @@
 /* eslint-disable */
-import "@babel/polyfill";
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import axios from "axios";
 import { showAlert } from "./alerts";
 

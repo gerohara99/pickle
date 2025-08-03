@@ -1,5 +1,6 @@
 /*eslint-disable*/
-import "@babel/polyfill";
+import "core-js/stable";
+import "regenerator-runtime/runtime";
 import { login } from "./login";
 import { logOut } from "./logout";
 import { signUp } from "./signUp";
@@ -24,12 +25,11 @@ import {
   getSystemSettingsPubJs,
   manageSystemSettingsPubJs,
 } from "./settingsPubJs";
-const mongoose = require("mongoose");
 
 // DOM ELements
 
 //Auth Elements -- note all these functions are in public/js folder NOT auth routes
-const logInButton = document.getElementById("logInButton");
+const loginForm = document.getElementById("loginForm");
 const signUpButton = document.getElementById("signUpButton");
 const logOutButton = document.getElementById("logOutButton");
 
@@ -65,7 +65,7 @@ const saveSystemSettingsButton = document.getElementById(
 );
 
 //******************** Authorization functions
-if (logInButton)
+if (loginForm)
   logInButton.addEventListener("click", (e) => {
     e.preventDefault();
     const email = document.getElementById("email").value;
