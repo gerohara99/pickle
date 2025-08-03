@@ -3,14 +3,16 @@
   "version": "1.0.0",
   "description": "Pickle Administration",
   "main": "app.js",
+
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "start:prod": "NODE_ENV=production nodemon server.js",
+  "dev": "nodemon server.js",
+      "start:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
-    "watch:js": "parcel watch ./public/js/index.js --target bundle --no-content-hash",
-    "build:js": "parcel build ./public/js/index.js --target bundle --no-content-hash"
-  },
+  "start": "node server.js",
+  "watch:js": "parcel watch src/index.js --dist-dir public/js/dist",
+  "build:js": "parcel build src/index.js --dist-dir public/js/dist"
+}
+
   "author": "Gerard O'Hara",
   "license": "ISC",
   "dependencies": {
