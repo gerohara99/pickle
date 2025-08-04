@@ -1,7 +1,5 @@
-const mongoose = require("mongoose");
+const path = require("path");
 const dotenv = require("dotenv");
-const MongoStore = require("connect-mongo");
-const session = require("express-session");
 
 // This is for actual system issues i.e. memory corruption and so on
 process.on("uncaughtException", (err) => {
@@ -11,6 +9,7 @@ process.on("uncaughtException", (err) => {
 });
 
 dotenv.config({ path: "./config.env" }); // Point to config file for env variables
+console.log("➡️ Requiring app.js...");
 const app = require("./app");
 
 //START SERVER

@@ -1,3 +1,4 @@
+console.log("✅ index.js loaded");
 /*eslint-disable*/
 import "core-js/stable";
 import "regenerator-runtime/runtime";
@@ -66,12 +67,18 @@ const saveSystemSettingsButton = document.getElementById(
 
 //******************** Authorization functions
 if (loginForm)
-  logInButton.addEventListener("click", (e) => {
+  loginForm.addEventListener("submit", (e) => {
     e.preventDefault();
+
+    if (!loginForm.checkValidity()) {
+      loginForm.reportValidity();
+      return;
+    }
+
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     login(email, password);
-    getSystemSettingsPubJs();
+    //getSystemSettingsPubJs();
   });
 
 if (signUpButton)

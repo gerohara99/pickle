@@ -2,17 +2,14 @@
   "name": "pickle",
   "version": "1.0.0",
   "description": "Pickle Administration",
-  "main": "app.js",
-
   "scripts": {
-  "dev": "nodemon server.js",
-      "start:prod": "NODE_ENV=production nodemon server.js",
-    "debug": "ndb server.js",
-  "start": "node server.js",
-  "watch:js": "parcel watch src/index.js --dist-dir public/js/dist",
-  "build:js": "parcel build src/index.js --dist-dir public/js/dist"
-}
-
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "npm run build && node server.js",
+    "start:prod": "NODE_ENV=production node server.js",
+    "debug": "ndb server.js"
+  },
   "author": "Gerard O'Hara",
   "license": "ISC",
   "dependencies": {
@@ -48,6 +45,7 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "vite": "^5.2.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.1.0",
@@ -56,43 +54,9 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.1.3",
     "eslint-plugin-react": "^7.34.4",
-    "parcel": "^2.15.4",
     "prettier": "^3.3.3"
   },
   "engines": {
     "node": "^22"
-  },
-  "targets": {
-    "bundle": {
-      "distDir": "./public/js/dist",
-      "publicUrl": ".",
-      "includeNodeModules": true,
-      "outputFormat": "esmodule",
-      "sourceMap": false
-    }
-  },
-  "alias": {
-    "axios/lib/adapters/http.js": false,
-    "axios/lib/platform/node": false,
-    "axios/lib/platform/node/classes/URLSearchParams.js": false,
-    "axios": "./node_modules/axios/dist/browser/axios.cjs",
-    "follow-redirects": false,
-    "form-data": false,
-    "zlib": "./src/shims/zlib.js",
-    "url": "./src/shims/url.js",
-    "http": "./src/shims/http.js",
-    "https": "./src/shims/https.js"
-  },
-  "browser": {
-    "axios/lib/adapters/http.js": false,
-    "axios/lib/platform/node": false,
-    "axios/lib/platform/node/classes/URLSearchParams.js": false,
-    "axios": "./node_modules/axios/dist/browser/axios.cjs",
-    "follow-redirects": false,
-    "form-data": false,
-    "zlib": "./src/shims/zlib.js",
-    "url": "./src/shims/url.js",
-    "http": "./src/shims/http.js",
-    "https": "./src/shims/https.js"
   }
 }
