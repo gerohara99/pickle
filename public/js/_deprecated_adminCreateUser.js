@@ -1,5 +1,5 @@
 /* eslint-disable */
-import axios from "axios";
+import axios from "./api";
 import { showAlert } from "./alerts";
 
 export const adminCreateUser = async (

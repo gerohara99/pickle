@@ -9,19 +9,18 @@ block content
 					div(class="text-box") 
 						h1(class="heading-secondary") Edit your account settings
 
-						form(class="form-2-cols")
+						form(class="form-1-cols" id="acDetailsForm")
 							div
 								label(for="name") Name
-								input(name="name" type="email" id="name" value=`${user.name}` required)
+								input(name="name" type="text" id="name" value=user.name required)
 							div
 								label(for="email") Email
-								input(name="email" type="email" placeholder='you@example.com' id="email"  value=`${user.email}` required)
+								input(name="email" type="email" placeholder='you@example.com' id="email"  value=user.email required)
 							div 
 								label(for="mobile") Mobile
-								input(name="mobile" type="number" id="mobile" value=`${user.mobile}` required)
-							p(id="userId" class="hiddenField")=`${user._id}`
-						div(class="button-container")
-							div 
-								a(class="btn btn--form" id="saveAcDetailsButton" href="#") Save Details
-							div 
+								input(name="mobile" type="number" id="mobile" value=user.mobile required)
+							input(type="hidden" id="userId" value=user._id)
+					
+							div(class="form-buttons")
+								button(class="btn btn--form" id="saveAcDetailsButton" type="submit") Save Details
 								a(class="btn btn--outline" id="cancelButton" href="/") Cancel

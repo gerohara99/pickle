@@ -1,7 +1,7 @@
 /* eslint-disable */
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-import axios from "axios";
+import axios from "./api";
 import { showAlert } from "./alerts";
 
 export const login = async (email, password) => {
@@ -29,6 +29,10 @@ export const login = async (email, password) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };

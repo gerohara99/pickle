@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Pickle Administration",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --debug",
     "build": "vite build",
     "preview": "vite preview",
     "start": "npm run build && node server.js",

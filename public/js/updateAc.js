@@ -1,7 +1,7 @@
 /* eslint-disable */
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-import axios from "axios";
+import axios from "./api";
 import { showAlert } from "./alerts";
 
 // type is either 'password' or 'data'
@@ -22,6 +22,10 @@ export const updateAc = async (data, type) => {
       showAlert("success", `${type.toUpperCase()} updated successfully!`);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };

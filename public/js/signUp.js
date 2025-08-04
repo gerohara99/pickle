@@ -1,7 +1,7 @@
 /* eslint-disable */
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-import axios from "axios";
+import axios from "./api";
 import { showAlert } from "./alerts";
 
 export const signUp = async (

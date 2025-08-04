@@ -1,7 +1,8 @@
-console.log("✅ index.js loaded");
 /*eslint-disable*/
 import "core-js/stable";
 import "regenerator-runtime/runtime";
+import axios from "./api";
+axios.defaults.withCredentials = true;
 import { login } from "./login";
 import { logOut } from "./logout";
 import { signUp } from "./signUp";
@@ -30,7 +31,6 @@ import {
 // DOM ELements
 
 //Auth Elements -- note all these functions are in public/js folder NOT auth routes
-const loginForm = document.getElementById("loginForm");
 const signUpButton = document.getElementById("signUpButton");
 const logOutButton = document.getElementById("logOutButton");
 
@@ -46,7 +46,9 @@ const deleteEventButtons = document.querySelectorAll("a.deleteEventButtons");
 const editEventButtons = document.querySelectorAll("a.editEventButtons");
 
 // User Elements for editing profile, booking and cencelling events
-const saveAcDetailsButton = document.getElementById("saveAcDetailsButton");
+const saveAccountDetailsForm = document.getElementById(
+  "saveAccountDetailsForm"
+);
 const updatePasswordButton = document.getElementById("updatePasswordButton");
 const forgotPasswordLink = document.getElementById("forgotPasswordLink");
 const resetPasswordButton = document.getElementById("resetPasswordButton");
@@ -66,36 +68,51 @@ const saveSystemSettingsButton = document.getElementById(
 );
 
 //******************** Authorization functions
-if (loginForm)
-  loginForm.addEventListener("submit", (e) => {
-    e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+  const loginForm = document.getElementById("loginForm");
 
-    if (!loginForm.checkValidity()) {
-      loginForm.reportValidity();
-      return;
-    }
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    login(email, password);
-    //getSystemSettingsPubJs();
-  });
+      if (!loginForm.checkValidity()) {
+        loginForm.reportValidity();
+        return;
+      }
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        await login(email, password);
+      } catch (err) {
+        console.error("Login failed:", err);
+      }
+
+      try {
+        getSystemSettingsPubJs();
+      } catch (err) {
+        console.error("Failed to retrieve system settings", err);
+      }
+    });
+  }
+});
 
 if (signUpButton)
-  signUpButton.addEventListener("click", (e) => {
+  signUpButton.addEventListener("click", async (e) => {
     e.preventDefault();
     const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
     const mobile = document.getElementById("mobile").value;
     const password = document.getElementById("password").value;
     const passwordConfirm = document.getElementById("passwordConfirm").value;
-    signUp(name, email, mobile, password, passwordConfirm);
+    await signUp(name, email, mobile, password, passwordConfirm);
   });
 
 if (logOutButton)
-  logOutButton.addEventListener("click", (e) => {
+  logOutButton.addEventListener("click", async (e) => {
     e.preventDefault();
-    logOut();
+    await logOut();
   });
 
 // ******************   Admin functions for creating, updating, deleteing Users and Events
@@ -231,30 +248,45 @@ if (saveEventButton)
   });
 
 /******** User functions    ************************/
-if (saveAcDetailsButton)
-  saveAcDetailsButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    let data = {};
-    data.name = document.getElementById("name").value;
-    data.email = document.getElementById("email").value;
-    data.mobile = document.getElementById("mobile").value;
-    data.userId = document.getElementById("userId").textContent;
-    const type = "account";
-    updateAc(data, type);
-    location.assign("/events/browseNew");
-  });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const acDetailsForm = document.getElementById("acDetailsForm");
+  if (acDetailsForm) {
+    acDetailsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!acDetailsForm.checkValidity()) {
+        acDetailsForm.reportValidity();
+        return;
+      }
+
+      let data = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        mobile: document.getElementById("mobile").value,
+        userId: document.getElementById("userId").value,
+      };
+      const type = "account";
+      try {
+        await updateAc(data, type);
+        location.assign("/events/browseNew");
+      } catch (err) {
+        console.error("Update failed:", err);
+      }
+    });
+  }
+});
 
 if (updatePasswordButton)
-  updatePasswordButton.addEventListener("click", (e) => {
+  updatePasswordButton.addEventListener("click", async (e) => {
     e.preventDefault();
-    let data = {};
-    data.currentPassword = document.getElementById("currentPassword").value;
-    data.newPassword = document.getElementById("newPassword").value;
-    data.newPasswordConfirm =
-      document.getElementById("newPasswordConfirm").value;
-    data.userId = document.getElementById("userId").textContent;
+    let data = {
+      currentPassword: document.getElementById("currentPassword").value,
+      newPassword: document.getElementById("newPassword").value,
+      newPasswordConfirm: document.getElementById("newPasswordConfirm").value,
+      userId: document.getElementById("userId").textContent,
+    };
     const type = "password";
-    updateAc(data, type);
+    await updateAc(data, type);
     location.assign("/events/browseNew");
   });
 
