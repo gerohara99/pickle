@@ -98,16 +98,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-if (signUpButton)
-  signUpButton.addEventListener("click", async (e) => {
-    e.preventDefault();
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const mobile = document.getElementById("mobile").value;
-    const password = document.getElementById("password").value;
-    const passwordConfirm = document.getElementById("passwordConfirm").value;
-    await signUp(name, email, mobile, password, passwordConfirm);
-  });
+document.addEventListener("DOMContentLoaded", () => {
+  const signUpForm = document.getElementById("signUpForm");
+
+  if (signUpForm)
+    signUpForm.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      if (!signUpForm.checkValidity()) {
+        signUpForm.reportValidity();
+        return;
+      }
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const mobile = document.getElementById("mobile").value;
+      const password = document.getElementById("password").value;
+      const passwordConfirm = document.getElementById("passwordConfirm").value;
+
+      try {
+        await signUp(name, email, mobile, password, passwordConfirm);
+      } catch (err) {
+        console.error("Login failed:", err);
+      }
+    });
+});
 
 if (logOutButton)
   logOutButton.addEventListener("click", async (e) => {
