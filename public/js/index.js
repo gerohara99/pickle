@@ -31,7 +31,6 @@ import {
 // DOM ELements
 
 //Auth Elements -- note all these functions are in public/js folder NOT auth routes
-const signUpButton = document.getElementById("signUpButton");
 const logOutButton = document.getElementById("logOutButton");
 
 // Admin elements for creating, updating, deleteing Users and Events
@@ -46,9 +45,6 @@ const deleteEventButtons = document.querySelectorAll("a.deleteEventButtons");
 const editEventButtons = document.querySelectorAll("a.editEventButtons");
 
 // User Elements for editing profile, booking and cencelling events
-const saveAccountDetailsForm = document.getElementById(
-  "saveAccountDetailsForm"
-);
 const updatePasswordButton = document.getElementById("updatePasswordButton");
 const forgotPasswordLink = document.getElementById("forgotPasswordLink");
 const resetPasswordButton = document.getElementById("resetPasswordButton");
@@ -102,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const signUpForm = document.getElementById("signUpForm");
 
   if (signUpForm)
-    signUpForm.addEventListener("click", async (e) => {
+    signUpForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       if (!signUpForm.checkValidity()) {
