@@ -18,12 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (err) {
         console.error("Login failed:", err);
       }
-
-      try {
-        getSystemSettingsPubJs();
-      } catch (err) {
-        console.error("Failed to retrieve system settings", err);
-      }
     });
   }
 });

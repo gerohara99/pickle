@@ -120,11 +120,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-if (logOutButton)
+if (logOutButton) {
   logOutButton.addEventListener("click", async (e) => {
     e.preventDefault();
-    await logOut();
+
+    try {
+      await logOut();
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
   });
+}
 
 // ******************   Admin functions for creating, updating, deleteing Users and Events
 
