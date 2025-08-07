@@ -1,7 +1,7 @@
 header.header
   if showNav !== false
     a(href="#")
-    img.logo(src="/img/logo.png" alt="Pickle ball logo")
+      img.logo(src="/img/logo.png" alt="Pickle ball logo")
     if userRole !== null
       case userRole
         when 'clubAdmin'
@@ -10,3 +10,4 @@ header.header
           include _navLoggedInAsUser
         default
           // optionally nothing
+    include _navLogOut

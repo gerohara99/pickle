@@ -23,12 +23,33 @@ import {
   manageSystemSettingsPubJs,
 } from "./settingsPubJs";
 
-// DOM ELements
+// Mobile and desktop nav bar toggle
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.getElementById("mobileNavToggle");
+  const mobileDrawer = document.querySelector(".mobile-drawer");
+  const iconMenu = toggleBtn.querySelector(".icon-menu");
+  const iconClose = toggleBtn.querySelector(".icon-close");
 
-const saveSystemSettingsButton = document.getElementById(
-  "saveSystemSettingsButton"
-);
+  toggleBtn.addEventListener("click", () => {
+    const isOpen = mobileDrawer.classList.toggle("open");
+    if (isOpen) {
+      iconMenu.style.display = "none";
+      iconClose.style.display = "inline";
+    } else {
+      iconMenu.style.display = "inline";
+      iconClose.style.display = "none";
+    }
+  });
 
+  // Optional: close drawer when a link inside is clicked
+  mobileDrawer.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      mobileDrawer.classList.remove("open");
+      iconMenu.style.display = "inline";
+      iconClose.style.display = "none";
+    });
+  });
+});
 //******************** Authorization functions
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("loginForm");

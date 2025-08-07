@@ -1,10 +1,28 @@
-nav(class="main-nav heading-primary") 
-	ul(class="main-nav-list")
-		li(class="main-nav-link")
-			a(class="main-nav-link" href="/events/showAllSchedules") Manage Schedules
-		li(class="main-nav-link")
-			a(class="main-nav-link" href="/events/showAll") Manage Events
-		li(class="main-nav-link")
-			a(class="main-nav-link" href="/users/showAll") Manage Users
-		li(class="main-nav-link")
-			a(class="main-nav-link" href="/settings/get") System Settings
+// Hamburger toggle button for mobile
+button.btn-mobile-nav#mobileNavToggle(type="button" aria-label="Toggle navigation")
+	ion-icon(name="menu-outline" class="icon-mobile-nav icon-menu")
+	ion-icon(name="close-outline" class="icon-mobile-nav icon-close")
+
+// Desktop nav - visible on desktop only
+nav.main-nav
+	ul.main-nav-list
+		li.main-nav-link
+			a.main-nav-link(href="/events/showAllSchedules") Manage Schedules
+		li.main-nav-link
+			a.main-nav-link(href="/events/showAll") Manage Events
+		li.main-nav-link
+			a.main-nav-link(href="/users/showAll") Manage Users
+		li.main-nav-link
+			a.main-nav-link(href="/settings/get") System Settings
+
+// Mobile drawer nav - hidden by default
+nav.mobile-drawer
+	ul.main-nav-list
+		li.main-nav-link
+			a(href="/events/showAllSchedules") Manage Schedules
+		li.main-nav-link
+			a(href="/events/showAll") Manage Events
+		li.main-nav-link
+			a(href="/users/showAll") Manage Users
+		li.main-nav-link
+			a(href="/settings/get") System Settings

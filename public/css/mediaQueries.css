@@ -1,0 +1,63 @@
+/* Desktop nav visible by default */
+.desktop-nav {
+  display: block;
+}
+
+/* Mobile drawer hidden by default */
+.mobile-drawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 250px;
+  background-color: #fdf2e9;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  padding-top: 9.6rem; /* leave space for fixed header if any */
+}
+
+/* Show mobile drawer when active */
+.mobile-drawer.open {
+  transform: translateX(0);
+}
+
+/* Hamburger button hidden on desktop */
+.btn-mobile-nav {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Show hamburger on mobile only */
+@media (max-width: 768px) {
+  .desktop-nav {
+    display: none;
+  }
+  .btn-mobile-nav {
+    display: inline-block;
+  }
+  .mobile-drawer {
+    display: block;
+  }
+}
+
+/* Toggle ion-icon visibility */
+.icon-menu {
+  display: inline;
+}
+
+.icon-close {
+  display: none;
+}
+
+.mobile-drawer.open ~ .btn-mobile-nav .icon-menu {
+  display: none;
+}
+
+.mobile-drawer.open ~ .btn-mobile-nav .icon-close {
+  display: inline;
+}

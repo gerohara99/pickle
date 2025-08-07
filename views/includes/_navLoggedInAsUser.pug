@@ -1,5 +1,24 @@
-nav.main-nav 
-	ul.main-nav-list 
+// Hamburger toggle button for mobile
+button.btn-mobile-nav#mobileNavToggle(type="button" aria-label="Toggle navigation")
+	ion-icon(name="menu-outline" class="icon-mobile-nav icon-menu")
+	ion-icon(name="close-outline" class="icon-mobile-nav icon-close")
+
+// Desktop nav - visible on desktop only
+nav.main-nav
+	ul.main-nav-list
+		li.main-nav-link
+			a.main-nav-link(href="/events/browseNew") Book an event
+		li.main-nav-link
+			a.main-nav-link(href="/events/myBrowse") Browse My Events
+		li.main-nav-link
+			a.main-nav-link(href="/me/myAccountDetails") Account Details
+		li.main-nav-link
+			a.main-nav-link(href="/me/myPasswordUpdate") Update Password
+
+
+// Mobile drawer nav - hidden by default
+nav.mobile-drawer
+	ul.main-nav-list
 		li.main-nav-link
 			a.main-nav-link(href="/events/browseNew") Book an event
 		li.main-nav-link
