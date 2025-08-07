@@ -25,23 +25,6 @@ import {
 
 // DOM ELements
 
-// Admin elements for creating, updating, deleteing Users and Events
-
-const saveEventButton = document.getElementById("saveEventButton");
-
-// User Elements for editing profile, booking and cencelling events
-const resetPasswordButton = document.getElementById("resetPasswordButton");
-const bookEventButtons = document.querySelectorAll("a.bookEventButtons");
-const cancelEventButtons = document.querySelectorAll("a.cancelEventButtons");
-const viewMyScheduleButtons = document.querySelectorAll(
-  "a.viewMyScheduleButtons"
-);
-
-const modal = document.getElementById("scoreModal");
-const closeButton = document.querySelector(".close");
-const scoreButtons = document.querySelectorAll(".score-button");
-const scoreForm = document.getElementById("scoreForm");
-
 const saveSystemSettingsButton = document.getElementById(
   "saveSystemSettingsButton"
 );
@@ -389,110 +372,187 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-if (resetPasswordButton)
-  resetPasswordButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    let data = {};
-    data.password = document.getElementById("newPassword").value;
-    data.passwordConfirm = document.getElementById("newPasswordConfirm").value;
-    data.resetToken = document.getElementById("resetToken").textContent;
-    resetPasswordPubJs(data);
-  });
+document.addEventListener("DOMContentLoaded", () => {
+  const resetPasswordForm = document.getElementById("resetPasswordForm");
 
-if (bookEventButtons)
-  bookEventButtons.forEach((item) =>
-    item.addEventListener("click", (e) => {
+  if (resetPasswordForm) {
+    resetPasswordForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const eventId = e.target.parentElement.querySelector(".eventId");
-      eventCreateBookingPubJs(eventId.textContent);
-    })
+
+      if (!resetPasswordForm.checkValidity()) {
+        resetPasswordForm.reportValidity();
+        return;
+      }
+
+      let data = {};
+      data.password = document.getElementById("newPassword").value;
+      data.passwordConfirm =
+        document.getElementById("newPasswordConfirm").value;
+      data.resetToken = document.getElementById("resetToken").textContent;
+
+      try {
+        resetPasswordPubJs(data);
+      } catch (err) {
+        console.error("Reset Password failed:", err);
+      }
+    });
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const bookEventButtons = document.querySelectorAll("a.bookEventButtons");
+
+  if (bookEventButtons) {
+    bookEventButtons.forEach((item) =>
+      addEventListener("click", async (e) => {
+        e.preventDefault();
+        const eventId = e.target.parentElement.querySelector(".eventId");
+        try {
+          await eventCreateBookingPubJs(eventId.textContent);
+        } catch (err) {
+          console.error("Create booking failed:", err);
+        }
+      })
+    );
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const cancelEventButtons = document.querySelectorAll("a.cancelEventButtons");
+
+  if (cancelEventButtons) {
+    cancelEventButtons.forEach((item) =>
+      item.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const eventId = e.target.parentElement.querySelector(".eventId");
+
+        try {
+          await eventCancelBookingPubJs(eventId.textContent);
+        } catch (err) {
+          console.error("Cancel booking failed:", err);
+        }
+      })
+    );
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const viewMyScheduleButtons = document.querySelectorAll(
+    "a.viewMyScheduleButtons"
   );
 
-if (cancelEventButtons)
-  cancelEventButtons.forEach((item) =>
-    item.addEventListener("click", (e) => {
-      e.preventDefault();
-      const eventId = e.target.parentElement.querySelector(".eventId");
-      eventCancelBookingPubJs(eventId.textContent);
-    })
-  );
+  if (viewMyScheduleButtons) {
+    viewMyScheduleButtons.forEach((item) =>
+      item.addEventListener("click", async (e) => {
+        e.preventDefault();
 
-if (viewMyScheduleButtons)
-  viewMyScheduleButtons.forEach((item) =>
-    item.addEventListener("click", (e) => {
-      e.preventDefault();
-      const eventId = e.target.parentElement.querySelector(".eventId");
-      const locationPath = "/events/viewMySchedule/" + eventId.textContent;
-      location.assign(locationPath);
-    })
-  );
+        const eventId = e.target.parentElement.querySelector(".eventId");
+        const locationPath = "/events/viewMySchedule/" + eventId.textContent;
+        location.assign(locationPath);
+      })
+    );
+  }
+});
+
 // Get the buttons to trigger the popup
 // Loop through all score buttons and add click event to trigger the modal
-if (scoreButtons)
-  scoreButtons.forEach((item) =>
-    item.addEventListener("click", (e) => {
-      e.preventDefault(); // Prevent default behavior
 
-      // Extract data attributes from the button
-      const round = item.getAttribute("data-round");
-      const matchIndex = item.getAttribute("data-matchindex");
-      const eventId = item.getAttribute("data-eventid"); // Extract eventId
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("scoreModal");
+  const closeButton = document.querySelector(".close");
+  const scoreButtons = document.querySelectorAll(".score-button");
+  const scoreForm = document.getElementById("scoreForm");
 
-      // Set hidden input values (roundIndex, matchIndex, eventId)
-      document.getElementById("roundIndex").value = round;
-      document.getElementById("matchIndex").value = matchIndex;
-      document.getElementById("eventId").value = eventId; // Set eventId in the form
+  if (scoreButtons) {
+    scoreButtons.forEach((item) =>
+      item.addEventListener("click", (e) => {
+        e.preventDefault();
 
-      // Show the modal
-      modal.style.display = "block";
-    })
+        // Extract data attributes from the button
+        const round = item.getAttribute("data-round");
+        const matchIndex = item.getAttribute("data-matchindex");
+        const eventId = item.getAttribute("data-eventid");
+
+        // Set hidden input values
+        document.getElementById("roundIndex").value = round;
+        document.getElementById("matchIndex").value = matchIndex;
+        document.getElementById("eventId").value = eventId;
+
+        // Show modal
+        modal.style.display = "block";
+      })
+    );
+  }
+
+  if (closeButton) {
+    closeButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      modal.style.display = "none";
+    });
+  }
+
+  window.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+  });
+
+  if (scoreForm) {
+    scoreForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (!scoreForm.checkValidity()) {
+        scoreForm.reportValidity();
+        return;
+      }
+
+      const formData = new FormData(scoreForm);
+      const data = {};
+      formData.forEach((value, key) => {
+        data[key] = value;
+      });
+
+      try {
+        await eventUpdateMatchScorePubJs(data);
+        modal.style.display = "none";
+
+        const eventId = document.getElementById("eventId").value;
+        location.assign("/events/viewMySchedule/" + eventId);
+      } catch (err) {
+        console.error("Entering score failed:", err);
+      }
+    });
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const saveSystemSettingsForm = document.getElementById(
+    "saveSystemSettingsForm"
   );
 
-// When the user clicks on <span> (x), close the modal
-if (closeButton)
-  closeButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    modal.style.display = "none"; // Close the modal
-  });
+  if (saveSystemSettingsForm) {
+    saveSystemSettingsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-// When the user clicks anywhere outside the modal, close it
-window.onclick = function (e) {
-  if (e.target == modal) {
-    modal.style.display = "none"; // Close the modal
-  }
-};
+      if (!saveSystemSettingsForm.checkValidity()) {
+        saveSystemSettingsForm.reportValidity();
+        return;
+      }
+      let data = {};
+      data.numOfStandOuts = document.getElementById("numOfStandOuts").value;
+      data.numOfRounds = document.getElementById("numOfRounds").value;
+      data.numOfCourts = document.getElementById("numOfCourts").value;
+      data.numOfPairingsPerCourt = document.getElementById(
+        "numOfPairingsPerCourt"
+      ).value;
+      data.waitListSize = document.getElementById("waitListSize").value;
 
-// Handle form submission for the score
-if (scoreForm) {
-  scoreForm.addEventListener("submit", async (e) => {
-    e.preventDefault(); // Prevent default form submission
-
-    const formData = new FormData(scoreForm);
-    const data = {};
-    formData.forEach((value, key) => {
-      data[key] = value;
+      try {
+        await manageSystemSettingsPubJs(data);
+      } catch (err) {
+        console.error("Login failed:", err);
+      }
     });
-
-    eventUpdateMatchScorePubJs(data);
-    modal.style.display = "none"; // Close the modal
-
-    //Navigate to the schedule page after submitting scores
-    const eventId = document.getElementById("eventId").value;
-    const locationPath = "/events/viewMySchedule/" + eventId;
-    location.assign(locationPath); // Navigate to the schedule page
-  });
-}
-
-if (saveSystemSettingsButton)
-  saveSystemSettingsButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    let data = {};
-    data.numOfStandOuts = document.getElementById("numOfStandOuts").value;
-    data.numOfRounds = document.getElementById("numOfRounds").value;
-    data.numOfCourts = document.getElementById("numOfCourts").value;
-    data.numOfPairingsPerCourt = document.getElementById(
-      "numOfPairingsPerCourt"
-    ).value;
-    data.waitListSize = document.getElementById("waitListSize").value;
-    manageSystemSettingsPubJs(data);
-  });
+  }
+});

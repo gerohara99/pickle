@@ -4,11 +4,11 @@ block content
 	main.main
 	section(class="section")
 		div(class="container")
-			div(class="crudContainer")
+			div(class="crudContainer-2-cols")
 				div(class="text-box") 
 					h1(class="heading-secondary") Manage System Default Values
 
-					form(class="form-2-cols")
+					form(class="form-2-cols" id="saveSystemSettingsForm")
 						div
 							label(for="numOfStandOuts") Default Number of players resting per round
 							input(name="numOfStandOuts" type="number" value=`${systemSettings.systemDefaults.numOfStandOuts}` id="numOfStandOuts" required)
@@ -24,8 +24,6 @@ block content
 						div 
 							label(for="waitListSize") Default waiting list size
 							input(name="nwaitListSize" type="number" value=`${systemSettings.systemDefaults.waitListSize}` id="waitListSize" required)
-					div(class="button-container")
-						div 
-							a(class="btn btn--form" id="saveSystemSettingsButton" href="#") Save
-						div 
+						div(class="form-buttons")
+							button(class="btn btn--form" id="loginButton" type="submit") Save
 							a(class="btn btn--outline" id="cancelButton" href="/events/showall") Cancel
