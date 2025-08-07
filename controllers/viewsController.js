@@ -9,6 +9,8 @@ const settings = require("../models/settingsModel");
 exports.getHomePage = catchAsync(async (req, res, next) => {
   res.status(200).render("homepage", {
     title: "Pickle Admin !!!",
+    userRole: null,
+    showNav: false,
   });
 });
 
@@ -16,12 +18,16 @@ exports.getHomePage = catchAsync(async (req, res, next) => {
 exports.getLoginForm = (req, res) => {
   res.status(200).render("login", {
     title: "log into your account",
+    userRole: null,
+    showNav: false,
   });
 };
 
 exports.getsignupForm = (req, res) => {
   res.status(200).render("signUp", {
     title: "create your account",
+    userRole: null,
+    showNav: false,
   });
 };
 
@@ -29,6 +35,7 @@ exports.getMyAccountDetails = (req, res) => {
   res.status(200).render("myAccountDetails", {
     title: "Your account",
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 };
 
@@ -36,6 +43,7 @@ exports.myPasswordUpdate = (req, res) => {
   res.status(200).render("myPasswordUpdate", {
     title: "Update Password",
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 };
 
@@ -43,6 +51,7 @@ exports.forgotPassword = (req, res) => {
   res.status(200).render("myPasswordForgot", {
     title: "Forgot Password",
     userRole: req.session.user.userRole,
+    showNav: false,
   });
 };
 
@@ -54,6 +63,7 @@ exports.myPasswordReset = (req, res) => {
     title: "Reset Password",
     data,
     userRole: req.session.user.userRole,
+    showNav,
   });
 };
 
@@ -66,6 +76,7 @@ exports.showAllUsers = catchAsync(async (req, res, next) => {
     title: "All Users",
     users: users,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
 
@@ -73,6 +84,7 @@ exports.createUser = (req, res) => {
   res.status(200).render("createUser", {
     title: "Events",
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 };
 
@@ -90,6 +102,7 @@ exports.editUser = catchAsync(async (req, res, next) => {
     title: `${user.name} Name`,
     user,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
 
@@ -99,6 +112,7 @@ exports.createEvent = (req, res) => {
     title: "Events",
     userRole: req.session.user.userRole,
     systemDefaults: req.session.systemDefaults,
+    showNav: true,
   });
 };
 
@@ -110,6 +124,7 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
     title: "All Events",
     events: events,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
 
@@ -121,6 +136,7 @@ exports.showAllSchedules = catchAsync(async (req, res, next) => {
     title: "All Schedules",
     events: events,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
 
@@ -137,6 +153,7 @@ exports.browseMyEvents = catchAsync(async (req, res, next) => {
     title: "Browse Events",
     events: events,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
 
@@ -151,6 +168,7 @@ exports.browseNewEvents = catchAsync(async (req, res, next) => {
     title: "Browse Events",
     events: events,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
 
@@ -168,6 +186,7 @@ exports.editEvent = catchAsync(async (req, res, next) => {
     title: `${event.eventName} Event`,
     event,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
 
@@ -218,6 +237,7 @@ exports.viewMySchedule = catchAsync(async (req, res, next) => {
     event: event,
     filteredMatches: filteredMatches,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
 
@@ -233,6 +253,7 @@ exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
     title: `${event.eventName} Event`,
     event: event,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
 
@@ -246,5 +267,6 @@ exports.getSettings = catchAsync(async (req, res, next) => {
     title: "System Settings",
     systemSettings: systemSettings,
     userRole: req.session.user.userRole,
+    showNav: true,
   });
 });
