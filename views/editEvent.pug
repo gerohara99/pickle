@@ -3,12 +3,11 @@ extends base
 block content
 	main.main
 	section(class="section")
-		div(class="container")
-			div(class="crudContainer")
+		section(class="container")
+			div(class="crudContainer-2-cols")
 				div(class="text-box") 
 					h1(class="heading-secondary") Edit Event
-
-					form(class="form-2-cols")
+					form(class="form-2-cols" id="saveEventForm")
 						div
 							label(for="eventName") Event name
 							input(name="eventName" type="text" value=`${event.eventName}` id="eventName" required)
@@ -46,10 +45,8 @@ block content
 						div 
 							label(for="eventWaitListSize") Max number of players on wait list
 							input(name="eventWaitListSize" type="number" value=`${event.eventWaitListSize}` id="eventWaitListSize" required)
+							input(id="eventId" class="hiddenField" value=event._id)
 
-						p(class="hiddenField" id="eventId")=`${event._id}`
-					div(class="button-container")
-						div 
-							a(class="btn btn--form" id="saveEventButton" href="#") Save
-						div 
+						div(class="form-buttons")
+							button(class="btn btn--form" id="saveEventButton" type="submit") Save 
 							a(class="btn btn--outline" id="cancelButton" href="/events/showall") Cancel

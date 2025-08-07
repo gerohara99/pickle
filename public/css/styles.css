@@ -139,7 +139,7 @@ body {
 
 .form-1-cols input,
 .form-2-cols input {
-  width: 100%;
+  width: 40rem;
   padding: 1.2rem;
   font-size: 1.8rem;
   font-family: inherit;
@@ -148,10 +148,6 @@ body {
   background-color: #fdf2e9;
   border-radius: 1rem;
   box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.1);
-}
-
-.form-1-cols .input-field {
-  width: 40rem;
 }
 
 .form-1-cols input::placeholder,

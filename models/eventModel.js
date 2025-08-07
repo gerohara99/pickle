@@ -70,7 +70,6 @@ const eventSchema = new mongoose.Schema(
     },
     eventNumOfPlayers: {
       type: Number,
-      required: [true, "Please enter number of rounds per event"],
     },
     eventBookings: [
       {

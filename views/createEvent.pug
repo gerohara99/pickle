@@ -5,11 +5,10 @@ block content
 	main.main
 		section(class="section")
 			div(class="container")
-				div(class="crudContainer")
+				div(class="crudContainer-2-cols")
 					div(class="text-box") 
 						h1(class="heading-secondary") Create a Pickleball Event
-
-						form(class="form-2-cols")
+						form(class="form-2-cols" id="createEventForm")
 							div
 								label(for="eventName") Event name
 								input(name="eventName" type="text" id="eventName" required)
@@ -19,33 +18,30 @@ block content
 							div
 								label(for="eventType") Event Type
 								input(name="eventType" type="text" id="eventType")
-							div 
+							div
 								label(for="eventDate") Event date
 								input(name="eventDate" type="date" id="eventDate" required)
-							div 
+							div
 								label(for="eventStartTime") Event start time
 								input(name="eventStartTime" type="time" id="eventStartTime" required)
-							div 
+							div
 								label(for="eventOrganiser") Event organiser
 								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
-							div 
+							div
 								label(for="eventNumOfCourts") Number of available courts for event
-								input(name="eventNumOfCourts" type="number" id="eventNumOfCourts" value=`${req.session.systemDefaults.numOfCourts}` required)
-							div 
+								input(name="eventNumOfCourts" type="number" id="eventNumOfCourts" value=systemDefaults.numOfStandOuts required)
+							div
 								label(for="numOfStandOutsPerRound") Number of players resting per round
-								input(name="numOfStandOutsPerRound" type="number" id="numOfStandOutsPerRound" value=`${req.session.systemDefaults.numOfStandOuts}` required)
-							div 
+								input(name="numOfStandOutsPerRound" type="number" id="numOfStandOutsPerRound" value=systemDefaults.numOfStandOuts required)
+							div
 								label(for="eventNumOfRounds") Number of rounds in the event
-								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=`${req.session.systemDefaults.numOfRounds}` required)
-							div 
+								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=systemDefaults.numOfRounds required)
+							div
 								label(for="eventWaitListSize") Max number of players on wait list
-								input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=`${req.session.systemDefaults.waitListSize}` required)
-							div 
+								input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=systemDefaults.waitListSize required)
+							div
 								label(for="eventNumOfPairings") Number of pairings per court
-								input(name="eventNumOfPairings" type="number" id="eventNumOfPairings" value=`${req.session.systemDefaults.numOfPairingsPerCourt}` required)
-
-						div(class="button-container")
-							div 
-								a(class="btn btn--form" id="createEventButton" href="#") Create
-							div 
-								a(class="btn btn--outline" id="cancelButton" href="/") Cancel
+								input(name="eventNumOfPairings" type="number" id="eventNumOfPairings" value=systemDefaults.numOfPairingsPerCourt required)
+							div(class="form-buttons")
+								button(class="btn btn--form" id="createEventButton" type="submit") Create
+								a(class="btn btn--outline" id="cancelButton" href="/events/showall") Cancel

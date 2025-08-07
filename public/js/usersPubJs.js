@@ -27,15 +27,19 @@ export const createUserPubJs = async (
       showAlert("success", "User successfully created");
 
       window.setTimeout(() => {
-        location.assign("/");
+        location.assign("/users/showall");
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };
 
-export const updateUserPubJs = async (userId, name, email, mobile) => {
+export const editUserPubJs = async (userId, name, email, mobile) => {
   try {
     const res = await axios({
       method: "PATCH",
@@ -54,7 +58,11 @@ export const updateUserPubJs = async (userId, name, email, mobile) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };
 
@@ -72,6 +80,10 @@ export const deleteUserPubJs = async (userId) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };

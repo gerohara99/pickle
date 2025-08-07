@@ -31,12 +31,16 @@ const createSendToken = (user, statusCode, req, res) => {
   req.session.user.userId = user._id.toString();
   req.session.user.userName = user.name;
   req.session.user.userRole = user.role;
-
   user.password = undefined;
-  res.status(statusCode).json({
-    status: "success",
-    token,
-    user: user,
+
+  req.session.save((error) => {
+    if (error) return next(error);
+
+    res.status(200).json({
+      status: "success",
+      token,
+      user: user,
+    });
   });
 };
 

@@ -19,7 +19,11 @@ export const createEventPubJs = async (data) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };
 
@@ -38,7 +42,11 @@ export const updateEventPubJs = async (data) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };
 
@@ -56,7 +64,11 @@ export const deleteEventPubJs = async (eventId) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };
 
@@ -75,7 +87,11 @@ export const eventCreateBookingPubJs = async (eventId) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };
 
@@ -94,7 +110,11 @@ export const eventCancelBookingPubJs = async (eventId) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };
 
@@ -114,7 +134,11 @@ export const eventUpdateMatchScorePubJs = async (formData) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
     window.setTimeout(() => {
       location.assign("/events/myBrowse");
     }, 1500);

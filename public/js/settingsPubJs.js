@@ -7,14 +7,18 @@ import { showAlert } from "./alerts";
 export const getSystemSettingsPubJs = async () => {
   try {
     const res = await axios({
-      method: "PATCH",
+      method: "GET",
       url: "/api/v1/settings/get",
     });
     if (res.data.status === "success") {
       console.log("success system ettings successfully retrieved");
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };
 
@@ -33,6 +37,10 @@ export const manageSystemSettingsPubJs = async (data) => {
       }, 1500);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };

@@ -5,7 +5,7 @@ const settingsController = require("../controllers/settingsController");
 const router = express.Router();
 
 // User functions
-router.route("/get").patch(settingsController.getSystemSettings);
+router.route("/get").get(settingsController.getSystemSettings);
 
 // Admin functions
 router

@@ -39,6 +39,13 @@ exports.myPasswordUpdate = (req, res) => {
   });
 };
 
+exports.forgotPassword = (req, res) => {
+  res.status(200).render("myPasswordForgot", {
+    title: "Forgot Password",
+    userRole: req.session.user.userRole,
+  });
+};
+
 exports.myPasswordReset = (req, res) => {
   const resetToken = req.params.resetToken;
   let data = {};
@@ -91,6 +98,7 @@ exports.createEvent = (req, res) => {
   res.status(200).render("createEvent", {
     title: "Events",
     userRole: req.session.user.userRole,
+    systemDefaults: req.session.systemDefaults,
   });
 };
 

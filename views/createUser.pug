@@ -4,30 +4,22 @@ block content
 
 	main.main
 		section(class="section")
-			div(class="container")
-				div(class="crudContainer")
-					div(class="text-box") 
-						h1(class="heading-secondary") Create a user
-						p(class="normal-text") The "go to" place to book all your pickle ball games
-
-						form(class="form-2-cols")
-							div 
-								label.form__label(for='name') Name 
-								input(name="name" type="text" id="name" required) 
-							div 
-								label(for="email") Email
-								input(name="name" type="email" placeholder='user@example.com' id="email" required)
-							div 
-								label(for="mobile") Mobile
-								input(name="mobile" type="number" id="mobile" required) 
-							div 
-								label(for="password") Password
-								input(name="Password" type="password" id="password" required) 
-							div 
-								label(for="passwordConfirm") Re-Type Password
-								input(name="passwordConfirm" type="password" id="passwordConfirm" required)
-						div(class="button-container")
-							div 
-								a(class="btn btn--form" id="createUserButton" href="#") Create
-							div 
-								a(class="btn btn--outline" id="cancelButton" href="/") Cancel
+			div(class="crudContainer-1-cols")
+				div(class="text-box") 
+					h1(class="heading-secondary") Create a user
+					form(class="form-1-cols" id="createUserForm")
+						div 
+							label.form__label(for='name') Name 
+							input(name="name" type="text" id="name" required) 
+							label(for="email") Email
+							input(name="email" type="email" placeholder='user@example.com' id="email" required)
+							label(for="mobile") Mobile
+							input(name="mobile" type="number" id="mobile" required) 
+							label(for="password") Password
+							input(name="password" type="password" id="password" required) 
+							label(for="passwordConfirm") Re-Type Password
+							input(name="passwordConfirm" type="password" id="passwordConfirm" required)
+						div(class="form-buttons")
+							button(class="btn btn--form" id="CreateUserButton" type="submit") Create
+							a(id="forgotPasswordLink" class="text-link" href="#") Forgot Password?  
+							a(class="btn btn--outline" id="cancelButton" href="/users/showAll") Cancel

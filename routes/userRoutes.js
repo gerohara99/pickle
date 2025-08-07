@@ -9,7 +9,7 @@ router.post("/create", authController.create);
 router.post("/login", authController.login);
 router.get("/logout", authController.logout);
 
-router.post("/forgotPassword", authController.forgotPassword);
+router.post("/forgotPassword", authController.forgotPassword); // route to send email with reset link
 router.patch("/passwordReset", authController.passwordReset);
 
 router.patch(

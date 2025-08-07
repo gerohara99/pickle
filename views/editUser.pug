@@ -3,26 +3,18 @@ extends base
 block content
 	main.main
 	section(class="section")
-		div(class="container")
-			div(class="crudContainer")
-				div(class="text-box") 
-					h1(class="heading-secondary") Edit User
-					p(class="normal-text") The "go to" place to book all your pickle ball games
-
-					form(class="form-2-cols")
-						div
-							label(for='name') Name
-							input(id="name" type='text' value=`${user.name}`,required name='name')
-						div
-							label(for='email') Email address
-							input(id="email" type='email' value=`${user.email}` required name='email')
-						div
-							label(for='mobile') Mobile Phone number
-							input(id="mobile" type='number' value=`${user.mobile}` required name='mobile')
-						div
-							p(id="userId" class="hiddenField")=`${user._id}`
-					div(class="button-container")
-						div 
-							a(class="btn btn--form" id="saveUserButton" href="#") Save
-						div 
+		div(class="crudContainer-1-cols")
+			div(class="text-box") 
+				h1(class="heading-secondary") Edit User
+				form(class="form-1-cols" id="editUserForm")
+					div
+						label(for='name') Name
+						input(id="name" type='text' value=user.name,required name='name')
+						label(for='email') Email address
+						input(id="email" type='email' value=user.email required name='email')
+						label(for='mobile') Mobile Phone number
+						input(id="mobile" type='number' value=user.mobile required name='mobile')
+						input(id="userId" class="hiddenField" value=user._id)
+						div(class="form-buttons")
+							button(class="btn btn--form" id="editUserButton" type="submit") Save
 							a(class="btn btn--outline" id="cancelButton" href="/users/showall") Cancel

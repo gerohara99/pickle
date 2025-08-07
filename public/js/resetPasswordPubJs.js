@@ -18,6 +18,10 @@ export const resetPasswordPubJs = async (data) => {
       showAlert("success", `${type.toUpperCase()} password successfully reset`);
     }
   } catch (err) {
-    showAlert("error", err.response.data.message);
+    if (err.response && err.response.data && err.response.data.message) {
+      showAlert("error", err.response.data.message);
+    } else {
+      showAlert("error", err.message || "An unexpected error occurred");
+    }
   }
 };

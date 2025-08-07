@@ -23,6 +23,8 @@ router.get(
   viewsController.myPasswordUpdate
 );
 
+router.get("/me/forgotPassword", viewsController.forgotPassword);
+
 router.get("/me/myPasswordReset/:resetToken", viewsController.myPasswordReset);
 
 //Admin user functionality
