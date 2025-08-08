@@ -1,9 +1,3 @@
-@media (min-width: 769px) {
-  .form-buttons .bookEventButtons {
-    font-size: 1.2rem;
-  }
-}
-
 @media (max-width: 768px) {
   .btn-mobile-nav {
     display: inline-block;
@@ -49,17 +43,7 @@
 
   /* Ensure form-buttons items sit in one row and stretch evenly */
   .form-buttons {
-    display: flex !important;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: space-between;
     gap: 1rem;
-    width: 100%;
-    margin-top: 1.6rem; /* tweak as needed */
-  }
-
-  .form-buttons .bookEventButtons {
-    font-size: 1.2rem;
   }
 
   /* Make each button/link take equal share of the row */
@@ -128,7 +112,6 @@
   .eventCardHeader .form-buttons a.btn {
     flex: 0 1 45%; /* each button takes up 45% of the container */
     max-width: 45%;
-    font-size: 1.4rem; /* slightly smaller text to fit */
     padding: 0.8rem 1rem;
   }
 

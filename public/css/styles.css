@@ -166,6 +166,13 @@ body {
   grid-column: span 2; /* Make sure buttons span across both columns */
   justify-content: space-between; /* Distribute space between buttons */
   margin-top: 2.4rem; /* Add spacing above the buttons */
+  font-size: 1.2rem;
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 1.6rem;
 }
 
 /* Ensure buttons are properly aligned */
@@ -178,7 +185,7 @@ body {
 .btn:visited {
   display: inline-block;
   text-decoration: none;
-  font-size: 2rem;
+  /*font-size: 2rem; */
   font-weight: 600;
   padding: 1.6rem 3.2rem;
   border-radius: 1rem;
