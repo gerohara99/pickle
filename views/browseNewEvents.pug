@@ -24,10 +24,10 @@ block content
 											p(class="event-attribute")=booking.userName
 										else
 											p(class="event-attribute")=booking.userName
-										- i++;					
+										- i++;		
 								div(class="form-buttons")
 									if event.eventBookings.length > event.eventNumOfPlayers
-										a(class="btn btn--outline bookEventButtons" href="#") WaitList
+										a(class="btn btn--outline bookEventButtons" href="#") Join WaitList
 									else 
-										a(class="btn btn--outline bookEventButtons" href="#") Book
+										a(class="btn btn--outline bookEventButtons" href="#") Book Event
 									p(class="hiddenField eventId")=`${event._id}`

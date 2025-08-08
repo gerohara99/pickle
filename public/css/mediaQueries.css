@@ -1,3 +1,9 @@
+@media (min-width: 769px) {
+  .form-buttons .bookEventButtons {
+    font-size: 1.2rem;
+  }
+}
+
 @media (max-width: 768px) {
   .btn-mobile-nav {
     display: inline-block;
@@ -41,12 +47,27 @@
     padding: 1rem;
   }
 
-  /* Buttons container - stack vertically */
+  /* Ensure form-buttons items sit in one row and stretch evenly */
   .form-buttons {
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
     gap: 1rem;
-    justify-content: center;
-    grid-column: auto; /* reset grid span */
+    width: 100%;
+    margin-top: 1.6rem; /* tweak as needed */
+  }
+
+  .form-buttons .bookEventButtons {
+    font-size: 1.2rem;
+  }
+
+  /* Make each button/link take equal share of the row */
+  .form-buttons > button,
+  .form-buttons > .btn {
+    flex: 1 1 0;
+    min-width: 0; /* prevent overflow */
+    text-align: center;
   }
 
   /* Headings: smaller size */
@@ -95,6 +116,20 @@
   .eventCardDetails {
     display: block;
     padding: 1rem 0;
+  }
+
+  /* Narrow the event card buttons on mobile */
+  .eventCardHeader .form-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 5%; /* small space between buttons */
+  }
+
+  .eventCardHeader .form-buttons a.btn {
+    flex: 0 1 45%; /* each button takes up 45% of the container */
+    max-width: 45%;
+    font-size: 1.4rem; /* slightly smaller text to fit */
+    padding: 0.8rem 1rem;
   }
 
   /* Navigation - hide desktop nav, show mobile drawer toggle */
