@@ -43,10 +43,10 @@
     "regenerator-runtime": "^0.14.1",
     "sharp": "^0.33.5",
     "validator": "^13.12.0",
-    "xss-clean": "^0.1.4"
+    "xss-clean": "^0.1.4",
+    "vite": "^5.2.0"
   },
   "devDependencies": {
-    "vite": "^5.2.0",
     "eslint": "^8.57.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^9.1.0",
