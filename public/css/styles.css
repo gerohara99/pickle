@@ -166,7 +166,7 @@ body {
   grid-column: span 2; /* Make sure buttons span across both columns */
   justify-content: space-between; /* Distribute space between buttons */
   margin-top: 2.4rem; /* Add spacing above the buttons */
-  font-size: 1.2rem;
+  font-size: 1.8rem;
   display: flex !important;
   flex-direction: row;
   flex-wrap: nowrap;
@@ -546,6 +546,16 @@ strong {
   display: flex;
   align-items: center;
   gap: 1.6rem;
+}
+
+.eventCardHeader {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Push the button row to the bottom */
+.eventCardHeader .form-buttons {
+  margin-top: auto;
 }
 
 /**************************/
