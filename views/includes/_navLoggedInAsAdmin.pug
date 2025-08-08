@@ -6,23 +6,29 @@ button.btn-mobile-nav#mobileNavToggle(type="button" aria-label="Toggle navigatio
 // Desktop nav - visible on desktop only
 nav.main-nav
 	ul.main-nav-list
-		li.main-nav-link
-			a.main-nav-link(href="/events/showAllSchedules") Manage Schedules
-		li.main-nav-link
-			a.main-nav-link(href="/events/showAll") Manage Events
-		li.main-nav-link
-			a.main-nav-link(href="/users/showAll") Manage Users
-		li.main-nav-link
-			a.main-nav-link(href="/settings/get") System Settings
+		li
+			a(class="main-nav-link" href="/events/showAllSchedules") Manage Schedules
+		li
+			a(class="main-nav-link" href="/events/showAll") Manage Events
+		li
+			a(class="main-nav-link" href="/users/showAll") Manage Users
+		li
+			a(class="main-nav-link" href="/settings/get") System Settings
+		li
+			a.logOutButton(class="main-nav-link" href="#") Logout
+
 
 // Mobile drawer nav - hidden by default
 nav.mobile-drawer
 	ul.main-nav-list
-		li.main-nav-link
-			a(href="/events/showAllSchedules") Manage Schedules
-		li.main-nav-link
-			a(href="/events/showAll") Manage Events
-		li.main-nav-link
-			a(href="/users/showAll") Manage Users
-		li.main-nav-link
-			a(href="/settings/get") System Settings
+		li
+			a(class="main-nav-link" href="/events/showAllSchedules") Manage Schedules
+		li
+			a(class="main-nav-link" href="/events/showAll") Manage Events
+		li
+			a(class="main-nav-link" href="/users/showAll") Manage Users
+		li
+			a(class="main-nav-link" href="/settings/get") System Settings
+		li
+			a.logOutButton(class="main-nav-link" href="#") Logout
+

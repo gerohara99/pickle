@@ -6,24 +6,29 @@ button.btn-mobile-nav#mobileNavToggle(type="button" aria-label="Toggle navigatio
 // Desktop nav - visible on desktop only
 nav.main-nav
 	ul.main-nav-list
-		li.main-nav-link
-			a.main-nav-link(href="/events/browseNew") Book an event
-		li.main-nav-link
+		li
+			a(class="main-nav-link" href="/events/browseNew") Book an event
+		li
 			a.main-nav-link(href="/events/myBrowse") Browse My Events
-		li.main-nav-link
+		li
 			a.main-nav-link(href="/me/myAccountDetails") Account Details
-		li.main-nav-link
+		li
 			a.main-nav-link(href="/me/myPasswordUpdate") Update Password
+		li
+			a.logOutButton(class="main-nav-link" href="#") Logout
+
 
 
 // Mobile drawer nav - hidden by default
 nav.mobile-drawer
 	ul.main-nav-list
-		li.main-nav-link
-			a.main-nav-link(href="/events/browseNew") Book an event
-		li.main-nav-link
-			a.main-nav-link(href="/events/myBrowse") Browse My Events
-		li.main-nav-link
-			a.main-nav-link(href="/me/myAccountDetails") Account Details
-		li.main-nav-link
-			a.main-nav-link(href="/me/myPasswordUpdate") Update Password
+		li
+			a(class="main-nav-link" href="/events/browseNew") Book an event
+		li
+			a(class="main-nav-link" href="/events/myBrowse") Browse My Events
+		li
+			a(class="main-nav-link" href="/me/myAccountDetails") Account Details
+		li
+			a(class="main-nav-link", href="/me/myPasswordUpdate") Update Password
+		li
+			a.logOutButton(class="main-nav-link" href="#") Logout
