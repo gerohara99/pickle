@@ -4,6 +4,7 @@ const User = require("../models/userModel");
 const Event = require("../models/eventModel");
 const { filter } = require("compression");
 const settings = require("../models/settingsModel");
+const paginate = require("../utils/paginate");
 
 // Display HOMEPAGE
 exports.getHomePage = catchAsync(async (req, res, next) => {
@@ -68,15 +69,19 @@ exports.myPasswordReset = (req, res) => {
 };
 
 //ADMIN USER FUNCTIONALITY (viewing all users / editing details / deleting users)
+
 exports.showAllUsers = catchAsync(async (req, res, next) => {
-  // 1) Get event data from collection
-  const users = await User.find();
-  // 2) Render template using tour data
+  const pagination = await paginate(User, req);
+
   res.status(200).render("showAllUsers", {
     title: "All Users",
-    users: users,
+    users: pagination.results,
     userRole: req.session.user.userRole,
     showNav: true,
+    currentPage: pagination.currentPage,
+    totalPages: pagination.totalPages,
+    results: pagination.results.length,
+    limit: pagination.limit,
   });
 });
 
@@ -117,26 +122,35 @@ exports.createEvent = (req, res) => {
 };
 
 exports.showAllEvents = catchAsync(async (req, res, next) => {
-  // 1) Get event data from collection
-  const events = await Event.find();
-  // 2) Render template using tour data
+  const pagination = await paginate(Event, req);
+
   res.status(200).render("showAllEvents", {
     title: "All Events",
-    events: events,
+    events: pagination.results,
     userRole: req.session.user.userRole,
     showNav: true,
+    currentPage: pagination.currentPage,
+    totalPages: pagination.totalPages,
+    results: pagination.results.length,
+    limit: pagination.limit,
   });
 });
 
 exports.showAllSchedules = catchAsync(async (req, res, next) => {
-  // 1) Get event data from collection
-  const events = await Event.find({ "rounds.0": { $exists: true } });
-  // 2) Render template using tour data
+  // Only events with at least one round
+  const pagination = await paginate(Event, req, {
+    "rounds.0": { $exists: true },
+  });
+
   res.status(200).render("showAllSchedules", {
     title: "All Schedules",
-    events: events,
+    events: pagination.results,
     userRole: req.session.user.userRole,
     showNav: true,
+    currentPage: pagination.currentPage,
+    totalPages: pagination.totalPages,
+    results: pagination.results.length,
+    limit: pagination.limit,
   });
 });
 
