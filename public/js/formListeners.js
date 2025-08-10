@@ -272,3 +272,19 @@ export function initFormListeners(deps) {
     });
   }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  const toggle = document.getElementById("togglePassword");
+  const pwd = document.getElementById("password");
+  if (toggle && pwd) {
+    toggle.addEventListener("click", function () {
+      if (pwd.type === "password") {
+        pwd.type = "text";
+        toggle.textContent = "Hide";
+      } else {
+        pwd.type = "password";
+        toggle.textContent = "Show";
+      }
+    });
+  }
+});

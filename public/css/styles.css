@@ -925,3 +925,22 @@ strong {
   background-color: #cf711f; /* Same as default, or even darker if you want */
   filter: brightness(0.95); /* Optional: slight darken on hover */
 }
+
+.show-password-link {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 1.2rem;
+  text-decoration: none;
+  font-family: inherit;
+  transition: color 0.2s;
+}
+
+.show-password-link:hover,
+.show-password-link:focus {
+  color: #cf711f;
+  text-decoration: none;
+}

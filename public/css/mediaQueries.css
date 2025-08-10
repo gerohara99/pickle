@@ -236,7 +236,6 @@
     font-size: 1.4rem;
     padding: 1rem 0;
   }
-}
 
   .modal-content {
     position: fixed;
@@ -249,7 +248,20 @@
     background: #fff;
     border-radius: 1rem;
     z-index: 1001;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+  }
+  /* Responsive style for show-password-link in login form */
+  .show-password-link {
+    font-size: 1.4rem;
+    margin-left: 0.8rem;
+    padding: 0.2rem 0.6rem;
+    color: #fff;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline;
+    vertical-align: middle;
   }
 }
 
