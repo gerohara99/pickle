@@ -13,7 +13,7 @@ const signToken = (id) =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
-const createSendToken = (user, statusCode, req, res) => {
+const createSendToken = (user, statusCode, req, res, next) => {
   const token = signToken(user._id);
 
   res.cookie("jwt", token, {
@@ -54,7 +54,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordChangedAt: req.body.passwordChangedAt,
     role: req.body.role,
   });
-  createSendToken(newUser, 201, req, res);
+  createSendToken(newUser, 201, req, res, next);
 });
 
 exports.create = catchAsync(async (req, res, next) => {
@@ -67,7 +67,7 @@ exports.create = catchAsync(async (req, res, next) => {
     passwordChangedAt: req.body.passwordChangedAt,
     role: req.body.role,
   });
-  createSendToken(newUser, 201, req, res);
+  createSendToken(newUser, 201, req, res, next);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -86,7 +86,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 4) If everything is ok send token to the client
-  createSendToken(user, 200, req, res);
+  createSendToken(user, 200, req, res, next);
 });
 
 exports.logout = (req, res) => {
@@ -248,13 +248,12 @@ exports.passwordReset = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Log the user in
-  createSendToken(user, 200, req, res);
+  createSendToken(user, 200, req, res, next);
 });
 
 exports.updateMyPassword = catchAsync(async (req, res, next) => {
   // 1) Get the user from collection
-
-  const user = await User.findById(req.body.userId).select("password");
+  const user = await User.findById(req.body.userId).select("+password");
   if (!user) {
     return next(new AppError("No match for logged in user in database", 404));
   }
@@ -264,11 +263,16 @@ exports.updateMyPassword = catchAsync(async (req, res, next) => {
     return next(new AppError("Your current password is wrong", 401));
   }
 
-  // 3) if password is correct then update it
+  // 3) Check if new passwords match
+  if (req.body.newPassword !== req.body.newPasswordConfirm) {
+    return next(new AppError("Passwords are not the same", 400));
+  }
+
+  // 4) Set new password and save (Mongoose pre-save hooks will run)
   user.password = req.body.newPassword;
   user.passwordConfirm = req.body.newPasswordConfirm;
   await user.save();
 
-  // 4) Log the user in with new password
-  createSendToken(user, 200, req, res);
+  // 5) Log the user in with new password
+  createSendToken(user, 200, req, res, next);
 });

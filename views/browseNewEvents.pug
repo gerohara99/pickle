@@ -26,7 +26,7 @@ block content
 											p(class="event-attribute")=booking.userName
 										- i++;		
 								div(class="form-buttons")
-									if event.eventBookings.length > event.eventNumOfPlayers
+									if event.eventBookings.length > event.eventNumOfPlayers - 1
 										a(class="btn btn--outline bookEventButtons" href="#") Join WaitList
 									else 
 										a(class="btn btn--outline bookEventButtons" href="#") Book Event

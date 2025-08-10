@@ -33,7 +33,12 @@ exports.createBooking = catchAsync(async (req, res, next) => {
     runValidators: false,
   });
 
-  next();
+  await checkAndUpdateSchedule(req.body.eventId, next);
+
+  res.status(200).json({
+    status: "success",
+    message: "Booking successfully created",
+  });
 });
 
 exports.cancelBooking = catchAsync(async (req, res, next) => {
@@ -54,19 +59,18 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     runValidators: false,
   });
 
+  await checkAndUpdateSchedule(req.body.eventId, next);
+
   res.status(200).json({
-    status: "Booking successfully cancelled",
+    status: "success",
+    message: "Booking successfully cancelled",
     data: { eventBooking: req.body.userId },
   });
 });
 
-exports.checkSchedule = catchAsync(async (req, res, next) => {
-  // If this booking fills up the event then it's time to schedule it
-
-  const event = await Event.findById(req.body.eventId);
-  if (!event) {
-    return next(new AppError("No event found with that ID", 404));
-  }
+async function checkAndUpdateSchedule(eventId, next) {
+  const event = await Event.findById(eventId);
+  if (!event) return next(new AppError("No event found with that ID", 404));
 
   let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
 
@@ -76,28 +80,20 @@ exports.checkSchedule = catchAsync(async (req, res, next) => {
       event.eventNumOfRounds,
       event.numOfStandOutsPerRound
     );
-
     const availablePairings = generateAvailablePairingsPubJs(playerslist);
-
     const schedule = generateSchedulePubJs(
       availablePairings,
       standOuts,
       event.eventNumOfCourts,
       event.eventNumOfPairings
     );
-
     await Event.findByIdAndUpdate(
-      req.body.eventId,
+      eventId,
       { $set: { rounds: schedule } },
       { new: true, runValidators: false }
     );
   }
-
-  res.status(200).json({
-    status: "Booking successfully created",
-    data: { booking: req.body.userId },
-  });
-});
+}
 
 exports.const = generateStandOutsPubJs = (
   playersList,
@@ -197,11 +193,11 @@ exports.const = generateSchedulePubJs = (
           ) {
             availablePairings[j].pairingUsed = true;
             if (x % 2 === 0) {
-              (teamA.playerA = availablePairings[j].playerA),
-                (teamA.playerB = availablePairings[j].playerB);
+              ((teamA.playerA = availablePairings[j].playerA),
+                (teamA.playerB = availablePairings[j].playerB));
             } else {
-              (teamB.playerA = availablePairings[j].playerA),
-                (teamB.playerB = availablePairings[j].playerB);
+              ((teamB.playerA = availablePairings[j].playerA),
+                (teamB.playerB = availablePairings[j].playerB));
             }
             break;
           }

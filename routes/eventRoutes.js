@@ -9,13 +9,9 @@ router
   .route("/updateMatchScore")
   .patch(authController.protect, eventController.updateMatchScore);
 
-router
-  .route("/booking/create/")
-  .patch(eventController.createBooking, eventController.checkSchedule);
+router.route("/booking/create/").patch(eventController.createBooking);
 
-router
-  .route("/booking/cancel/")
-  .patch(eventController.cancelBooking, eventController.checkSchedule);
+router.route("/booking/cancel/").patch(eventController.cancelBooking);
 
 // Admin functions
 router

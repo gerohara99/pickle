@@ -3,6 +3,10 @@
     display: inline-block;
   }
 
+  nav.main-nav {
+    display: none;
+  } /* hide desktop nav on mobile */
+
   /* Containers and content wrappers */
   .crudContainer-1-cols,
   .crudContainer-2-cols,

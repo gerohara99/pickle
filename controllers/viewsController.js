@@ -63,7 +63,7 @@ exports.myPasswordReset = (req, res) => {
     title: "Reset Password",
     data,
     userRole: req.session.user.userRole,
-    showNav,
+    showNav: false,
   });
 };
 
@@ -258,7 +258,7 @@ exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
 });
 
 exports.getSettings = catchAsync(async (req, res, next) => {
-  systemSettings = await settings.findOne();
+  const systemSettings = await settings.findOne();
 
   if (!systemSettings) {
     return next(new AppError("There are no system settings in place", 404));
