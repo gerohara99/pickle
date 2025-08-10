@@ -2,27 +2,40 @@ extends base
 
 block content
 
-	main
-		section(class="section-list")
-			div(class="container")
-				div(class="users-table")
-					p(class="subheading")="USERNAME"
-					p(class="subheading")="Email"
-					p(class="subheading")="ROLE"
-					a(href="/users/create")
-						ion-icon(class="subheading" name="add-outline")
-					p(class="subheading")=""
-					
-					each user in users
-						div(class="table-row")
-							p(class="listItemText")=`${user.name}`
-							p(class="listItemText")=`${user.email}`
-							p(class="listItemText")=`${user.role}`
-							a(href="#" class="deleteUserButtons")
-								p(class="userId hiddenField")=`${user._id}`
-								ion-icon(class="listItemText actions-icon" name="trash-outline")
-							a(href="#" class="editUserButtons")
-								ion-icon(class="listItemText actions-icon" name="pencil-outline")
-								p(class="userId hiddenField")=`${user._id}`
+  main
+    section.section-list
+      div.container
+        //- Filter form
+        form(method="get" action="" class="filter-form")
+          label(for="username") Filter by username:
+          input#username(type="text", name="username", value=username placeholder="Enter username")
+          
+          label(for="role") Filter by role:
+          select#role(name="role")
+            option(value="") All
+            option(value="admin" selected=(role === 'admin')) Admin
+            option(value="user" selected=(role === 'user')) User
 
-			include includes/_pagination.pug
+          button(type="submit") Filter
+
+        div.users-table
+          p.subheading USERNAME
+          p.subheading Email
+          p.subheading ROLE
+          a(href="/users/create")
+            ion-icon.subheading(name="add-outline")
+          p.subheading
+
+          each user in users
+            div.table-row
+              p.listItemText= user.name
+              p.listItemText= user.email
+              p.listItemText= user.role
+              a.deleteUserButtons(href="#")
+                p.userId.hiddenField= user._id
+                ion-icon.listItemText.actions-icon(name="trash-outline")
+              a.editUserButtons(href="#")
+                ion-icon.listItemText.actions-icon(name="pencil-outline")
+                p.userId.hiddenField= user._id
+
+        include includes/_pagination.pug

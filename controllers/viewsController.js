@@ -71,7 +71,15 @@ exports.myPasswordReset = (req, res) => {
 //ADMIN USER FUNCTIONALITY (viewing all users / editing details / deleting users)
 
 exports.showAllUsers = catchAsync(async (req, res, next) => {
-  const pagination = await paginate(User, req);
+  const filter = {};
+  if (req.query.username) {
+    filter.name = { $regex: req.query.username, $options: "i" };
+  }
+  if (req.query.role && req.query.role !== "") {
+    filter.role = req.query.role;
+  }
+
+  const pagination = await paginate(User, req, filter);
 
   res.status(200).render("showAllUsers", {
     title: "All Users",
@@ -82,12 +90,14 @@ exports.showAllUsers = catchAsync(async (req, res, next) => {
     totalPages: pagination.totalPages,
     results: pagination.results.length,
     limit: pagination.limit,
+    username: req.query.username || "",
+    role: req.query.role || "",
   });
 });
 
 exports.createUser = (req, res) => {
   res.status(200).render("createUser", {
-    title: "Events",
+    title: "Create User",
     userRole: req.session.user.userRole,
     showNav: true,
   });
@@ -122,7 +132,23 @@ exports.createEvent = (req, res) => {
 };
 
 exports.showAllEvents = catchAsync(async (req, res, next) => {
-  const pagination = await paginate(Event, req);
+  const filter = {};
+
+  // Filter by organiser (case-insensitive substring match)
+  if (req.query.organiser) {
+    filter.eventOrganiser = { $regex: req.query.organiser, $options: "i" };
+  }
+
+  // Filter by date (exact match, expects yyyy-mm-dd from input[type="date"])
+  if (req.query.date) {
+    // Convert to start and end of the day for matching
+    const date = new Date(req.query.date);
+    const nextDate = new Date(date);
+    nextDate.setDate(date.getDate() + 1);
+    filter.eventDate = { $gte: date, $lt: nextDate };
+  }
+
+  const pagination = await paginate(Event, req, filter);
 
   res.status(200).render("showAllEvents", {
     title: "All Events",
@@ -133,6 +159,8 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
     totalPages: pagination.totalPages,
     results: pagination.results.length,
     limit: pagination.limit,
+    organiser: req.query.organiser || "",
+    date: req.query.date || "",
   });
 });
 
