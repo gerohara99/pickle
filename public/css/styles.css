@@ -874,3 +874,54 @@ strong {
 .filter-form button:active {
   background-color: #cf711f;
 }
+
+/* Row-pair for horizontal label-value display */
+.row-pair {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1.2rem;
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+}
+
+.label {
+  font-weight: 600;
+  color: #cf711f;
+  min-width: 7rem;
+}
+
+.value {
+  color: #333;
+  font-weight: 400;
+  flex: 1;
+  word-break: break-word;
+}
+
+.score-button {
+  min-width: 7rem;
+  width: 7rem;
+  height: 4.4rem;
+  white-space: normal;
+  text-align: center;
+  font-size: 1.5rem;
+  padding: 0.8rem 0.5rem;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #cf711f !important; /* Use the hover color as default */
+  color: #fff;
+  border: none;
+  border-radius: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(207, 113, 31, 0.08); /* Optional: subtle shadow */
+}
+
+.score-button:hover,
+.score-button:active {
+  background-color: #cf711f; /* Same as default, or even darker if you want */
+  filter: brightness(0.95); /* Optional: slight darken on hover */
+}

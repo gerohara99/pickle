@@ -1,23 +1,35 @@
+/* Responsive styles for screens up to 768px wide */
 @media (max-width: 768px) {
+  /* Show mobile nav toggle, hide desktop nav */
   .btn-mobile-nav {
     display: inline-block;
   }
-
   nav.main-nav {
     display: none;
-  } /* hide desktop nav on mobile */
+  }
+
+  /* Navigation list - vertical stacking */
+  .main-nav-list {
+    flex-direction: column !important;
+    gap: 1.6rem;
+    padding-left: 1.6rem;
+    margin: 0;
+  }
+  .main-nav-link {
+    font-size: 1.6rem;
+  }
 
   /* Containers and content wrappers */
   .crudContainer-1-cols,
   .crudContainer-2-cols,
   .container {
     max-width: 100%;
-    padding: 1.6rem; /* reduce horizontal padding */
+    padding: 1.6rem;
     margin: 0 auto;
-    box-shadow: none; /* remove shadows on mobile for cleaner look */
+    box-shadow: none;
     border-radius: 0;
     min-height: auto;
-    display: block; /* fallback from grid/flex for narrow screens */
+    display: block;
   }
 
   /* Reduce padding inside text boxes */
@@ -32,29 +44,45 @@
     column-gap: 0;
     row-gap: 1.6rem;
   }
-
   .form-2-cols label,
   .form-1-cols label {
-    font-size: 1.4rem; /* slightly smaller text */
+    font-size: 1.4rem;
   }
-
   .form-1-cols input,
   .form-2-cols input {
     width: 100%;
     font-size: 1.6rem;
     padding: 1rem;
   }
+  .filter-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1.2rem 1rem;
+  }
+  .filter-form label {
+    font-size: 1.4rem;
+  }
+  .filter-form input[type="text"],
+  .filter-form select {
+    width: 100%;
+    font-size: 1.5rem;
+    padding: 1rem;
+  }
+  .filter-form button {
+    width: 100%;
+    font-size: 1.5rem;
+    padding: 1rem 0;
+  }
 
-  /* Ensure form-buttons items sit in one row and stretch evenly */
+  /* Form buttons row */
   .form-buttons {
     gap: 1rem;
   }
-
-  /* Make each button/link take equal share of the row */
   .form-buttons > button,
   .form-buttons > .btn {
     flex: 1 1 0;
-    min-width: 0; /* prevent overflow */
+    min-width: 0;
     text-align: center;
   }
 
@@ -63,7 +91,6 @@
     font-size: 3.6rem;
     margin-bottom: 2.4rem;
   }
-
   .heading-secondary {
     font-size: 2.8rem;
     margin-bottom: 2rem;
@@ -81,13 +108,11 @@
     display: block;
     padding: 0 1.6rem;
   }
-
   .homepage-text-box,
   .homepage-img-box {
     margin-bottom: 2rem;
     width: 100%;
   }
-
   .homepage-img {
     width: 100%;
     height: auto;
@@ -99,48 +124,121 @@
     display: block;
     padding: 0 1.6rem;
   }
-
   .eventCardHeader,
   .eventCardDetails {
     display: block;
     padding: 1rem 0;
   }
-
-  /* Narrow the event card buttons on mobile */
   .eventCardHeader .form-buttons {
     display: flex;
     justify-content: center;
-    gap: 5%; /* small space between buttons */
+    gap: 5%;
   }
-
   .eventCardHeader .form-buttons a.btn {
-    flex: 0 1 45%; /* each button takes up 45% of the container */
+    flex: 0 1 45%;
     max-width: 45%;
     padding: 0.8rem 1rem;
-  }
-
-  /* Navigation - hide desktop nav, show mobile drawer toggle */
-  nav.main-nav {
-    display: none;
-  }
-
-  /* Navigation list - vertical stacking */
-  .main-nav-list {
-    flex-direction: column !important;
-    gap: 1.6rem;
-    padding-left: 1.6rem;
-    margin: 0;
-  }
-
-  .main-nav-link {
-    font-size: 1.6rem;
   }
 
   /* Footer padding reduced */
   .footer {
     padding: 6rem 1.6rem;
   }
+
+  /* Responsive styles for viewMySchedule.pug */
+  .mySchedule-table {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  .mySchedule-table .table-row {
+    background: #fff7ed;
+    border-radius: 0.8rem;
+    margin-bottom: 1.2rem;
+    padding: 1.2rem 1rem;
+    box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .row-pair {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.4rem;
+    margin-bottom: 0.2rem;
+  }
+  .label {
+    font-weight: 600;
+    color: #cf711f;
+    min-width: 6rem;
+    font-size: 1.3rem;
+  }
+  .value {
+    color: #333;
+    font-weight: 400;
+    flex: 1;
+    word-break: break-word;
+    font-size: 1.3rem;
+  }
+  .score-button {
+    min-width: 7rem;
+    width: 7rem;
+    height: 4.4rem;
+    white-space: normal;
+    text-align: center;
+    font-size: 1.4rem;
+    padding: 0.8rem 0.5rem;
+    line-height: 1.2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #cf711f;
+    color: #fff;
+    border: none;
+    border-radius: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-shadow: 0 2px 8px rgba(207, 113, 31, 0.08);
+  }
+  .score-button:hover,
+  .score-button:active {
+    background-color: #cf711f;
+    filter: brightness(0.95);
+  }
+
+  /* Modal adjustments for mobile */
+  .modal-content {
+    width: 95vw;
+    max-width: 400px;
+    padding: 2rem 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .modal-content .form-2-cols {
+    display: block;
+    gap: 0;
+  }
+  .modal-content label {
+    font-size: 1.3rem;
+  }
+  .modal-content input[type="number"] {
+    width: 100%;
+    font-size: 1.4rem;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .modal-content button.btn--form {
+    width: 100%;
+    font-size: 1.4rem;
+    padding: 1rem 0;
+  }
 }
+
+/* Hide logo on mobile */
 .logo {
   display: none;
 }
