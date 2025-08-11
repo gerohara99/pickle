@@ -84,7 +84,8 @@ exports.showAllUsers = catchAsync(async (req, res, next) => {
     // If empty string, do not filter by active
   }
 
-  const pagination = await paginate(User, req, filter);
+  const query = User.find(filter).sort({ name: 1 });
+  const pagination = await paginate(query, req);
 
   res.status(200).render("showAllUsers", {
     title: "All Users",
