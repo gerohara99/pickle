@@ -163,7 +163,14 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
     filter.eventDate = { $gte: date, $lt: nextDate };
   }
 
-  const pagination = await paginate(Event, req, filter);
+  if (typeof req.query.active !== "undefined" && req.query.active !== "") {
+    if (req.query.active === "true") filter.active = true;
+    else if (req.query.active === "false") filter.active = false;
+    // If empty string, do not filter by active
+  }
+
+  const query = Event.find(filter).sort({ eventDate: 1 });
+  const pagination = await paginate(query, req);
 
   res.status(200).render("showAllEvents", {
     title: "All Events",
@@ -205,7 +212,8 @@ exports.browseMyEvents = catchAsync(async (req, res, next) => {
 
   const events = await Event.find({
     "eventBookings.userId": { $in: userId },
-  });
+    active: true,
+  }).sort({ eventDate: 1 });
 
   // 2) Render template using tour data
   res.status(200).render("browseMyEvents", {
@@ -222,7 +230,9 @@ exports.browseNewEvents = catchAsync(async (req, res, next) => {
   const userId = req.session.user.userId;
   const events = await Event.find({
     "eventBookings.userId": { $nin: userId },
-  });
+    active: true, // Only show active events
+  }).sort({ eventDate: 1 });
+
   // 2) Render template using tour data
   res.status(200).render("browseNewEvents", {
     title: "Browse Events",

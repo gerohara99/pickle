@@ -12,6 +12,14 @@ block content
 					label(for="date") Filter by date:
 					input#date(type="date", name="date", value=date)
 
+					label Filter by status:
+					input(type="radio" id="all" name="active" value="" checked=(active === '' || !active))
+					label(for="all") All
+					input(type="radio" id="active" name="active" value="true" checked=(active === 'true'))
+					label(for="active") Active
+					input(type="radio" id="inactive" name="active" value="false" checked=(active === 'false'))
+					label(for="inactive") Inactive
+
 					button(type="submit") Filter
 
 				div.events-table

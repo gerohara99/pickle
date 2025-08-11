@@ -870,6 +870,7 @@ strong {
   color: #555;
   box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.05);
   width: 20rem;
+  accent-color: #cf711f;
 }
 
 .filter-form input[type="text"]::placeholder {
@@ -891,6 +892,10 @@ strong {
 .filter-form button:hover,
 .filter-form button:active {
   background-color: #cf711f;
+}
+
+.filter-form input[type="radio"] {
+  accent-color: #cf711f;
 }
 
 /* Row-pair for horizontal label-value display */
