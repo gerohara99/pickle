@@ -180,7 +180,8 @@ export function initFormListeners(deps) {
           document.getElementById("email").value,
           document.getElementById("mobile").value,
           document.getElementById("password").value,
-          document.getElementById("passwordConfirm").value
+          document.getElementById("passwordConfirm").value,
+          document.getElementById("active").checked
         );
       } catch (err) {
         console.error("Create user failed:", err);
@@ -201,7 +202,8 @@ export function initFormListeners(deps) {
           document.getElementById("userId").value,
           document.getElementById("name").value,
           document.getElementById("email").value,
-          document.getElementById("mobile").value
+          document.getElementById("mobile").value,
+          document.getElementById("active").checked
         );
       } catch (err) {
         console.error("Edit user failed:", err);

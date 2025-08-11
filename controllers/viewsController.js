@@ -78,6 +78,11 @@ exports.showAllUsers = catchAsync(async (req, res, next) => {
   if (req.query.role && req.query.role !== "") {
     filter.role = req.query.role;
   }
+  if (typeof req.query.active !== "undefined" && req.query.active !== "") {
+    if (req.query.active === "true") filter.active = true;
+    else if (req.query.active === "false") filter.active = false;
+    // If empty string, do not filter by active
+  }
 
   const pagination = await paginate(User, req, filter);
 
@@ -92,6 +97,7 @@ exports.showAllUsers = catchAsync(async (req, res, next) => {
     limit: pagination.limit,
     username: req.query.username || "",
     role: req.query.role || "",
+    active: typeof req.query.active !== "undefined" ? req.query.active : "",
   });
 });
 
@@ -104,18 +110,19 @@ exports.createUser = (req, res) => {
 };
 
 exports.editUser = catchAsync(async (req, res, next) => {
-  // 1) Get event data from collection
-
   const user = await User.findOne({ _id: req.params.id });
 
   if (!user) {
     return next(new AppError("There is no user with that name", 404));
   }
 
-  // 3) Render edit user form
+  // Ensure active is a boolean for correct checkbox rendering
   res.status(200).render("editUser", {
     title: `${user.name} Name`,
-    user,
+    user: {
+      ...user.toObject(),
+      active: user.active === true || user.active === "true", // force boolean
+    },
     userRole: req.session.user.userRole,
     showNav: true,
   });

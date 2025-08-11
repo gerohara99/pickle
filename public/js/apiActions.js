@@ -56,21 +56,22 @@ export const createUserApiAction = async (
   email,
   mobile,
   password,
-  passwordConfirm
+  passwordConfirm,
+  active
 ) =>
   apiRequest({
     method: "POST",
     url: "/api/v1/users",
-    data: { name, email, mobile, password, passwordConfirm },
+    data: { name, email, mobile, password, passwordConfirm, active },
     successMessage: "User successfully created",
     redirect: "/users/showall",
   });
 
-export const editUserApiAction = async (userId, name, email, mobile) =>
+export const editUserApiAction = async (userId, name, email, mobile, active) =>
   apiRequest({
     method: "PATCH",
     url: `/api/v1/users/${userId}`,
-    data: { name, email, mobile },
+    data: { name, email, mobile, active },
     successMessage: "User successfully updated",
     redirect: "/users/showall",
   });

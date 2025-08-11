@@ -19,6 +19,9 @@ block content
 							input(name="password" type="password" id="password" required) 
 							label(for="passwordConfirm") Re-Type Password
 							input(name="passwordConfirm" type="password" id="passwordConfirm" required)
+							div(class="form-row")
+								label(for="active" style="margin: 0;") User is Active
+								input(type="checkbox" id="active" name="active" checked)
 						div(class="form-buttons")
 							button(class="btn btn--form" id="CreateUserButton" type="submit") Create
 							a(id="forgotPasswordLink" class="text-link" href="#") Forgot Password?  

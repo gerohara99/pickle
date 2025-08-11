@@ -16,6 +16,15 @@ block content
             option(value="admin" selected=(role === 'admin')) Admin
             option(value="user" selected=(role === 'user')) User
 
+          label Filter by status:
+          div(style="display: flex; gap: 1rem; align-items: center;")
+            input(type="radio" id="all" name="active" value="" checked=(active === '' || !active))
+            label(for="all") All
+            input(type="radio" id="active" name="active" value="true" checked=(active === 'true'))
+            label(for="active") Active
+            input(type="radio" id="inactive" name="active" value="false" checked=(active === 'false'))
+            label(for="inactive") Inactive
+
           button(type="submit") Filter
 
         div.users-table

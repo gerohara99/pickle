@@ -155,6 +155,13 @@ body {
   color: #aaa;
 }
 
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
 /*********************************/
 /* Buttons                       */
 /*********************************/
