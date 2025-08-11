@@ -46,7 +46,15 @@ block content
 							label(for="eventWaitListSize") Max number of players on wait list
 							input(name="eventWaitListSize" type="number" value=`${event.eventWaitListSize}` id="eventWaitListSize" required)
 							input(id="eventId" class="hiddenField" value=event._id)
-
+						div
+							label(for="active" class="form__label event-active-label") Is event Active?
+							input(
+								type="checkbox"
+								id="active"
+								name="active"
+								class="event-active-checkbox"
+								checked=event.active
+							)
 						div(class="form-buttons")
 							button(class="btn btn--form" id="saveEventButton" type="submit") Save 
 							a(class="btn btn--form" id="cancelButton" href="/events/showall") Cancel

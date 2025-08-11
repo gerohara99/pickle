@@ -233,6 +233,7 @@ export function initFormListeners(deps) {
         eventNumOfRounds: document.getElementById("eventNumOfRounds").value,
         eventWaitListSize: document.getElementById("eventWaitListSize").value,
         eventNumOfPairings: document.getElementById("eventNumOfPairings").value,
+        active: document.getElementById("active").checked,
       };
       try {
         await createEventApiAction(data);
@@ -265,6 +266,7 @@ export function initFormListeners(deps) {
         eventNumOfRounds: document.getElementById("eventNumOfRounds").value,
         eventWaitListSize: document.getElementById("eventWaitListSize").value,
         eventNumOfPairings: document.getElementById("eventNumOfPairings").value,
+        active: document.getElementById("active").checked,
       };
       try {
         await updateEventApiAction(data);
@@ -273,20 +275,20 @@ export function initFormListeners(deps) {
       }
     });
   }
-}
 
-document.addEventListener("DOMContentLoaded", function () {
-  const toggle = document.getElementById("togglePassword");
-  const pwd = document.getElementById("password");
-  if (toggle && pwd) {
-    toggle.addEventListener("click", function () {
-      if (pwd.type === "password") {
-        pwd.type = "text";
-        toggle.textContent = "Hide";
-      } else {
-        pwd.type = "password";
-        toggle.textContent = "Show";
-      }
-    });
-  }
-});
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggle = document.getElementById("togglePassword");
+    const pwd = document.getElementById("password");
+    if (toggle && pwd) {
+      toggle.addEventListener("click", function () {
+        if (pwd.type === "password") {
+          pwd.type = "text";
+          toggle.textContent = "Hide";
+        } else {
+          pwd.type = "password";
+          toggle.textContent = "Show";
+        }
+      });
+    }
+  });
+}

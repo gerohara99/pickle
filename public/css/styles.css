@@ -600,6 +600,7 @@ strong {
   display: flex;
   flex-direction: row;
   gap: 4.8rem;
+  margin-right: auto;
 }
 
 .main-nav-link:link,
@@ -628,6 +629,16 @@ strong {
 .main-nav-link.nav-cta:hover,
 .main-nav-link.nav-cta:active {
   background-color: #cf711f;
+}
+
+.main-nav-link.user-display {
+  color: #cf711f;
+  font-weight: 600;
+  font-size: 1.6rem;
+  cursor: default;
+  pointer-events: none;
+  background: none;
+  padding: 0;
 }
 
 /* MOBILE */
@@ -950,4 +961,16 @@ strong {
 .show-password-link:focus {
   color: #cf711f;
   text-decoration: none;
+}
+
+.event-active-label,
+.user-active-label {
+  min-width: 18rem;
+}
+
+.event-active-checkbox,
+.user-active-checkbox {
+  width: 2rem;
+  height: 2rem;
+  accent-color: #cf711f;
 }

@@ -36,6 +36,7 @@ exports.getMyAccountDetails = (req, res) => {
   res.status(200).render("myAccountDetails", {
     title: "Your account",
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 };
@@ -44,6 +45,7 @@ exports.myPasswordUpdate = (req, res) => {
   res.status(200).render("myPasswordUpdate", {
     title: "Update Password",
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 };
@@ -64,6 +66,7 @@ exports.myPasswordReset = (req, res) => {
     title: "Reset Password",
     data,
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: false,
   });
 };
@@ -91,6 +94,7 @@ exports.showAllUsers = catchAsync(async (req, res, next) => {
     title: "All Users",
     users: pagination.results,
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
     currentPage: pagination.currentPage,
     totalPages: pagination.totalPages,
@@ -106,6 +110,7 @@ exports.createUser = (req, res) => {
   res.status(200).render("createUser", {
     title: "Create User",
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 };
@@ -125,6 +130,7 @@ exports.editUser = catchAsync(async (req, res, next) => {
       active: user.active === true || user.active === "true", // force boolean
     },
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 });
@@ -134,6 +140,7 @@ exports.createEvent = (req, res) => {
   res.status(200).render("createEvent", {
     title: "Events",
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     systemDefaults: req.session.systemDefaults,
     showNav: true,
   });
@@ -162,6 +169,7 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
     title: "All Events",
     events: pagination.results,
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
     currentPage: pagination.currentPage,
     totalPages: pagination.totalPages,
@@ -182,6 +190,7 @@ exports.showAllSchedules = catchAsync(async (req, res, next) => {
     title: "All Schedules",
     events: pagination.results,
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
     currentPage: pagination.currentPage,
     totalPages: pagination.totalPages,
@@ -203,6 +212,7 @@ exports.browseMyEvents = catchAsync(async (req, res, next) => {
     title: "Browse Events",
     events: events,
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 });
@@ -218,6 +228,7 @@ exports.browseNewEvents = catchAsync(async (req, res, next) => {
     title: "Browse Events",
     events: events,
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 });
@@ -234,8 +245,12 @@ exports.editEvent = catchAsync(async (req, res, next) => {
   // 3) Render template using tour data
   res.status(200).render("editEvent", {
     title: `${event.eventName} Event`,
-    event,
+    event: {
+      ...event.toObject(),
+      active: event.active === true || event.active === "true",
+    },
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 });
@@ -287,6 +302,7 @@ exports.viewMySchedule = catchAsync(async (req, res, next) => {
     event: event,
     filteredMatches: filteredMatches,
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 });
@@ -303,6 +319,7 @@ exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
     title: `${event.eventName} Event`,
     event: event,
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 });
@@ -317,6 +334,7 @@ exports.getSettings = catchAsync(async (req, res, next) => {
     title: "System Settings",
     systemSettings: systemSettings,
     userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
     showNav: true,
   });
 });

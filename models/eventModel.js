@@ -79,6 +79,10 @@ const eventSchema = new mongoose.Schema(
     ],
 
     rounds: { type: [roundSchema] },
+    active: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     // enable virtual fields

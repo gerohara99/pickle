@@ -259,8 +259,77 @@ exports.updateMatchScore = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.createEvent = catchAsync(async (req, res, next) => {
+  // Robust boolean handling for 'active'
+  let activeValue = false;
+  if (typeof req.body.active !== "undefined") {
+    if (typeof req.body.active === "string") {
+      activeValue = req.body.active === "true" || req.body.active === "on";
+    } else {
+      activeValue = !!req.body.active;
+    }
+  }
+
+  const newEvent = await Event.create({
+    eventName: req.body.eventName,
+    eventLocation: req.body.eventLocation,
+    eventType: req.body.eventType,
+    eventDate: req.body.eventDate,
+    eventStartTime: req.body.eventStartTime,
+    eventOrganiser: req.body.eventOrganiser,
+    eventNumOfCourts: req.body.eventNumOfCourts,
+    numOfStandOutsPerRound: req.body.numOfStandOutsPerRound,
+    eventNumOfRounds: req.body.eventNumOfRounds,
+    eventWaitListSize: req.body.eventWaitListSize,
+    eventNumOfPairings: req.body.eventNumOfPairings,
+    active: activeValue,
+  });
+  res.status(201).json({
+    status: "success",
+    data: { event: newEvent },
+  });
+});
+
+exports.updateEvent = catchAsync(async (req, res, next) => {
+  let activeValue = undefined;
+  if (typeof req.body.active !== "undefined") {
+    if (typeof req.body.active === "string") {
+      activeValue = req.body.active === "true" || req.body.active === "on";
+    } else {
+      activeValue = !!req.body.active;
+    }
+  }
+
+  const updateObj = {
+    eventName: req.body.eventName,
+    eventLocation: req.body.eventLocation,
+    eventType: req.body.eventType,
+    eventDate: req.body.eventDate,
+    eventStartTime: req.body.eventStartTime,
+    eventOrganiser: req.body.eventOrganiser,
+    eventNumOfCourts: req.body.eventNumOfCourts,
+    numOfStandOutsPerRound: req.body.numOfStandOutsPerRound,
+    eventNumOfRounds: req.body.eventNumOfRounds,
+    eventWaitListSize: req.body.eventWaitListSize,
+    eventNumOfPairings: req.body.eventNumOfPairings,
+  };
+  if (typeof activeValue !== "undefined") updateObj.active = activeValue;
+
+  const updatedEvent = await Event.findByIdAndUpdate(
+    req.body.eventId,
+    updateObj,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: { event: updatedEvent },
+  });
+});
+
 exports.getEvent = factory.getOne(Event);
 exports.getAllEvents = factory.getAll(Event);
-exports.createEvent = factory.createOne(Event);
-exports.updateEvent = factory.updateOne(Event);
 exports.deleteEvent = factory.deleteOne(Event);

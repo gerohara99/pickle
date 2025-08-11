@@ -32,13 +32,23 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 });
 
 exports.createUser = catchAsync(async (req, res, next) => {
+  // Robust boolean handling for 'active'
+  let activeValue = false;
+  if (typeof req.body.active !== "undefined") {
+    if (typeof req.body.active === "string") {
+      activeValue = req.body.active === "true" || req.body.active === "on";
+    } else {
+      activeValue = !!req.body.active;
+    }
+  }
+
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
     mobile: req.body.mobile,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
-    active: req.body.active === "false" ? false : true,
+    active: activeValue,
   });
   res.status(201).json({
     status: "success",

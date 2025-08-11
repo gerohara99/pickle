@@ -42,6 +42,9 @@ block content
 							div
 								label(for="eventNumOfPairings") Number of pairings per court
 								input(name="eventNumOfPairings" type="number" id="eventNumOfPairings" value=systemDefaults.numOfPairingsPerCourt required)
+							div(class="form-row")
+								label(for="active" class="form__label event-active-label") Is event Active ?
+								input(type="checkbox" id="active" name="active" checked class="event-active-checkbox")
 							div(class="form-buttons")
 								button(class="btn btn--form" id="createEventButton" type="submit") Create
 								a(class="btn btn--form" id="cancelButton" href="/events/showall") Cancel
