@@ -1,0 +1,47 @@
+extends base
+
+block content
+  main.main
+    section.section
+      div.container
+        h2.heading-secondary Mark No Show
+        form#noShowForm.form-1-cols(method="post" action="/api/v1/events/noShow")
+          label(for="eventId") Select Event
+          select#eventId(name="eventId" required)
+            each event in events
+              option(value=event._id)= event.eventName + ' (' + event.eventDate.toLocaleDateString() + ')'
+          label(for="userId") Select No Show User
+          select#userId(name="userId" required)
+            //- This will be dynamically populated via JS after event selection
+          button.btn.btn--form(type="submit") Mark as No Show
+
+  script.
+    document.addEventListener('DOMContentLoaded', async function() {
+      const eventSelect = document.getElementById('eventId');
+      const userSelect = document.getElementById('userId');
+      async function populateUsers(eventId) {
+        if (!eventId) {
+          userSelect.innerHTML = '';
+          return;
+        }
+        const res = await fetch(`/api/v1/events/${eventId}`);
+        const event = await res.json();
+        userSelect.innerHTML = '';
+        if (event.data && event.data.event && event.data.event.eventBookings) {
+          event.data.event.eventBookings.forEach(booking => {
+            const opt = document.createElement('option');
+            opt.value = booking.userId;
+            opt.textContent = booking.userName;
+            userSelect.appendChild(opt);
+          });
+        }
+      }
+      // Populate on page load for the first event
+      if (eventSelect.value) {
+        populateUsers(eventSelect.value);
+      }
+      // Populate on event change
+      eventSelect.addEventListener('change', function() {
+        populateUsers(this.value);
+      });
+    });

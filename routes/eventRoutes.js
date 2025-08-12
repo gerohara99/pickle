@@ -37,4 +37,12 @@ router
     eventController.deleteEvent
   );
 
+router.post(
+  "/noShow",
+  authController.protect,
+  authController.restrictTo("clubAdmin", "pickleAdmin"),
+  eventController.handleNoShow
+);
+
+// ...existing code...
 module.exports = router;

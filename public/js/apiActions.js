@@ -144,6 +144,15 @@ export const eventUpdateMatchScoreApiAction = async (
     reload: true,
   });
 
+export const markNoShowApiAction = async (eventId, userId) =>
+  apiRequest({
+    method: "POST",
+    url: "/api/v1/events/noShow",
+    data: { eventId, userId },
+    successMessage: "No show processed and schedule recalculated",
+    reload: true,
+  });
+
 // --- Auth Actions ---
 export const loginApiAction = async (email, password) =>
   apiRequest({

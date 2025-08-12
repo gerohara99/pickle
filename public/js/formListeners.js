@@ -11,6 +11,7 @@ export function initFormListeners(deps) {
     editUserApiAction,
     createEventApiAction,
     updateEventApiAction,
+    markNoShowApiAction,
   } = deps;
 
   const loginForm = document.getElementById("loginForm");
@@ -274,6 +275,25 @@ export function initFormListeners(deps) {
         console.error("Event update failed:", err);
       }
     });
+
+    const noShowForm = document.getElementById("noShowForm");
+    if (noShowForm) {
+      noShowForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!noShowForm.checkValidity()) {
+          noShowForm.reportValidity();
+          return;
+        }
+        const eventId = document.getElementById("eventId").value;
+        const userId = document.getElementById("userId").value;
+        try {
+          await markNoShowApiAction(eventId, userId);
+          // Optionally, reset the form or show a success message here
+        } catch (err) {
+          console.error("No show failed:", err);
+        }
+      });
+    }
   }
 
   document.addEventListener("DOMContentLoaded", function () {

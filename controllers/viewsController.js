@@ -348,3 +348,24 @@ exports.getSettings = catchAsync(async (req, res, next) => {
     showNav: true,
   });
 });
+
+exports.showNoShowForm = catchAsync(async (req, res, next) => {
+  // Only show events that are active and have eventDate of today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const events = await Event.find({
+    active: true,
+    //eventDate: { $gte: today, $lt: tomorrow },
+  });
+
+  res.status(200).render("noShowEvent", {
+    title: "Mark No Show",
+    events,
+    userRole: req.session.user.userRole,
+    userName: req.session.user.userName,
+    showNav: true,
+  });
+});

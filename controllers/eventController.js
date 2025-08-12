@@ -330,6 +330,35 @@ exports.updateEvent = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.handleNoShow = catchAsync(async (req, res, next) => {
+  const { eventId, userId } = req.body;
+
+  const event = await Event.findById(eventId);
+  if (!event) return next(new AppError("No event found with that ID", 404));
+
+  // Remove user from eventBookings
+  event.eventBookings = event.eventBookings.filter(
+    (booking) => booking.userId.toString() !== userId.toString()
+  );
+
+  // Reduce numOfStandOutsPerRound by 1, not below 1
+  event.numOfStandOutsPerRound = Math.max(
+    (event.numOfStandOutsPerRound || 1) - 1,
+    1
+  );
+
+  // Clear rounds and recalculate schedule
+  event.rounds = [];
+  await event.save();
+  await checkAndUpdateSchedule(eventId, next);
+
+  res.status(200).json({
+    status: "success",
+    message: "No show processed and schedule recalculated",
+    data: { event },
+  });
+});
+
 exports.getEvent = factory.getOne(Event);
 exports.getAllEvents = factory.getAll(Event);
 exports.deleteEvent = factory.deleteOne(Event);

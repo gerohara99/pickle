@@ -91,4 +91,11 @@ router.get(
   viewsController.getSettings
 );
 
+router.get(
+  "/events/noShowForm",
+  authController.protect,
+  authController.restrictTo("clubAdmin", "pickleAdmin"),
+  viewsController.showNoShowForm
+);
+
 module.exports = router;

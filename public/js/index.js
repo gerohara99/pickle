@@ -22,6 +22,7 @@ import {
   resetPasswordApiAction,
   getSystemSettingsApiAction,
   manageSystemSettingsApiAction,
+  markNoShowApiAction,
 } from "./apiActions";
 
 import { initFormListeners } from "./formListeners";
@@ -47,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resetPasswordApiAction,
     getSystemSettingsApiAction,
     manageSystemSettingsApiAction,
+    markNoShowApiAction,
   });
 
   // Score modal
@@ -62,5 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
     eventCreateBookingApiAction,
     eventCancelBookingApiAction,
     deleteEventApiAction,
+    markNoShowApiAction,
   });
 });
