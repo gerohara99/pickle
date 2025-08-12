@@ -128,11 +128,10 @@
     display: block;
     padding: 0 1.6rem;
   }
-  .eventCardHeader,
-  .eventCardDetails {
-    display: block;
-    padding: 1rem 0;
+  .eventContainer > .eventCardHeader {
+    margin-bottom: 2.4rem; /* Add more space between cards */
   }
+
   .eventCardHeader .form-buttons {
     display: flex;
     justify-content: center;
