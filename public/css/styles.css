@@ -194,9 +194,9 @@ body {
 .btn:visited {
   display: inline-block;
   text-decoration: none;
-  /*font-size: 2rem; */
   font-weight: 600;
-  padding: 1.6rem 3.2rem;
+  font-size: 1.8rem !important;
+  padding: 1.6rem 3.2rem !important;
   border-radius: 1rem;
   border: none;
   cursor: pointer;
