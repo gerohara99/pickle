@@ -53,6 +53,7 @@
     width: 100%;
     font-size: 1.6rem;
     padding: 1rem;
+    margin-bottom: 2.4rem;
   }
   .filter-form {
     flex-direction: column;
@@ -84,6 +85,9 @@
     flex: 1 1 0;
     min-width: 0;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   /* Headings: smaller size */

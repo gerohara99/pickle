@@ -148,6 +148,7 @@ body {
   background-color: #fdf2e9;
   border-radius: 1rem;
   box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.1);
+  margin-bottom: 2.4rem;
 }
 
 .form-1-cols input::placeholder,

@@ -23,6 +23,10 @@ block content
 								label(for="active" style="margin: 0;") User is Active
 								input(type="checkbox" id="active" name="active" checked)
 						div(class="form-buttons")
-							button(class="btn btn--form" id="CreateUserButton" type="submit") Create
-							a(id="forgotPasswordLink" class="text-link" href="#") Forgot Password?  
+							a(
+  							class="btn btn--form"
+  							id="CreateUserButton"
+  							href="#"
+  							onclick="document.getElementById('createUserForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+							) Login
 							a(class="btn btn--outline" id="cancelButton" href="/users/showAll") Cancel

@@ -17,6 +17,11 @@ block content
 							button(type="button" id="togglePassword" class="show-password-link") Show Password
               
 						div(class="form-buttons")
-							button(class="btn btn--form" id="loginButton" type="submit") Login
+							a(
+  							class="btn btn--form"
+  							id="loginButton"
+  							href="#"
+  							onclick="document.getElementById('loginForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+							) Login
 							a(id="forgotPasswordLink" class="text-link" href="/me/forgotPassword") Forgot Password?  
 							a(class="btn btn--outline" id="cancelButton" href="/") Cancel

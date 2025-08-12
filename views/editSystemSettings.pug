@@ -23,7 +23,12 @@ block content
 							input(name="numOfPairingsPerCourt" type="number" value=`${systemSettings.systemDefaults.numOfPairingsPerCourt}` id="numOfPairingsPerCourt" required)
 						div 
 							label(for="waitListSize") Default waiting list size
-							input(name="nwaitListSize" type="number" value=`${systemSettings.systemDefaults.waitListSize}` id="waitListSize" required)
+							input(name="waitListSize" type="number" value=`${systemSettings.systemDefaults.waitListSize}` id="waitListSize" required)
 						div(class="form-buttons")
-							button(class="btn btn--form" id="loginButton" type="submit") Save
+							a(
+								class="btn btn--form"
+								id="saveSystemSettingsButton"
+								href="#"
+								onclick="document.getElementById('saveSystemSettingsForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+							) Save
 							a(class="btn btn--outline" id="cancelButton" href="/events/showall") Cancel

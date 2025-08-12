@@ -46,5 +46,10 @@ block content
 								label(for="active" class="form__label event-active-label") Is event Active ?
 								input(type="checkbox" id="active" name="active" checked class="event-active-checkbox")
 							div(class="form-buttons")
-								button(class="btn btn--form" id="createEventButton" type="submit") Create
+								a(
+  								class="btn btn--form"
+  								id="createEventButton"
+  								href="#"
+  								onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+								) Create
 								a(class="btn btn--form" id="cancelButton" href="/events/showall") Cancel

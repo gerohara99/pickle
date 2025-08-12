@@ -22,5 +22,10 @@ block content
 							input(name="passwordConfirm" type="password" id="passwordConfirm" required)
 							
 						div(class="form-buttons")
-							button(class="btn btn--form" id="signUpButton" type="submit") SignUp 
+							a(
+  							class="btn btn--form"
+								id="signUpButton"
+								href="#"
+								onclick="document.getElementById('signUpForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+							) Sign Up
 							a(class="btn btn--outline" id="cancelButton" href="/") Cancel

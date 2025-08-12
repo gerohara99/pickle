@@ -18,5 +18,10 @@ block content
 							input(type="hidden" id="userId" value=user._id)
               
 						div(class="form-buttons")
-							button(class="btn btn--form" id="saveAcDetailsButton" type="submit") Save Details
+							a(
+  							class="btn btn--form"
+  							id="saveAccountDetailsButton"
+  							href="#"
+  							onclick="document.getElementById('acDetailsForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+							) Save
 							a(class="btn btn--outline" id="cancelButton" href="/events/myBrowse") Cancel
