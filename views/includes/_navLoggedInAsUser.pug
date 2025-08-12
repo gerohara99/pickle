@@ -6,17 +6,19 @@ button.btn-mobile-nav#mobileNavToggle(type="button" aria-label="Toggle navigatio
 // Desktop nav - visible on desktop only
 nav.main-nav
 	ul.main-nav-list
-		li
-			a(class="main-nav-link user-display" href="#") Logged in as: #{userName}
-		li
-			a(class="main-nav-link" href="/events/browseNew") Book an event
-		li
-			a.main-nav-link(href="/events/myBrowse") Browse My Events
-		li
-			a.main-nav-link(href="/me/myAccountDetails") Account Details
-		li
-			a.main-nav-link(href="/me/myPasswordUpdate") Update Password
-		li
+		li.left-nav
+			a(class="main-nav-link user-display" href="#") Hi #{userName} !!
+		li.center-nav
+			ul.center-nav-list
+				li
+					a(class="main-nav-link" href="/events/browseNew") Book an event
+				li
+					a(class="main-nav-link" href="/events/myBrowse") Browse My Events
+				li
+					a(class="main-nav-link" href="/me/myAccountDetails") Account Details
+				li
+					a(class="main-nav-link" href="/me/myPasswordUpdate") Update Password
+		li.right-nav
 			a(class="main-nav-link logOutButton" href="#") Logout
 
 

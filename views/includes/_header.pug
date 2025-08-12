@@ -1,7 +1,7 @@
 header.header
+  a.logo(href="/")
+    img(src="/img/logo.png", alt="Pickle Logo")
   if showNav !== false
-    a(href="#")
-      img.logo(src="/img/logo.png" alt="Pickle ball logo")
     if userRole !== null
       case userRole
         when 'clubAdmin'
