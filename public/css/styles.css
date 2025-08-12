@@ -543,6 +543,9 @@ strong {
   grid-column: span 2;
   justify-self: center;
   padding: 1.2rem;
+  text-align: center;
+  width: 100%;
+  display: block;
 }
 .event-attributes {
   list-style: none;
@@ -565,6 +568,10 @@ strong {
 /* Push the button row to the bottom */
 .eventCardHeader .form-buttons {
   margin-top: auto;
+}
+
+.event-label {
+  font-weight: bold;
 }
 
 /**************************/

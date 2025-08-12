@@ -9,11 +9,13 @@ block content
 						div(class="eventCardHeader")
 							- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
 							- const eventDate = event.eventDate.toLocaleDateString(undefined, options);
-							p(class="event-attribute") When :
+							p(class="event-attribute")
+								span(class="event-label") When :
 								span(class="event-attribute")=`${eventDate}`
 								span() @ 
 								span(class="event-attribute")=`${event.eventStartTime}`
-							p(class="event-attribute") Where:
+							p(class="event-attribute")
+								span(class="event-label") Where:
 								span()=`${event.eventLocation}`
 							p(class="event-title") Players
 								div(class="eventCardDetails")
