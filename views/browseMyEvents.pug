@@ -28,7 +28,7 @@ block content
 											p(class="event-attribute")=booking.userName
 										- i++;
 								div(class="form-buttons")
-									if `${event.schedule}`
+									if event.userInRounds
 										a(class="btn btn--outline viewMyScheduleButtons" href="#") View Schedule
-										a(class="btn btn--outline cancelEventButtons" href="#") Cancel Booking
-										p(class="hiddenField eventId")=`${event._id}`
+									a(class="btn btn--outline cancelEventButtons" href="#") Cancel Booking
+									p(class="hiddenField eventId")=`${event._id}`

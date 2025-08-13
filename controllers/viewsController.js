@@ -215,6 +215,22 @@ exports.browseMyEvents = catchAsync(async (req, res, next) => {
     active: true,
   }).sort({ eventDate: 1 });
 
+  events.forEach((event) => {
+    event.userInRounds =
+      event.rounds &&
+      event.rounds.some((round) =>
+        round.matches.some(
+          (match) =>
+            match.teamA.some(
+              (player) => player.userId.toString() === req.session.user.userId
+            ) ||
+            match.teamB.some(
+              (player) => player.userId.toString() === req.session.user.userId
+            )
+        )
+      );
+  });
+
   // 2) Render template using tour data
   res.status(200).render("browseMyEvents", {
     title: "Browse Events",
