@@ -88,3 +88,22 @@ export function initButtonDelegates(deps) {
     location.assign(`/events/viewMySchedule/${eventIdElem.textContent}`);
   });
 }
+
+// Cog/settings dropdown logic (NO delegate needed)
+const settingsToggle = document.querySelector(".settings-toggle");
+const settingsDropdown = document.querySelector(".settings-dropdown");
+if (settingsToggle && settingsDropdown) {
+  settingsToggle.addEventListener("click", function (e) {
+    e.preventDefault();
+    console.log("Cog clicked");
+    settingsDropdown.classList.toggle("open");
+  });
+  document.addEventListener("click", function (e) {
+    if (
+      !settingsDropdown.contains(e.target) &&
+      !settingsToggle.contains(e.target)
+    ) {
+      settingsDropdown.classList.remove("open");
+    }
+  });
+}
