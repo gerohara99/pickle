@@ -12,10 +12,16 @@ export function initScoreModal(eventUpdateMatchScorePubJs) {
         const round = btn.dataset.round;
         const matchIndex = btn.dataset.matchindex;
         const eventId = btn.dataset.eventid;
+        const teamAScore = btn.dataset.teamaScore;
+        const teamBScore = btn.dataset.teambScore;
 
         document.getElementById("roundIndex").value = round;
         document.getElementById("matchIndex").value = matchIndex;
         document.getElementById("eventId").value = eventId;
+        document.getElementById("teamAScore").value =
+          teamAScore && teamAScore !== "undefined" ? teamAScore : "";
+        document.getElementById("teamBScore").value =
+          teamBScore && teamBScore !== "undefined" ? teamBScore : "";
       });
     });
   }

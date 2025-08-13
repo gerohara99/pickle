@@ -313,12 +313,17 @@ exports.viewMySchedule = catchAsync(async (req, res, next) => {
         )
           ? "teamA"
           : "teamB";
-        // Push match to filteredMatches, along with the player's team info
+
+        const hasScore =
+          (typeof match.teamAScore === "number" && match.teamAScore > 0) ||
+          (typeof match.teamBScore === "number" && match.teamBScore > 0);
+
         filteredMatches.push({
           round: roundIndex,
           match,
           playerTeam,
           matchIndex,
+          hasScore,
         });
       }
     });

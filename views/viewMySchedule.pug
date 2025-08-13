@@ -14,7 +14,7 @@ block content
             div.table-row
               div.row-pair
                 span.label Round : 
-                span.value= matchData.round
+                span.value= matchData.round+1
 
               div.row-pair
                 span.label Court
@@ -32,16 +32,18 @@ block content
                   each player in matchData.match.teamB
                     span.listItemText= player.name + '  '
 
-              div.row-pair
-                span.value
-                  // Button to trigger the score entry popup
-                  button.btn.score-button(
-                    data-round=matchData.round,
-                    data-matchindex=matchData.matchIndex,
-                    data-eventid=event._id
-                  ) Enter
-                    br
-                    | Score
+              div.row-pair.enter-score-column
+                button.btn.score-button(
+                  data-round=matchData.round,
+                  data-matchindex=matchData.matchIndex,
+                  data-eventid=event._id,
+                  data-teama-score=matchData.match.teamAScore,
+                  data-teamb-score=matchData.match.teamBScore
+                )
+                  if matchData.hasScore 
+                    | Edit Score
+                  else 
+                    | Enter Score
 
         // Popup Modal for entering scores
         div#scoreModal.modal
