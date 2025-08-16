@@ -347,6 +347,7 @@ exports.viewMySchedule = catchAsync(async (req, res, next) => {
     title: `${event.eventName} Event`,
     event: event,
     filteredMatches: filteredMatches,
+    features: req.session.features,
     userRole: req.session.user.userRole,
     userName: req.session.user.userName,
     showNav: true,

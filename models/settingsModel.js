@@ -8,6 +8,9 @@ const settingsSchema = new mongoose.Schema({
     numOfPairingsPerCourt: { type: Number, default: 0 },
     waitListSize: { type: Number, default: 0 },
   },
+  features: {
+    teamCanEditScore: { type: Boolean, default: false },
+  },
 });
 
 const Settings = mongoose.model("Settings", settingsSchema);

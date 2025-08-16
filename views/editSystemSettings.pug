@@ -1,34 +1,59 @@
 extends base
 
 block content
-	main.main
-	section(class="section")
-		div(class="container")
-			div(class="crudContainer-2-cols")
-				div(class="text-box") 
-					h1(class="heading-secondary") Manage System Default Values
+  main.main
+    section.section
+      div.container
+        div.crudContainer-2-cols
+          div.text-box
+            h1.heading-secondary Manage System Settings
 
-					form(class="form-2-cols" id="saveSystemSettingsForm")
-						div
-							label(for="numOfStandOuts") Default Number of players resting per round
-							input(name="numOfStandOuts" type="number" value=`${systemSettings.systemDefaults.numOfStandOuts}` id="numOfStandOuts" required)
-						div
-							label(for="numOfRounds") Default Number of rounds in an event
-							input(name="numOfRounds" type="number" value=`${systemSettings.systemDefaults.numOfRounds}` id="numOfRounds" required)
-						div
-							label(for="numOfCourts") Default Number of courts in an event
-							input(name="numOfCourts" type="number" value=`${systemSettings.systemDefaults.numOfCourts}` id="numOfCourts")
-						div 
-							label(for="numOfPairingsPerCourt") Default Number pairings per court
-							input(name="numOfPairingsPerCourt" type="number" value=`${systemSettings.systemDefaults.numOfPairingsPerCourt}` id="numOfPairingsPerCourt" required)
-						div 
-							label(for="waitListSize") Default waiting list size
-							input(name="waitListSize" type="number" value=`${systemSettings.systemDefaults.waitListSize}` id="waitListSize" required)
-						div(class="form-buttons")
-							a(
-								class="btn btn--form"
-								id="saveSystemSettingsButton"
-								href="#"
-								onclick="document.getElementById('saveSystemSettingsForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
-							) Save
-							a(class="btn btn--outline" id="cancelButton" href="/events/showall") Cancel
+            // Tabs
+            ul.tabs
+              li.tab.active(data-tab="system-defaults") System Defaults
+              li.tab(data-tab="features") Features
+
+            // Tab Contents
+            div.tab-content#system-defaults.active
+              form.form-2-cols(id="saveSystemSettingsForm")
+                div
+                  label(for="numOfStandOuts") Default Number of players resting per round
+                  input(name="systemDefaults[numOfStandOuts]" type="number" value=systemSettings.systemDefaults.numOfStandOuts id="numOfStandOuts" required)
+                div
+                  label(for="numOfRounds") Default Number of rounds in an event
+                  input(name="systemDefaults[numOfRounds]" type="number" value=systemSettings.systemDefaults.numOfRounds id="numOfRounds" required)
+                div
+                  label(for="numOfCourts") Default Number of courts in an event
+                  input(name="systemDefaults[numOfCourts]" type="number" value=systemSettings.systemDefaults.numOfCourts id="numOfCourts")
+                div 
+                  label(for="numOfPairingsPerCourt") Default Number pairings per court
+                  input(name="systemDefaults[numOfPairingsPerCourt]" type="number" value=systemSettings.systemDefaults.numOfPairingsPerCourt id="numOfPairingsPerCourt" required)
+                div 
+                  label(for="waitListSize") Default waiting list size
+                  input(name="systemDefaults[waitListSize]" type="number" value=systemSettings.systemDefaults.waitListSize id="waitListSize" required)
+                div.form-buttons
+                  a.btn.btn--form(
+                    id="saveSystemSettingsButton"
+                    href="#"
+                    onclick="document.getElementById('saveSystemSettingsForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+                  ) Save
+                  a.btn.btn--outline(id="cancelButton" href="/events/showall") Cancel
+
+            div.tab-content#features
+              form.form-2-cols(id="saveFeaturesForm")
+                div
+                  label(for="teamCanEditScore" class="form__label") Can teams edit scores?
+                  input(
+                    type="checkbox"
+                    id="teamCanEditScore"
+                    name="features[teamCanEditScore]"
+                    checked=systemSettings.features.teamCanEditScore
+                    class="form__checkbox"
+                  )
+                div.form-buttons
+                  a.btn.btn--form(
+                    id="saveFeaturesButton"
+                    href="#"
+                    onclick="document.getElementById('saveFeaturesForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+                  ) Save
+                  a.btn.btn--outline(id="cancelButton" href="/events/showall") Cancel

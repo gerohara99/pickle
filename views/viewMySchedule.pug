@@ -4,7 +4,7 @@ block content
   main.main
     - const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
     - const eventDate = event.eventDate.toLocaleDateString(undefined, options);
-    - const nameDateTimeString = `${event.eventName}` + " on " + `${eventDate}` + " @ " + `${event.eventStartTime}` + " in " + `${event.eventLocation}`
+    - const nameDateTimeString = `${event.eventName}` + " on " + `${eventDate}` + " @ " + `${event.eventStartTime}` + " in " + `${event.eventLocation}`;
     p.subheading.center-text= nameDateTimeString
 
     section.section-list
@@ -13,39 +13,36 @@ block content
           each matchData in filteredMatches
             div.table-row
               div.row-pair
-                span.label Round : 
-                span.value= matchData.round+1
-
+                span.label Round :
+                span.value= matchData.round + 1
               div.row-pair
                 span.label Court
                 span.value= matchData.match.court
-
               div.row-pair
-                span.label My Team : 
+                span.label Team A :
                 span.value
                   each player in matchData.match.teamA
                     span.listItemText= player.name + ' '
-
               div.row-pair
-                span.label Opposing Team : 
+                span.label Team B :
                 span.value
                   each player in matchData.match.teamB
-                    span.listItemText= player.name + '  '
-
+                    span.listItemText= player.name + ' '
               div.row-pair.enter-score-column
-                button.btn.score-button(
-                  data-round=matchData.round,
-                  data-matchindex=matchData.matchIndex,
-                  data-eventid=event._id,
-                  data-teama-score=matchData.match.teamAScore,
-                  data-teamb-score=matchData.match.teamBScore
-                )
-                  if matchData.hasScore 
-                    | Edit Score
-                  else 
-                    | Enter Score
+                if features && features.teamCanEditScore
+                  button.btn.score-button(
+                    data-round=matchData.round,
+                    data-matchindex=matchData.matchIndex,
+                    data-eventid=event._id,
+                    data-teama-score=matchData.match.teamAScore,
+                    data-teamb-score=matchData.match.teamBScore
+                  )
+                    if matchData.hasScore 
+                      | Edit Score
+                    else 
+                      | Enter Score
 
-        // Popup Modal for entering scores
+        // Popup Modal for entering scores (only one modal needed)
         div#scoreModal.modal
           div.modal-content
             span.close &times;

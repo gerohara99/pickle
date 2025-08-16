@@ -1013,3 +1013,37 @@ nav.main-nav {
   height: 2rem;
   accent-color: #cf711f;
 }
+
+/*********************************************/
+/* Tabs                                      */
+/*********************************************/
+
+.tabs {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #cf711f;
+}
+
+.tab {
+  padding: 1.2rem 2rem;
+  border: 1px solid #eee;
+  border-bottom: none;
+  background: #f9f9f9;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tab.active {
+  background: #fff;
+  border-color: #eee;
+  font-weight: 600;
+}
+
+.tab-content {
+  display: none !important;
+}
+.tab-content.active {
+  display: block !important;
+}

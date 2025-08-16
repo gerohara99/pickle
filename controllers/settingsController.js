@@ -11,15 +11,18 @@ exports.getSystemSettings = catchAsync(async (req, res, next) => {
     }
 
     req.session.systemDefaults = settings.systemDefaults;
+    req.session.features = settings.features;
 
-    // Save session to ensure persistence before response
     req.session.save((err) => {
       if (err) return next(err);
 
       res.status(200).json({
         status: "success",
         message: "System settings retrieved successfully",
-        data: { systemDefaults: req.session.systemDefaults },
+        data: {
+          systemDefaults: req.session.systemDefaults,
+          features: req.session.features,
+        },
       });
     });
   } catch (error) {
@@ -30,19 +33,31 @@ exports.getSystemSettings = catchAsync(async (req, res, next) => {
 
 exports.saveSettings = catchAsync(async (req, res, next) => {
   try {
-    await Settings.findOneAndUpdate({}, { $set: { systemDefaults: req.body } });
-    req.session.systemDefaults = req.body;
+    const updateObj = {};
+    if (req.body.systemDefaults)
+      updateObj.systemDefaults = req.body.systemDefaults;
+    if (req.body.features) updateObj.features = req.body.features;
+
+    await Settings.findOneAndUpdate({}, { $set: updateObj });
+
+    if (req.body.systemDefaults)
+      req.session.systemDefaults = req.body.systemDefaults;
+    if (req.body.features) req.session.features = req.body.features;
+
     req.session.save((err) => {
       if (err) return next(err);
 
       res.status(200).json({
         status: "success",
         message: "System settings saved successfully",
-        data: { systemDefaults: req.session.systemDefaults },
+        data: {
+          systemDefaults: req.session.systemDefaults,
+          features: req.session.features,
+        },
       });
     });
   } catch (error) {
-    console.error("Error saving sysetm settings:", error);
-    next(new AppError("Failed to save system settingse", 500));
+    console.error("Error saving system settings:", error);
+    next(new AppError("Failed to save system settings", 500));
   }
 });

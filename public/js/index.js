@@ -30,6 +30,8 @@ import { initScoreModal } from "./modal";
 import { initMobileNavToggle } from "./navToggle";
 import { initButtonDelegates } from "./buttonDelegates";
 
+import { initTabs } from "./tabs";
+
 document.addEventListener("DOMContentLoaded", () => {
   // Forms
   initFormListeners({
@@ -56,6 +58,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Mobile nav toggle
   initMobileNavToggle();
+
+  // Tabs
+  initTabs();
 
   // Button and link event delegation
   initButtonDelegates({

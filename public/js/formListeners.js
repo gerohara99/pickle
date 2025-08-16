@@ -296,6 +296,23 @@ export function initFormListeners(deps) {
     }
   }
 
+  const saveFeaturesForm = document.getElementById("saveFeaturesForm");
+  if (saveFeaturesForm) {
+    saveFeaturesForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      // Checkbox value handling
+      const teamCanEditScore =
+        document.getElementById("teamCanEditScore").checked;
+      try {
+        await manageSystemSettingsApiAction({
+          features: { teamCanEditScore },
+        });
+      } catch (err) {
+        console.error("Save features failed:", err);
+      }
+    });
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     const toggle = document.getElementById("togglePassword");
     const pwd = document.getElementById("password");
