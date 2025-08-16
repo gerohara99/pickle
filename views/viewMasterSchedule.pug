@@ -9,58 +9,42 @@ block content
 
     section.section-list
       div.container
-        form(method="get" action="" class="filter-form")
-          label(for="round") Filter by round:
-          select#round(name="round")
-            option(value="") All Rounds
-            - for (let i = 1; i <= Number(roundsCount); i++)
-              option(
-                value=i,
-                selected=(round == i.toString())
-              ) Round #{i}
-          button(type="submit") Filter
-
-        // Pagination controls above the table
-        include includes/_pagination.pug
-
         div.mySchedule-table
-          each item in paginatedMatches
-            - const match = item.match
-            - const roundIndex = item.roundIndex
-            - const matchIndex = item.matchIndex
+          each matchData in filteredMatches
             div.table-row
               div.row-pair
                 span.label Round :
-                span.value= round ? parseInt(round) : roundIndex + 1
+                span.value= matchData.round + 1
               div.row-pair
                 span.label Court
-                span.value= match.court+1
+                span.value= matchData.match.court
               div.row-pair
                 span.label Team A :
                 span.value
-                  each player in match.teamA
+                  each player in matchData.match.teamA
                     span.listItemText= player.name + ' '
               div.row-pair
                 span.label Team B :
                 span.value
-                  each player in match.teamB
+                  each player in matchData.match.teamB
                     span.listItemText= player.name + ' '
+              // Score column (horizontal)
+              div.row-pair
+                span.label Score :
+                span.value #{typeof matchData.match.teamAScore === "number" ? matchData.match.teamAScore : 0} / #{typeof matchData.match.teamBScore === "number" ? matchData.match.teamBScore : 0}
               div.row-pair.enter-score-column
-                - const hasScore = (typeof match.teamAScore === "number" && match.teamAScore > 0) || (typeof match.teamBScore === "number" && match.teamBScore > 0)
-                button.btn.score-button(
-                  data-round=round ? parseInt(round)-1 : roundIndex,
-                  data-matchindex=matchIndex,
-                  data-eventid=event._id,
-                  data-teama-score=match.teamAScore,
-                  data-teamb-score=match.teamBScore
-                )
-                  if hasScore
-                    | Edit Score
-                  else
-                    | Enter Score
-
-        // Pagination controls below the table (optional)
-        include includes/_pagination.pug
+                if features && features.teamCanEditScore
+                  button.btn.score-button(
+                    data-round=matchData.round,
+                    data-matchindex=matchData.matchIndex,
+                    data-eventid=event._id,
+                    data-teama-score=matchData.match.teamAScore,
+                    data-teamb-score=matchData.match.teamBScore
+                  )
+                    if matchData.hasScore 
+                      | Edit Score
+                    else 
+                      | Enter Score
 
         // Popup Modal for entering scores (only one modal needed)
         div#scoreModal.modal
@@ -79,4 +63,3 @@ block content
                 input(type="number", name="teamBScore", min="0", id="teamBScore")
               div
                 button(type="submit", class="btn btn--form") Submit Score
-   

@@ -28,6 +28,10 @@ block content
                 span.value
                   each player in matchData.match.teamB
                     span.listItemText= player.name + ' '
+              // Score column (horizontal)
+              div.row-pair
+                span.label Score :
+                span.value #{typeof matchData.match.teamAScore === "number" ? matchData.match.teamAScore : 0} / #{typeof matchData.match.teamBScore === "number" ? matchData.match.teamBScore : 0}
               div.row-pair.enter-score-column
                 if features && features.teamCanEditScore
                   button.btn.score-button(
