@@ -14,10 +14,16 @@ block content
 						input(id="email" type='email' value=user.email required name='email')
 						label(for='mobile') Mobile Phone number
 						input(id="mobile" type='number' value=user.mobile required name='mobile')
-						div(class="form-row")
-							label(for="active" style="margin: 0;") User is Active
-							input(type="checkbox" id="active" name="active" checked=user.active)
 						input(id="userId" class="hiddenField" value=user._id)
+						div.form-row
+							label(for="active" class="form__label active-label") Is user Active?
+							input(
+								type="checkbox"
+								id="active"
+								name="active"
+								class="active-checkbox"
+								checked=user.active
+							)
 					div(class="form-buttons")
 						button(class="btn btn--form" id="editUserButton" type="submit") Save
 						a(class="btn btn--outline" id="cancelButton" href="/users/showall") Cancel

@@ -57,9 +57,9 @@ body {
   background-image: linear-gradient(to right bottom, #eb984e, #e67e22);
   box-shadow: 0 2.4rem 4.8rem rgba(0, 0, 0, 0.15);
   /* min-height: 100vh; */
-  display: flex;
+  /* display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: center; */
 }
 
 .text-box {
@@ -997,18 +997,21 @@ nav.main-nav {
   text-decoration: none;
 }
 
-.event-active-label,
-.user-active-label {
+.active-label {
   min-width: 18rem;
 }
 
-.event-active-checkbox,
-.user-active-checkbox {
-  width: 2rem;
-  height: 2rem;
-  accent-color: #cf711f;
+.active-checkbox {
+  width: 1em;
+  min-width: 1em;
+  max-width: 1em;
+  height: 1em;
+  min-height: 1em;
+  max-height: 1em;
+  margin: 0 0.5em;
+  vertical-align: top;
+  accent-color: white;
 }
-
 /*********************************************/
 /* Tabs                                      */
 /*********************************************/

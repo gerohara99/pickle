@@ -42,18 +42,19 @@ block content
             div.tab-content#features
               form.form-2-cols(id="saveFeaturesForm")
                 div
-                  label(for="teamCanEditScore" class="form__label") Can teams edit scores?
+                  label(for="teamCanEditScore" class="form__label active-label") Can teams edit scores?
                   input(
                     type="checkbox"
                     id="teamCanEditScore"
                     name="features[teamCanEditScore]"
                     checked=systemSettings.features.teamCanEditScore
-                    class="form__checkbox"
+                    class="active-checkbox"
                   )
                 div.form-buttons
-                  a.btn.btn--form(
-                    id="saveFeaturesButton"
-                    href="#"
-                    onclick="document.getElementById('saveFeaturesForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
-                  ) Save
+                  div.form-row
+                    a.btn.btn--form(
+                      id="saveFeaturesButton"
+                      href="#"
+                      onclick="document.getElementById('saveFeaturesForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+                    ) Save
                   a.btn.btn--outline(id="cancelButton" href="/events/showall") Cancel
