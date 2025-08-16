@@ -1,9 +1,4 @@
-// Hamburger toggle button for mobile
-button.btn-mobile-nav#mobileNavToggle(type="button" aria-label="Toggle navigation")
-	ion-icon(name="menu-outline" class="icon-mobile-nav icon-menu")
-	ion-icon(name="close-outline" class="icon-mobile-nav icon-close")
-
-// Desktop nav - visible on desktop only
+// Desktop Nav
 nav.main-nav
 	ul.main-nav-list
 		li.left-nav
@@ -25,17 +20,23 @@ nav.main-nav
 				li
 					a(class="main-nav-link logOutButton" href="#") Logout
 
+// Mobile Nav Header (greeting + menu button)
+div.mobile-nav-header
+	span.mobile-user-greeting.subheading Hi #{userName} !!
+	button.btn-mobile-nav#mobileNavToggle(type="button" aria-label="Toggle navigation")
+		ion-icon(name="menu-outline" class="icon-mobile-nav icon-menu")
+		ion-icon(name="close-outline" class="icon-mobile-nav icon-close")
 
-// Mobile drawer nav - hidden by default
-nav.mobile-drawer
-	ul.main-nav-list
+// Mobile Drawer (hidden by default, toggled by JS)
+div.mobile-drawer
+	ul.mobile-nav-list
 		li
 			a(class="main-nav-link" href="/events/browseNew") Book an event
 		li
 			a(class="main-nav-link" href="/events/myBrowse") Browse My Events
 		li
-			a(class="main-nav-link" href="/me/myAccountDetails") Account Details
+			a(class="main-nav-link" href="/me/myAccountDetails") My Account Details
 		li
-			a(class="main-nav-link", href="/me/myPasswordUpdate") Update Password
+			a(class="main-nav-link" href="/me/myPasswordUpdate") Update My Password
 		li
-			a(class="main-nav-link logOutButton" href="#") Logout
+			a(class="main-nav-link logOutButton" href="/logout") Logout

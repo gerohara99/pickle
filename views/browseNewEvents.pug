@@ -1,35 +1,35 @@
 extends base
 
 block content
-	main.main
-		section(class="section-browseEvents")
-			div(class="container")
-				div(class="eventContainer")
-					each event in events
-						div(class="eventCardHeader")
-							- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
-							- const eventDate = event.eventDate.toLocaleDateString(undefined, options);
-							p(class="event-attribute")
-								span(class="event-label") When :
-								span(class="event-attribute")=`${eventDate}`
-								span() @ 
-								span(class="event-attribute")=`${event.eventStartTime}`
-							p(class="event-attribute")
-								span(class="event-label") Where:
-								span()=`${event.eventLocation}`
-							p(class="event-title") Players
-								div(class="eventCardDetails")
-									- let i =0;
-									each booking in event.eventBookings
-										if i === event.eventNumOfPlayers
-											p(class="event-title") Wait List
-											p(class="event-attribute")=booking.userName
-										else
-											p(class="event-attribute")=booking.userName
-										- i++;		
-								div(class="form-buttons")
-									if event.eventBookings.length > event.eventNumOfPlayers - 1
-										a(class="btn btn--outline bookEventButtons" href="#") Join WaitList
-									else 
-										a(class="btn btn--outline bookEventButtons" href="#") Book Event
-									p(class="hiddenField eventId")=`${event._id}`
+  main.main
+    section.section-browseEvents
+      div.container
+        if events.length === 0
+          p.subheading.center-text There are currently no new events for you to book
+        else
+          div.eventContainer
+            each event in events
+              div.eventCardHeader
+                - const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
+                - const eventDate = event.eventDate.toLocaleDateString(undefined, options);
+                p.event-attribute
+                  span.event-label When :
+                  span.event-attribute=`${eventDate}`
+                  span() @ 
+                  span.event-attribute=`${event.eventStartTime}`
+                p.event-attribute
+                  span.event-label Where:
+                  span()=`${event.eventLocation}`
+                p.event-title Players
+                  div.eventCardDetails
+                    - let i = 0;
+                    each booking in event.eventBookings
+                      if i === event.eventNumOfPlayers
+                        p.event-title Wait List
+                        p.event-attribute=booking.userName
+                      else
+                        p.event-attribute=booking.userName
+                      - i++;
+                  div.form-buttons
+                    a.btn.btn--outline.bookEventButtons(href="#") Book Event
+                    p.hiddenField.eventId=`${event._id}`

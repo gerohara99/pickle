@@ -272,3 +272,23 @@
 .logo {
   display: none;
 }
+
+@media (max-width: 900px) {
+  .mobile-nav-header {
+    display: flex;
+  }
+  nav.main-nav {
+    display: none;
+  }
+  .mobile-user-greeting {
+    margin-left: 1rem;
+    margin-right: 1.2rem;
+    font-size: 1.1rem;
+  }
+  .mobile-drawer {
+    padding-left: 1.2rem;
+  }
+  .mobile-nav-list li {
+    margin-bottom: 2rem;
+  }
+}
