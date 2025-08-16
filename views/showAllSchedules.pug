@@ -3,29 +3,27 @@ extends base
 block content
 
 	main
-		section(class="section-list")
-			div(class="container")
-				div(class="events-table")
-					p(class="subheading")="Event Name"
-					p(class="subheading")="Organiser"
-					p(class="subheading")="Date"
-					p(class="subheading")="Time"
-					a(href="/events/create")
-						ion-icon(class="subheading" name="add-outline")
-					p(class="subheading")=""
-					
+		section.section-list
+			div.container
+				form(method="get" action="" class="filter-form")
+					label(for="organiser") Filter by organiser:
+					input#organiser(type="text", name="organiser", value=organiser placeholder="Enter organiser")
+					label(for="date") Filter by date:
+					input#date(type="date", name="date", value=date)
+					button(type="submit") Filter
+
+				div.schedule-table
+					p.subheading Event Name
+					p.subheading Organiser
+					p.subheading Date
+					p.subheading Time
 					each event in events
-						div(class="table-row")
-							p(class="listItemText")=`${event.eventName}`
-							p(class="listItemText")=`${event.eventOrganiser}`
+						div.table-row
+							p.listItemText
+								a(href=`/events/viewMasterSchedule/${event._id}`)= event.eventName
+							p.listItemText= event.eventOrganiser
 							- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"}
 							- const eventDate = event.eventDate.toLocaleDateString('en-GB',options)
-							p(class="listItemText")=`${eventDate}`
-							p(class="listItemText")=`${event.eventStartTime}`
-							a(href="#" class="deleteEventButtons")
-								p(class="eventId hiddenField")=`${event._id}`
-								ion-icon(class="listItemText actions-icon" name="trash-outline")
-							a(href="#" class="editEventButtons")
-								p(class="eventId hiddenField")=`${event._id}`
-								ion-icon(class="listItemText actions-icon" name="pencil-outline")
+							p.listItemText= eventDate
+							p.listItemText= event.eventStartTime
 			include includes/_pagination.pug

@@ -1,0 +1,31 @@
+extends base
+
+block content
+
+	main
+		section(class="section-list")
+			div(class="container")
+				div(class="events-table")
+					p(class="subheading")="Event Name"
+					p(class="subheading")="Organiser"
+					p(class="subheading")="Date"
+					p(class="subheading")="Time"
+					a(href="/events/create")
+						ion-icon(class="subheading" name="add-outline")
+					p(class="subheading")=""
+					
+					each event in events
+						div(class="table-row")
+							p(class="listItemText")=`${event.eventName}`
+							p(class="listItemText")=`${event.eventOrganiser}`
+							- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"}
+							- const eventDate = event.eventDate.toLocaleDateString('en-GB',options)
+							p(class="listItemText")=`${eventDate}`
+							p(class="listItemText")=`${event.eventStartTime}`
+							a(href="#" class="deleteEventButtons")
+								p(class="eventId hiddenField")=`${event._id}`
+								ion-icon(class="listItemText actions-icon" name="trash-outline")
+							a(href="#" class="editEventButtons")
+								p(class="eventId hiddenField")=`${event._id}`
+								ion-icon(class="listItemText actions-icon" name="pencil-outline")
+			include includes/_pagination.pug

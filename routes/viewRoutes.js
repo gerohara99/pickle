@@ -56,6 +56,12 @@ router.get(
 );
 
 router.get(
+  "/events/viewMasterSchedule/:id",
+  authController.isLoggedIn,
+  viewsController.viewMasterSchedule
+);
+
+router.get(
   "/events/browseNew",
   authController.isLoggedIn,
   viewsController.browseNewEvents

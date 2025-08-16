@@ -188,10 +188,23 @@ exports.showAllEvents = catchAsync(async (req, res, next) => {
 });
 
 exports.showAllSchedules = catchAsync(async (req, res, next) => {
-  // Only events with at least one round
-  const pagination = await paginate(Event, req, {
-    "rounds.0": { $exists: true },
-  });
+  const filter = { "rounds.0": { $exists: true } };
+
+  // Filter by organiser (case-insensitive substring match)
+  if (req.query.organiser) {
+    filter.eventOrganiser = { $regex: req.query.organiser, $options: "i" };
+  }
+
+  // Filter by date (exact match, expects yyyy-mm-dd from input[type="date"])
+  if (req.query.date) {
+    const date = new Date(req.query.date);
+    const nextDate = new Date(date);
+    nextDate.setDate(date.getDate() + 1);
+    filter.eventDate = { $gte: date, $lt: nextDate };
+  }
+
+  const query = Event.find(filter).sort({ eventDate: 1 });
+  const pagination = await paginate(query, req);
 
   res.status(200).render("showAllSchedules", {
     title: "All Schedules",
@@ -203,6 +216,8 @@ exports.showAllSchedules = catchAsync(async (req, res, next) => {
     totalPages: pagination.totalPages,
     results: pagination.results.length,
     limit: pagination.limit,
+    organiser: req.query.organiser || "",
+    date: req.query.date || "",
   });
 });
 
@@ -346,9 +361,43 @@ exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
     return next(new AppError("There is no event with that name", 404));
   }
 
+  // 2) Determine round filter from query
+  let filteredRounds = event.rounds;
+  let round = req.query.round || "";
+  let roundsCount = event.rounds ? event.rounds.length : 0;
+
+  if (round && !isNaN(round) && round > 0 && round <= roundsCount) {
+    // Only show the selected round (round is 1-based for user, 0-based for array)
+    filteredRounds = [event.rounds[round - 1]];
+  }
+
+  // 3) Flatten all matches in filteredRounds
+  let allMatches = [];
+  filteredRounds.forEach((roundObj, roundIndex) => {
+    roundObj.matches.forEach((match, matchIndex) => {
+      allMatches.push({ match, roundIndex, matchIndex });
+    });
+  });
+
+  // 4) Pagination logic
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10; // matches per page
+  const totalMatches = allMatches.length;
+  const totalPages = Math.ceil(totalMatches / limit);
+  const start = (page - 1) * limit;
+  const end = start + limit;
+  const paginatedMatches = allMatches.slice(start, end);
+
   res.status(200).render("viewMasterSchedule", {
     title: `${event.eventName} Event`,
     event: event,
+    filteredRounds: filteredRounds, // still available if needed
+    paginatedMatches: paginatedMatches,
+    round: round,
+    roundsCount: roundsCount,
+    page: page,
+    totalPages: totalPages,
+    totalMatches: totalMatches,
     userRole: req.session.user.userRole,
     userName: req.session.user.userName,
     showNav: true,
