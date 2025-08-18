@@ -374,9 +374,13 @@ exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
 
   // 3) Flatten all matches in filteredRounds
   let allMatches = [];
+
   filteredRounds.forEach((roundObj, roundIndex) => {
     roundObj.matches.forEach((match, matchIndex) => {
-      allMatches.push({ match, roundIndex, matchIndex });
+      const hasScore =
+        (typeof match.teamAScore === "number" && match.teamAScore > 0) ||
+        (typeof match.teamBScore === "number" && match.teamBScore > 0);
+      allMatches.push({ match, roundIndex, matchIndex, hasScore });
     });
   });
 

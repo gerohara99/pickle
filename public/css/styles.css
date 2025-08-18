@@ -943,6 +943,15 @@ nav.main-nav {
   margin-bottom: 0.4rem;
 }
 
+.row-pair.resting-row {
+  gap: 0.4rem;
+}
+
+.resting-value {
+  flex: unset;
+  display: inline;
+}
+
 .label {
   font-weight: 600;
   color: #cf711f;
@@ -958,7 +967,7 @@ nav.main-nav {
 
 /* Score button modifier */
 .score-button {
-  width: 100%; /* Button fills the column */
+  width: 100%;
   padding: 0.8rem;
   border-radius: 0.8rem;
   font-size: 1.6rem;
@@ -966,11 +975,15 @@ nav.main-nav {
   box-shadow: 0 2px 8px rgba(207, 113, 31, 0.08);
   border: none;
   cursor: pointer;
-  text-align: center;
-  white-space: nowrap;
   background-color: #cf711f !important;
   color: #fff !important;
-  display: block;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .score-button:hover,

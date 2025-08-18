@@ -15,8 +15,8 @@ export function initScoreModal(eventUpdateMatchScorePubJs) {
         const teamAScore = btn.dataset.teamaScore;
         const teamBScore = btn.dataset.teambScore;
 
-        document.getElementById("roundIndex").value = round;
-        document.getElementById("matchIndex").value = matchIndex;
+        document.getElementById("roundIndex").value = Number(round);
+        document.getElementById("matchIndex").value = Number(matchIndex);
         document.getElementById("eventId").value = eventId;
         document.getElementById("teamAScore").value =
           teamAScore && teamAScore !== "undefined" ? teamAScore : "";

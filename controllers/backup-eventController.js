@@ -173,11 +173,7 @@ exports.const = generateSchedulePubJs = (
 
   // Initialize each round as an empty array to hold matches
   for (let round = 0; round < standOuts.length; round++) {
-    schedule[round] = { matches: [], standOuts: [] };
-    schedule[round].standOuts = standOuts[round].map((player) => ({
-      userId: String(player.userId),
-      name: player.userName,
-    }));
+    schedule[round] = { matches: [] };
   }
 
   for (let i = 0; i < standOuts.length; i++) {
@@ -233,10 +229,6 @@ exports.updateMatchScore = catchAsync(async (req, res, next) => {
     return next(new AppError("Scores must be valid numbers", 400));
   }
 
-  // Convert indices to numbers
-  const roundIdx = Number(roundIndex);
-  const matchIdx = Number(matchIndex);
-
   // Find the event by its ID
   const event = await Event.findById(eventId);
   if (!event) {
@@ -244,21 +236,19 @@ exports.updateMatchScore = catchAsync(async (req, res, next) => {
   }
 
   // Ensure the round and match exist
-  if (
-    !event.rounds ||
-    !event.rounds[roundIdx] ||
-    !event.rounds[roundIdx].matches ||
-    !event.rounds[roundIdx].matches[matchIdx]
-  ) {
+  const round = event.rounds[roundIndex];
+  const match = round.matches[matchIndex];
+
+  if (!round || !match) {
     return next(new AppError("Match or Round not found", 400));
   }
 
-  event.rounds[roundIdx].matches[matchIdx].teamAScore = teamAScore;
-  event.rounds[roundIdx].matches[matchIdx].teamBScore = teamBScore;
+  event.rounds[roundIndex].matches[matchIndex].teamAScore = teamAScore;
+  event.rounds[roundIndex].matches[matchIndex].teamBScore = teamBScore;
 
   // Save the event with the updated scores
   try {
-    await event.save();
+    await event.save(); // Wait for the document to be saved
     res.status(200).json({
       status: "success",
       message: "Match score updated successfully",

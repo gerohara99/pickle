@@ -9,16 +9,8 @@ block content
 
 		section.section-list
 			div.container
-				form.filter-form(method="GET", action="")
-					label(for="roundSelect") Filter by round:
-					select#roundSelect(name="round")
-						option(value="all" selected=(round == "all")) All Rounds
-						- for (let i = 0; i < roundsCount; i++)
-							option(value=i+1 selected=(round == (i+1).toString())) Round #{i+1}
-					button(type="submit" class="btn btn--form") Filter
-					
 				div.mySchedule-table
-					each matchData, idx in paginatedMatches
+					each matchData in paginatedMatches
 						div.table-row
 							div.row-pair
 								span.label Round :
@@ -40,11 +32,10 @@ block content
 							div.row-pair
 								span.label Score :
 								span.value #{typeof matchData.match.teamAScore === "number" ? matchData.match.teamAScore : 0} / #{typeof matchData.match.teamBScore === "number" ? matchData.match.teamBScore : 0}
-
 							div.row-pair.enter-score-column
 								button.btn.score-button(
 									type="button"
-									data-round=matchData.roundIndex,
+									data-round=matchData.round,
 									data-matchindex=matchData.matchIndex,
 									data-eventid=event._id,
 									data-teama-score=matchData.match.teamAScore,
@@ -55,20 +46,6 @@ block content
 									else 
 										| Enter Score
 
-							// Show resting players after the last match in the filtered round
-						- const isLastMatch = idx === paginatedMatches.length - 1
-						if isLastMatch
-							div.table-row
-								div.row-pair.resting-row(style="grid-column: 1 / -1")
-									span.label Players Resting :
-									span.value.resting-value
-										- const standOuts = event.rounds[matchData.roundIndex].standOuts
-										if standOuts && standOuts.length
-											each player in standOuts
-												span.listItemText= player.name + ', '
-										else
-											span.listItemText None
-										
 				// Popup Modal for entering scores (only one modal needed)
 				div#scoreModal.modal
 					div.modal-content
@@ -86,5 +63,3 @@ block content
 								input(type="number", name="teamBScore", min="0", id="teamBScore")
 							div
 								button(type="submit", class="btn btn--form") Submit Score
-
-				include includes/_pagination.pug

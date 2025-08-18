@@ -15,12 +15,6 @@ const matchSchema = new mongoose.Schema({
 
 const roundSchema = new mongoose.Schema({
   matches: { type: [matchSchema] },
-  standOuts: [
-    {
-      userId: { type: String }, // Store userId directly as string
-      name: { type: String },
-    },
-  ],
 });
 
 const eventSchema = new mongoose.Schema(
