@@ -2,70 +2,117 @@ const Event = require("../models/eventModel");
 const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const { sendWhatsAppMessage } = require("../utils/twilioClient");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
-  let event = await Event.findById(req.body.eventId);
+  try {
+    const event = await Event.findById(req.body.eventId);
 
-  if (!event) {
-    return next(new AppError("No event found with that ID ", 404));
+    if (!event) {
+      return next(new AppError("No event found with that ID", 404));
+    }
+
+    // 1) CONDUCT VALIDATIONS
+    if (
+      event.eventBookings.length ===
+      event.eventNumOfPlayers + event.eventWaitListSize
+    ) {
+      return next(new AppError("There are no spaces left for this event", 400));
+    }
+
+    // UPDATE EVENT WITH BOOKING
+    let newBookings = event.eventBookings;
+    let newBooking = {
+      userId: req.session.user.userId,
+      userName: req.session.user.userName,
+    };
+
+    newBookings.push(newBooking);
+
+    try {
+      await Event.findByIdAndUpdate(req.body.eventId, {
+        eventBookings: newBookings,
+        runValidators: false,
+      });
+    } catch (dbErr) {
+      return next(new AppError("Failed to update event bookings", 500));
+    }
+
+    try {
+      await checkAndUpdateSchedule(req.body.eventId, next);
+    } catch (scheduleErr) {
+      return next(new AppError("Failed to update event schedule", 500));
+    }
+
+    try {
+      await sendWhatsAppMessage(
+        req.session.user.userMobile,
+        `Your booking for event ${event.eventName} is confirmed!`
+      );
+    } catch (waErr) {
+      // Log error but don't block booking creation
+      console.error("WhatsApp message failed:", waErr);
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Booking successfully created",
+    });
+  } catch (err) {
+    next(new AppError("Unexpected error during booking", 500));
   }
-
-  // 1) CONDUCT VALIDATIONS
-  // Check if there are still spaces available
-  if (
-    event.eventBookings.length ===
-    event.eventNumOfPlayers + event.eventWaitListSize
-  ) {
-    return next(new AppError("There are no spaces left for this event", 400));
-  }
-
-  // UPDATE EVENT WITH BOOKING
-  let newBookings = event.eventBookings;
-  let newBooking = {
-    userId: req.session.user.userId,
-    userName: req.session.user.userName,
-  };
-
-  newBookings.push(newBooking);
-
-  await Event.findByIdAndUpdate(req.body.eventId, {
-    eventBookings: newBookings,
-    runValidators: false,
-  });
-
-  await checkAndUpdateSchedule(req.body.eventId, next);
-
-  res.status(200).json({
-    status: "success",
-    message: "Booking successfully created",
-  });
 });
 
 exports.cancelBooking = catchAsync(async (req, res, next) => {
-  const userId = req.session.user.userId;
-  const eventId = req.body.eventId;
+  try {
+    const userId = req.session.user.userId;
+    const eventId = req.body.eventId;
 
-  const event = await Event.findById(eventId);
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return next(new AppError("No event found with that ID", 404));
+    }
 
-  if (!event) {
-    return next(new AppError("No event found with that ID", 404));
+    let newBookings = event.eventBookings.filter((val) => val.userId != userId);
+
+    try {
+      await Event.findByIdAndUpdate(eventId, {
+        eventBookings: newBookings,
+        rounds: [],
+        runValidators: false,
+      });
+    } catch (dbErr) {
+      return next(
+        new AppError("Failed to update event bookings during cancellation", 500)
+      );
+    }
+
+    try {
+      await checkAndUpdateSchedule(eventId, next);
+    } catch (scheduleErr) {
+      return next(
+        new AppError("Failed to update event schedule after cancellation", 500)
+      );
+    }
+
+    try {
+      await sendWhatsAppMessage(
+        req.session.user.userMobile,
+        `Your booking for event ${event.eventName} has been cancelled.`
+      );
+    } catch (waErr) {
+      // Log error but don't block cancellation
+      console.error("WhatsApp message failed:", waErr);
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Booking successfully cancelled",
+      data: { eventBooking: userId },
+    });
+  } catch (err) {
+    next(new AppError("Unexpected error during booking cancellation", 500));
   }
-
-  let newBookings = event.eventBookings.filter((val) => val.userId != userId);
-
-  await Event.findByIdAndUpdate(req.body.eventId, {
-    eventBookings: newBookings,
-    rounds: [],
-    runValidators: false,
-  });
-
-  await checkAndUpdateSchedule(req.body.eventId, next);
-
-  res.status(200).json({
-    status: "success",
-    message: "Booking successfully cancelled",
-    data: { eventBooking: req.body.userId },
-  });
 });
 
 async function checkAndUpdateSchedule(eventId, next) {

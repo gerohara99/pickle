@@ -5,6 +5,7 @@ const sessionSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.ObjectId },
     userName: { type: String },
     userRole: { type: String },
+    userMobile: { Number, default: 0 },
   },
   systemDefaults: {
     numOfStandOuts: { type: Number, default: 0 },

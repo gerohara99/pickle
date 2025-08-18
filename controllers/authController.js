@@ -31,6 +31,7 @@ const createSendToken = (user, statusCode, req, res, next) => {
   req.session.user.userId = user._id.toString();
   req.session.user.userName = user.name;
   req.session.user.userRole = user.role;
+  req.session.user.userMobile = user.mobile;
   user.password = undefined;
 
   req.session.save((error) => {
