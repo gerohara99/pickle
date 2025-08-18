@@ -1,35 +1,41 @@
 extends base
 
 block content
-  main.main
-    section.section-browseEvents
-      div.container
-        if events.length === 0
-          p.subheading.center-text There are currently no new events for you to book
-        else
-          div.eventContainer
-            each event in events
-              div.eventCardHeader
-                - const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
-                - const eventDate = event.eventDate.toLocaleDateString(undefined, options);
-                p.event-attribute
-                  span.event-label When :
-                  span.event-attribute=`${eventDate}`
-                  span() @ 
-                  span.event-attribute=`${event.eventStartTime}`
-                p.event-attribute
-                  span.event-label Where:
-                  span()=`${event.eventLocation}`
-                p.event-title Players
-                  div.eventCardDetails
-                    - let i = 0;
-                    each booking in event.eventBookings
-                      if i === event.eventNumOfPlayers
-                        p.event-title Wait List
-                        p.event-attribute=booking.userName
-                      else
-                        p.event-attribute=booking.userName
-                      - i++;
-                  div.form-buttons
-                    a.btn.btn--outline.bookEventButtons(href="#") Book Event
-                    p.hiddenField.eventId=`${event._id}`
+	main.main
+		section.section-browseEvents
+			div.container
+				if events.length === 0
+					p.subheading.center-text There are currently no new events for you to book
+				else
+					div.eventContainer
+						each event in events
+							div.eventCardHeader
+								- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
+								- const eventDate = event.eventDate.toLocaleDateString(undefined, options);
+								p.event-attribute
+									span.event-label When :
+									span.event-attribute=`${eventDate}`
+									span() @ 
+									span.event-attribute=`${event.eventStartTime}`
+								p.event-attribute
+									span.event-label Where:
+									span()=`${event.eventLocation}`
+								p.event-title Players
+									div.eventCardDetails
+										- let i = 0;
+										each booking in event.eventBookings
+											if i === event.eventNumOfPlayers
+												p.event-title Wait List
+												p.event-attribute=booking.userName
+											else
+												p.event-attribute=booking.userName
+											- i++;
+
+									div.form-buttons
+										- const isWaitList = event.eventBookings.length >= event.eventNumOfPlayers - 1
+										a.btn.btn--outline.bookEventButtons(href="#")
+											if isWaitList
+												| Join Wait List
+											else
+												| Book Event
+										p.hiddenField.eventId=`${event._id}`
