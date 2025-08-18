@@ -1038,18 +1038,27 @@ nav.main-nav {
 }
 
 .tab {
-  padding: 1.2rem 2rem;
-  border: 1px solid #eee;
+  background: #cf711f;
+  color: #fff;
+  border: 1px solid #cf711f;
   border-bottom: none;
-  background: #f9f9f9;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
 .tab.active {
-  background: #fff;
-  border-color: #eee;
-  font-weight: 600;
+  background: #e67e22;
+  color: #fff;
+  border: 1px solid #e67e22;
+  border-bottom: none;
+  font-weight: 700;
+}
+
+.tab,
+.tab.active {
+  font-size: 2.2rem;
+  padding: 2rem 3.2rem;
+  border-radius: 1.2rem 1.2rem 0 0;
+  transition: background 0.2s;
 }
 
 .tab-content {

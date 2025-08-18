@@ -46,13 +46,15 @@ export function initFormListeners(deps) {
       }
       try {
         await manageSystemSettingsApiAction({
-          numOfStandOuts: document.getElementById("numOfStandOuts").value,
-          numOfRounds: document.getElementById("numOfRounds").value,
-          numOfCourts: document.getElementById("numOfCourts").value,
-          numOfPairingsPerCourt: document.getElementById(
-            "numOfPairingsPerCourt"
-          ).value,
-          waitListSize: document.getElementById("waitListSize").value,
+          systemDefaults: {
+            numOfStandOuts: document.getElementById("numOfStandOuts").value,
+            numOfRounds: document.getElementById("numOfRounds").value,
+            numOfCourts: document.getElementById("numOfCourts").value,
+            numOfPairingsPerCourt: document.getElementById(
+              "numOfPairingsPerCourt"
+            ).value,
+            waitListSize: document.getElementById("waitListSize").value,
+          },
         });
       } catch (err) {
         console.error("Save system settings failed:", err);
