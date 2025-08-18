@@ -297,34 +297,42 @@ exports.editEvent = catchAsync(async (req, res, next) => {
 });
 
 exports.viewMySchedule = catchAsync(async (req, res, next) => {
-  // 1) Get event data from collection
   const event = await Event.findOne({ _id: req.params.id });
 
   if (!event) {
     return next(new AppError("There is no event with that name", 404));
   }
 
-  let filteredMatches = [];
+  const userId = req.session.user.userId.toString();
 
-  // Loop through each round in the schedule
+  // Calculate restingRounds ONCE for the user
+  let restingRounds = [];
+  event.rounds.forEach((round, roundIndex) => {
+    if (
+      round.standOuts &&
+      round.standOuts.some(
+        (player) => player.userId && player.userId.toString() === userId
+      )
+    ) {
+      restingRounds.push(roundIndex + 1); // 1-based for display
+    }
+  });
+
+  // Build filteredMatches: matches where user is playing
+  let filteredMatches = [];
   event.rounds.forEach((round, roundIndex) => {
     round.matches.forEach((match, matchIndex) => {
-      // Check if the player is part of teamA or teamB
       let playerInMatch =
         match.teamA.some(
-          (player) =>
-            player.userId.toString() === req.session.user.userId.toString()
+          (player) => player.userId && player.userId.toString() === userId
         ) ||
         match.teamB.some(
-          (player) =>
-            player.userId.toString() === req.session.user.userId.toString()
+          (player) => player.userId && player.userId.toString() === userId
         );
 
       if (playerInMatch) {
-        // Determine which team the player is in
         let playerTeam = match.teamA.some(
-          (player) =>
-            player.userId.toString() === req.session.user.userId.toString()
+          (player) => player.userId && player.userId.toString() === userId
         )
           ? "teamA"
           : "teamB";
@@ -343,17 +351,19 @@ exports.viewMySchedule = catchAsync(async (req, res, next) => {
       }
     });
   });
+
   res.status(200).render("viewMySchedule", {
     title: `${event.eventName} Event`,
     event: event,
     filteredMatches: filteredMatches,
+    restingRounds: restingRounds,
     features: req.session.features,
     userRole: req.session.user.userRole,
     userName: req.session.user.userName,
     showNav: true,
+    userId: userId,
   });
 });
-
 exports.viewMasterSchedule = catchAsync(async (req, res, next) => {
   // 1) Get event data from collection
   const event = await Event.findOne({ _id: req.params.id });

@@ -2,7 +2,6 @@ extends base
 
 block content
 	main.main
-		- const showScoreButton = features && features.teamCanEditScore
 		- const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
 		- const eventDate = event.eventDate.toLocaleDateString(undefined, options);
 		- const nameDateTimeString = `${event.eventName}` + " on " + `${eventDate}` + " @ " + `${event.eventStartTime}` + " in " + `${event.eventLocation}`;
@@ -10,17 +9,7 @@ block content
 
 		section.section-list
 			div.container
-				// Resting info message
-				if restingRounds && restingRounds.length
-					div.resting-info.center-text
-						| You will be resting in round(s):
-						each roundNum, idx in restingRounds
-							span.label= ' ' + roundNum + (idx < restingRounds.length - 1 ? ',' : '')
-				else
-					div.resting-info.center-text
-						| You are playing in every round.
-
-				div.mySchedule-table(style=`display:grid;grid-template-columns:${showScoreButton ? '1fr 1fr 4fr 4fr 3fr 2fr' : '1fr 1fr 4fr 4fr 2fr'};gap:1.2rem;`)
+				div.mySchedule-table
 					each matchData in filteredMatches
 						div.table-row
 							div.row-pair
@@ -33,19 +22,26 @@ block content
 								span.label My Team :
 								span.value
 									each player in matchData.match[matchData.playerTeam]
+										if typeof player.userId === 'string' || typeof player.userId === 'number'
+											if player.userId.toString() === userId.toString()
+												span.listItemText(style="font-weight:700; color:#e67e22")= player.name + ' '
+										else
+											span.listItemText= player.name + ' '
+									else
 										span.listItemText= player.name + ' '
 							div.row-pair
 								span.label Opposing Team :
 								span.value
-								- const opposingTeam = matchData.playerTeam === 'teamA' ? 'teamB' : 'teamA'
-								each player in matchData.match[opposingTeam]
-									span.listItemText= player.name + ' '
+									- const opposingTeam = matchData.playerTeam === 'teamA' ? 'teamB' : 'teamA'
+									each player in matchData.match[opposingTeam]
+										span.listItemText= player.name + ' '
+
 							// Score column (horizontal)
 							div.row-pair
 								span.label Score :
 								span.value #{typeof matchData.match.teamAScore === "number" ? matchData.match.teamAScore : 0} / #{typeof matchData.match.teamBScore === "number" ? matchData.match.teamBScore : 0}
-							if showScoreButton
-								div.row-pair.enter-score-column
+							div.row-pair.enter-score-column
+								if features && features.teamCanEditScore
 									button.btn.score-button(
 										data-round=matchData.round,
 										data-matchindex=matchData.matchIndex,
@@ -57,6 +53,7 @@ block content
 											| Edit Score
 										else 
 											| Enter Score
+
 				// Popup Modal for entering scores (only one modal needed)
 				div#scoreModal.modal
 					div.modal-content

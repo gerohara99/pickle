@@ -952,6 +952,17 @@ nav.main-nav {
   display: inline;
 }
 
+.resting-info {
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+  color: #cf711f;
+  font-weight: 600;
+  background: #fdf2e9;
+  padding: 1.2rem 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 0.1rem 0.2rem rgba(230, 125, 34, 0.05);
+}
+
 .label {
   font-weight: 600;
   color: #cf711f;
