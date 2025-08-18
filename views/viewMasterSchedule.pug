@@ -55,9 +55,9 @@ block content
 									else 
 										| Enter Score
 
-							// Show resting players after the last match in the filtered round
-						- const isLastMatch = idx === paginatedMatches.length - 1
-						if isLastMatch
+						- const nextMatch = paginatedMatches[idx + 1]
+						- const isLastMatchOfRound = !nextMatch || nextMatch.roundIndex !== matchData.roundIndex
+						if isLastMatchOfRound
 							div.table-row
 								div.row-pair.resting-row(style="grid-column: 1 / -1")
 									span.label Players Resting :
