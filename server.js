@@ -1,36 +1,58 @@
 const path = require("path");
 const dotenv = require("dotenv");
 
-// This is for actual system issues i.e. memory corruption and so on
+// Handle uncaught exceptions
 process.on("uncaughtException", (err) => {
-  console.log("Uncaught exception");
-  console.log(err.name, err.message);
+  console.error("UNCAUGHT EXCEPTION! Shutting down...");
+  console.error(err.name, err.message);
   process.exit(1);
 });
 
-dotenv.config({ path: "./config.env" }); // Point to config file for env variables
+// Load environment variables
+dotenv.config({ path: "./config.env" });
+
 console.log("➡️ Requiring app.js...");
 const app = require("./app");
 
-//START SERVER
 const port = process.env.PORT || 3000;
-const server = app.listen(port, () => {
-  console.log(`App runnig on port ${port}`);
-});
+let server;
 
-//Unhandled rejections --- this is for stuff like invalid db Id
+// Start server with error handling
+try {
+  server = app.listen(port, () => {
+    console.log(`App running on port ${port}`);
+  });
+} catch (err) {
+  console.error("Error starting server:", err);
+  process.exit(1);
+}
+
+// Graceful shutdown function
+function gracefulShutdown(signal) {
+  console.log(`${signal} RECEIVED. Shutting down gracefully`);
+  server.close(() => {
+    // Close DB connections if using mongoose
+    if (require("mongoose").connection.readyState === 1) {
+      require("mongoose").connection.close(false, () => {
+        console.log("MongoDB connection closed.");
+        console.log("Process terminated");
+        setTimeout(() => process.exit(0), 1000);
+      });
+    } else {
+      console.log("Process terminated");
+      setTimeout(() => process.exit(0), 1000);
+    }
+  });
+}
+
+// Handle unhandled promise rejections
 process.on("unhandledRejection", (err) => {
-  console.log(err.name, err.message);
-  server.close(() => {
-    process.exit(1);
-  });
+  console.error("UNHANDLED REJECTION! Shutting down...");
+  console.error(err.name, err.message);
+  gracefulShutdown("unhandledRejection");
 });
 
-//Handling heroku kills processes every 24 hours via SIGTERM signal
-process.on("SIGTERM", () => {
-  console.log("SIGTERM RECIEVED. Shutting down gracefully ");
-  // Close the server but complete all outstanding requests first
-  server.close(() => {
-    console.log("Process terminated");
-  });
+// Graceful shutdown on SIGTERM/SIGINT
+["SIGTERM", "SIGINT"].forEach((signal) => {
+  process.on(signal, () => gracefulShutdown(signal));
 });

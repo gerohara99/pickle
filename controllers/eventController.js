@@ -6,13 +6,21 @@ const { sendWhatsAppMessage } = require("../utils/twilioClient");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   try {
+    if (!req.body.eventId) {
+      throw new AppError("Event ID is required", 400);
+    }
+  } catch (err) {
+    console.error("Synchronous error in createBooking:", err);
+    return next(err);
+  }
+
+  try {
     const event = await Event.findById(req.body.eventId);
 
     if (!event) {
       return next(new AppError("No event found with that ID", 404));
     }
 
-    // 1) CONDUCT VALIDATIONS
     if (
       event.eventBookings.length ===
       event.eventNumOfPlayers + event.eventWaitListSize
@@ -20,13 +28,12 @@ exports.createBooking = catchAsync(async (req, res, next) => {
       return next(new AppError("There are no spaces left for this event", 400));
     }
 
-    // UPDATE EVENT WITH BOOKING
+    // Update event with booking
     let newBookings = event.eventBookings;
     let newBooking = {
       userId: req.session.user.userId,
       userName: req.session.user.userName,
     };
-
     newBookings.push(newBooking);
 
     try {
@@ -35,12 +42,14 @@ exports.createBooking = catchAsync(async (req, res, next) => {
         runValidators: false,
       });
     } catch (dbErr) {
+      console.error("Failed to update event bookings:", dbErr);
       return next(new AppError("Failed to update event bookings", 500));
     }
 
     try {
       await checkAndUpdateSchedule(req.body.eventId, next);
     } catch (scheduleErr) {
+      console.error("Failed to update event schedule:", scheduleErr);
       return next(new AppError("Failed to update event schedule", 500));
     }
 
@@ -59,11 +68,24 @@ exports.createBooking = catchAsync(async (req, res, next) => {
       message: "Booking successfully created",
     });
   } catch (err) {
+    console.error("Unexpected error during booking:", err);
     next(new AppError("Unexpected error during booking", 500));
   }
 });
 
 exports.cancelBooking = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.session.user || !req.session.user.userId) {
+      throw new AppError("User not authenticated", 401);
+    }
+    if (!req.body.eventId) {
+      throw new AppError("Event ID is required", 400);
+    }
+  } catch (err) {
+    console.error("Synchronous error in cancelBooking:", err);
+    return next(err);
+  }
+
   try {
     const userId = req.session.user.userId;
     const eventId = req.body.eventId;
@@ -82,6 +104,10 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
         runValidators: false,
       });
     } catch (dbErr) {
+      console.error(
+        "Failed to update event bookings during cancellation:",
+        dbErr
+      );
       return next(
         new AppError("Failed to update event bookings during cancellation", 500)
       );
@@ -90,6 +116,10 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     try {
       await checkAndUpdateSchedule(eventId, next);
     } catch (scheduleErr) {
+      console.error(
+        "Failed to update event schedule after cancellation:",
+        scheduleErr
+      );
       return next(
         new AppError("Failed to update event schedule after cancellation", 500)
       );
@@ -111,186 +141,218 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
       data: { eventBooking: userId },
     });
   } catch (err) {
+    console.error("Unexpected error during booking cancellation:", err);
     next(new AppError("Unexpected error during booking cancellation", 500));
   }
 });
 
+exports.eventTimeout = (req, res, next) => {
+  try {
+    res.setTimeout(15000, () => {
+      console.warn(`Request timed out: ${req.originalUrl}`);
+      res.status(503).send("Request timed out");
+    });
+    next();
+  } catch (err) {
+    console.error("Error in eventTimeout middleware:", err);
+    next(err);
+  }
+};
+
 async function checkAndUpdateSchedule(eventId, next) {
-  const event = await Event.findById(eventId);
-  if (!event) return next(new AppError("No event found with that ID", 404));
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) return next(new AppError("No event found with that ID", 404));
 
-  let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
+    let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
 
-  if (event.eventBookings.length >= event.eventNumOfPlayers) {
-    const standOuts = generateStandOutsPubJs(
-      playerslist,
-      event.eventNumOfRounds,
-      event.numOfStandOutsPerRound
-    );
-    const availablePairings = generateAvailablePairingsPubJs(playerslist);
-    const schedule = generateSchedulePubJs(
-      availablePairings,
-      standOuts,
-      event.eventNumOfCourts,
-      event.eventNumOfPairings
-    );
-    await Event.findByIdAndUpdate(
-      eventId,
-      { $set: { rounds: schedule } },
-      { new: true, runValidators: false }
-    );
+    if (event.eventBookings.length >= event.eventNumOfPlayers) {
+      const standOuts = generateStandOutsPubJs(
+        playerslist,
+        event.eventNumOfRounds,
+        event.numOfStandOutsPerRound
+      );
+      const availablePairings = generateAvailablePairingsPubJs(playerslist);
+      const schedule = generateSchedulePubJs(
+        availablePairings,
+        standOuts,
+        event.eventNumOfCourts,
+        event.eventNumOfPairings
+      );
+      await Event.findByIdAndUpdate(
+        eventId,
+        { $set: { rounds: schedule } },
+        { new: true, runValidators: false }
+      );
+    }
+  } catch (err) {
+    console.error("Error in checkAndUpdateSchedule:", err);
+    next(err);
   }
 }
 
-exports.const = generateStandOutsPubJs = (
-  playersList,
-  numOfRounds,
-  numStandOuts
-) => {
-  // Calculate Standouts
-  let roundsFilled = false;
-  let i = 0;
-  let startSlice = 0;
-  let playersLeft;
-  let standOutsPerRound = [];
+function generateStandOutsPubJs(playersList, numOfRounds, numStandOuts) {
+  try {
+    let roundsFilled = false;
+    let i = 0;
+    let startSlice = 0;
+    let playersLeft;
+    let standOutsPerRound = [];
 
-  do {
-    playersLeft = playersList.length - startSlice;
+    do {
+      playersLeft = playersList.length - startSlice;
 
-    if (playersLeft <= numStandOuts) {
-      playersFromNext = numStandOuts - playersLeft;
-      standOutsPerRound[i] = [].concat(
-        playersList.slice(-playersLeft),
-        playersList.slice(0, playersFromNext)
-      );
-      startSlice = playersFromNext;
-    } else {
-      standOutsPerRound[i] = playersList.slice(
-        startSlice,
-        startSlice + numStandOuts
-      );
-      startSlice += numStandOuts;
-    }
-    i === numOfRounds - 1 ? (roundsFilled = true) : i++;
-  } while (!roundsFilled);
-
-  return standOutsPerRound;
-};
-
-exports.const = generateAvailablePairingsPubJs = (playersList) => {
-  // Declare variables
-  const DUMMY = -1;
-  let availablePairings = [];
-
-  if (!playersList) return -1;
-
-  if (playersList.length % 2 === 1) {
-    playersList.push({ userName: "DUMMY" }); // so we can match algorithm for even numbers
-  }
-
-  for (let j = 0; j < playersList.length - 1; j += 1) {
-    for (let i = 0; i < playersList.length / 2; i += 1) {
-      const o = playersList.length - 1 - i;
-      if (
-        playersList[i].userName !== "DUMMY" &&
-        playersList[o].userName !== "DUMMY" &&
-        playersList[o].userId !== playersList[i].userId
-      ) {
-        availablePairings.push({
-          playerA: playersList[o],
-          playerB: playersList[i],
-          pairingUsed: false,
-        });
+      if (playersLeft <= numStandOuts) {
+        let playersFromNext = numStandOuts - playersLeft;
+        standOutsPerRound[i] = [].concat(
+          playersList.slice(-playersLeft),
+          playersList.slice(0, playersFromNext)
+        );
+        startSlice = playersFromNext;
+      } else {
+        standOutsPerRound[i] = playersList.slice(
+          startSlice,
+          startSlice + numStandOuts
+        );
+        startSlice += numStandOuts;
       }
-    }
-    playersList.splice(1, 0, playersList.pop()); // permutate for next round
-  }
-  return availablePairings;
-};
+      i === numOfRounds - 1 ? (roundsFilled = true) : i++;
+    } while (!roundsFilled);
 
-exports.const = generateSchedulePubJs = (
+    return standOutsPerRound;
+  } catch (err) {
+    console.error("Error in generateStandOutsPubJs:", err);
+    throw err;
+  }
+}
+
+function generateAvailablePairingsPubJs(playersList) {
+  try {
+    const DUMMY = -1;
+    let availablePairings = [];
+
+    if (!playersList) throw new AppError("Players list missing", 400);
+
+    if (playersList.length % 2 === 1) {
+      playersList.push({ userName: "DUMMY" });
+    }
+
+    for (let j = 0; j < playersList.length - 1; j += 1) {
+      for (let i = 0; i < playersList.length / 2; i += 1) {
+        const o = playersList.length - 1 - i;
+        if (
+          playersList[i].userName !== "DUMMY" &&
+          playersList[o].userName !== "DUMMY" &&
+          playersList[o].userId !== playersList[i].userId
+        ) {
+          availablePairings.push({
+            playerA: playersList[o],
+            playerB: playersList[i],
+            pairingUsed: false,
+          });
+        }
+      }
+      playersList.splice(1, 0, playersList.pop());
+    }
+    return availablePairings;
+  } catch (err) {
+    console.error("Error in generateAvailablePairingsPubJs:", err);
+    throw err;
+  }
+}
+
+function generateSchedulePubJs(
   availablePairings,
   standOuts,
   numOfCourts,
   numOfPairings
-) => {
-  let schedule = [];
-  let teamA = {};
-  let teamB = {};
+) {
+  try {
+    let schedule = [];
+    let teamA = {};
+    let teamB = {};
 
-  // Initialize each round as an empty array to hold matches
-  for (let round = 0; round < standOuts.length; round++) {
-    schedule[round] = { matches: [], standOuts: [] };
-    schedule[round].standOuts = standOuts[round].map((player) => ({
-      userId: String(player.userId),
-      name: player.userName,
-    }));
-  }
+    for (let round = 0; round < standOuts.length; round++) {
+      schedule[round] = { matches: [], standOuts: [] };
+      schedule[round].standOuts = standOuts[round].map((player) => ({
+        userId: String(player.userId),
+        name: player.userName,
+      }));
+    }
 
-  for (let i = 0; i < standOuts.length; i++) {
-    for (let k = 0; k < numOfCourts; k++) {
-      for (let x = 0; x < numOfPairings; x++) {
-        for (let j = 0; j < availablePairings.length; j++) {
-          if (
-            standOuts[i].find(
-              (element) =>
-                element.userId !== availablePairings[j].playerA.userId
-            ) &&
-            standOuts[i].find(
-              (element) =>
-                element.userId !== availablePairings[j].playerB.userId
-            ) &&
-            availablePairings[j].pairingUsed === false
-          ) {
-            availablePairings[j].pairingUsed = true;
-            if (x % 2 === 0) {
-              ((teamA.playerA = availablePairings[j].playerA),
-                (teamA.playerB = availablePairings[j].playerB));
-            } else {
-              ((teamB.playerA = availablePairings[j].playerA),
-                (teamB.playerB = availablePairings[j].playerB));
+    for (let i = 0; i < standOuts.length; i++) {
+      for (let k = 0; k < numOfCourts; k++) {
+        for (let x = 0; x < numOfPairings; x++) {
+          for (let j = 0; j < availablePairings.length; j++) {
+            if (
+              standOuts[i].find(
+                (element) =>
+                  element.userId !== availablePairings[j].playerA.userId
+              ) &&
+              standOuts[i].find(
+                (element) =>
+                  element.userId !== availablePairings[j].playerB.userId
+              ) &&
+              availablePairings[j].pairingUsed === false
+            ) {
+              availablePairings[j].pairingUsed = true;
+              if (x % 2 === 0) {
+                ((teamA.playerA = availablePairings[j].playerA),
+                  (teamA.playerB = availablePairings[j].playerB));
+              } else {
+                ((teamB.playerA = availablePairings[j].playerA),
+                  (teamB.playerB = availablePairings[j].playerB));
+              }
+              break;
             }
-            break;
           }
         }
-      }
 
-      let newMatch = {
-        teamA: [
-          { userId: teamA.playerA.userId, name: teamA.playerA.userName },
-          { userId: teamA.playerB.userId, name: teamA.playerB.userName },
-        ],
-        teamB: [
-          { userId: teamB.playerA.userId, name: teamB.playerA.userName },
-          { userId: teamB.playerB.userId, name: teamB.playerB.userName },
-        ],
-        court: k,
-      };
-      schedule[i].matches.push(newMatch);
+        let newMatch = {
+          teamA: [
+            { userId: teamA.playerA.userId, name: teamA.playerA.userName },
+            { userId: teamA.playerB.userId, name: teamA.playerB.userName },
+          ],
+          teamB: [
+            { userId: teamB.playerA.userId, name: teamB.playerA.userName },
+            { userId: teamB.playerB.userId, name: teamB.playerB.userName },
+          ],
+          court: k,
+        };
+        schedule[i].matches.push(newMatch);
+      }
     }
+    return schedule;
+  } catch (err) {
+    console.error("Error in generateSchedulePubJs:", err);
+    throw err;
   }
-  return schedule;
-};
+}
 
 exports.updateMatchScore = catchAsync(async (req, res, next) => {
-  const { eventId, roundIndex, matchIndex, teamAScore, teamBScore } = req.body;
-
-  // Validate that the scores are valid numbers
-  if (isNaN(teamAScore) || isNaN(teamBScore)) {
-    return next(new AppError("Scores must be valid numbers", 400));
+  try {
+    if (!req.body.eventId) throw new AppError("Event ID is required", 400);
+    if (typeof req.body.roundIndex === "undefined")
+      throw new AppError("Round index is required", 400);
+    if (typeof req.body.matchIndex === "undefined")
+      throw new AppError("Match index is required", 400);
+    if (isNaN(req.body.teamAScore) || isNaN(req.body.teamBScore))
+      throw new AppError("Scores must be valid numbers", 400);
+  } catch (err) {
+    console.error("Synchronous error in updateMatchScore:", err);
+    return next(err);
   }
 
-  // Convert indices to numbers
+  const { eventId, roundIndex, matchIndex, teamAScore, teamBScore } = req.body;
+
   const roundIdx = Number(roundIndex);
   const matchIdx = Number(matchIndex);
 
-  // Find the event by its ID
   const event = await Event.findById(eventId);
   if (!event) {
     return next(new AppError("No event found with that ID", 404));
   }
 
-  // Ensure the round and match exist
   if (
     !event.rounds ||
     !event.rounds[roundIdx] ||
@@ -303,7 +365,6 @@ exports.updateMatchScore = catchAsync(async (req, res, next) => {
   event.rounds[roundIdx].matches[matchIdx].teamAScore = teamAScore;
   event.rounds[roundIdx].matches[matchIdx].teamBScore = teamBScore;
 
-  // Save the event with the updated scores
   try {
     await event.save();
     res.status(200).json({
@@ -317,7 +378,14 @@ exports.updateMatchScore = catchAsync(async (req, res, next) => {
 });
 
 exports.createEvent = catchAsync(async (req, res, next) => {
-  // Robust boolean handling for 'active'
+  try {
+    if (!req.body.eventName) throw new AppError("Event name is required", 400);
+    if (!req.body.eventDate) throw new AppError("Event date is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in createEvent:", err);
+    return next(err);
+  }
+
   let activeValue = false;
   if (typeof req.body.active !== "undefined") {
     if (typeof req.body.active === "string") {
@@ -327,27 +395,39 @@ exports.createEvent = catchAsync(async (req, res, next) => {
     }
   }
 
-  const newEvent = await Event.create({
-    eventName: req.body.eventName,
-    eventLocation: req.body.eventLocation,
-    eventType: req.body.eventType,
-    eventDate: req.body.eventDate,
-    eventStartTime: req.body.eventStartTime,
-    eventOrganiser: req.body.eventOrganiser,
-    eventNumOfCourts: req.body.eventNumOfCourts,
-    numOfStandOutsPerRound: req.body.numOfStandOutsPerRound,
-    eventNumOfRounds: req.body.eventNumOfRounds,
-    eventWaitListSize: req.body.eventWaitListSize,
-    eventNumOfPairings: req.body.eventNumOfPairings,
-    active: activeValue,
-  });
-  res.status(201).json({
-    status: "success",
-    data: { event: newEvent },
-  });
+  try {
+    const newEvent = await Event.create({
+      eventName: req.body.eventName,
+      eventLocation: req.body.eventLocation,
+      eventType: req.body.eventType,
+      eventDate: req.body.eventDate,
+      eventStartTime: req.body.eventStartTime,
+      eventOrganiser: req.body.eventOrganiser,
+      eventNumOfCourts: req.body.eventNumOfCourts,
+      numOfStandOutsPerRound: req.body.numOfStandOutsPerRound,
+      eventNumOfRounds: req.body.eventNumOfRounds,
+      eventWaitListSize: req.body.eventWaitListSize,
+      eventNumOfPairings: req.body.eventNumOfPairings,
+      active: activeValue,
+    });
+    res.status(201).json({
+      status: "success",
+      data: { event: newEvent },
+    });
+  } catch (err) {
+    console.error("Error creating event:", err);
+    next(new AppError("Failed to create event", 500));
+  }
 });
 
 exports.updateEvent = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.eventId) throw new AppError("Event ID is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in updateEvent:", err);
+    return next(err);
+  }
+
   let activeValue = undefined;
   if (typeof req.body.active !== "undefined") {
     if (typeof req.body.active === "string") {
@@ -372,48 +452,61 @@ exports.updateEvent = catchAsync(async (req, res, next) => {
   };
   if (typeof activeValue !== "undefined") updateObj.active = activeValue;
 
-  const updatedEvent = await Event.findByIdAndUpdate(
-    req.body.eventId,
-    updateObj,
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-
-  res.status(200).json({
-    status: "success",
-    data: { event: updatedEvent },
-  });
+  try {
+    const updatedEvent = await Event.findByIdAndUpdate(
+      req.body.eventId,
+      updateObj,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+    res.status(200).json({
+      status: "success",
+      data: { event: updatedEvent },
+    });
+  } catch (err) {
+    console.error("Error updating event:", err);
+    next(new AppError("Failed to update event", 500));
+  }
 });
 
 exports.handleNoShow = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.eventId) throw new AppError("Event ID is required", 400);
+    if (!req.body.userId) throw new AppError("User ID is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in handleNoShow:", err);
+    return next(err);
+  }
+
   const { eventId, userId } = req.body;
 
   const event = await Event.findById(eventId);
   if (!event) return next(new AppError("No event found with that ID", 404));
 
-  // Remove user from eventBookings
   event.eventBookings = event.eventBookings.filter(
     (booking) => booking.userId.toString() !== userId.toString()
   );
 
-  // Reduce numOfStandOutsPerRound by 1, not below 1
   event.numOfStandOutsPerRound = Math.max(
     (event.numOfStandOutsPerRound || 1) - 1,
     1
   );
 
-  // Clear rounds and recalculate schedule
   event.rounds = [];
-  await event.save();
-  await checkAndUpdateSchedule(eventId, next);
-
-  res.status(200).json({
-    status: "success",
-    message: "No show processed and schedule recalculated",
-    data: { event },
-  });
+  try {
+    await event.save();
+    await checkAndUpdateSchedule(eventId, next);
+    res.status(200).json({
+      status: "success",
+      message: "No show processed and schedule recalculated",
+      data: { event },
+    });
+  } catch (err) {
+    console.error("Error handling no-show:", err);
+    next(new AppError("Failed to process no-show", 500));
+  }
 });
 
 exports.getEvent = factory.getOne(Event);

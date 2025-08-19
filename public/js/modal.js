@@ -4,6 +4,11 @@ export function initScoreModal(eventUpdateMatchScorePubJs) {
   const closeButton = modal ? modal.querySelector(".close") : null;
   const scoreButtons = document.querySelectorAll(".score-button");
 
+  // Helper to show user-friendly error
+  function showError(message) {
+    alert(message); // Replace with custom UI if desired
+  }
+
   if (scoreButtons && modal) {
     scoreButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => {
@@ -35,6 +40,8 @@ export function initScoreModal(eventUpdateMatchScorePubJs) {
   if (scoreForm) {
     scoreForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const submitBtn = scoreForm.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
       try {
         await eventUpdateMatchScorePubJs(
           document.getElementById("roundIndex").value,
@@ -46,6 +53,9 @@ export function initScoreModal(eventUpdateMatchScorePubJs) {
         modal.style.display = "none";
       } catch (err) {
         console.error("Update match score failed:", err);
+        showError("Failed to update score. Please try again.");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
   }

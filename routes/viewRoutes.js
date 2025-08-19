@@ -5,103 +5,111 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
-//Homepage
-router.get("/", viewsController.getHomePage);
+// Homepage
+router.get("/", ...viewsController.getHomePage);
 
-//Indivdiual users
-router.get("/me/login", viewsController.getLoginForm);
-router.get("/me/signup", viewsController.getsignupForm);
+// Individual users
+router.get("/me/login", ...viewsController.getLoginForm);
+router.get("/me/signup", ...viewsController.getsignupForm);
 router.get(
   "/me/myAccountDetails",
   authController.protect,
-  viewsController.getMyAccountDetails
+  ...viewsController.getMyAccountDetails
 );
 
 router.get(
   "/me/myPasswordUpdate",
   authController.protect,
-  viewsController.myPasswordUpdate
+  ...viewsController.myPasswordUpdate
 );
 
-router.get("/me/forgotPassword", viewsController.forgotPassword);
+router.get("/me/forgotPassword", ...viewsController.forgotPassword);
 
-router.get("/me/myPasswordReset/:resetToken", viewsController.myPasswordReset);
+router.get(
+  "/me/myPasswordReset/:resetToken",
+  ...viewsController.myPasswordReset
+);
 
-//Admin user functionality
+// Admin user functionality
 router.get(
   "/users/showAll",
   authController.isLoggedIn,
-  viewsController.showAllUsers
+  ...viewsController.showAllUsers
 );
 
-router.get("/users/create", authController.protect, viewsController.createUser);
+router.get(
+  "/users/create",
+  authController.protect,
+  ...viewsController.createUser
+);
 
 router.get(
   "/users/get/:id",
   authController.isLoggedIn,
-  viewsController.editUser
+  ...viewsController.editUser
 );
 
-//Events
+// Events
 router.get(
   "/events/showAll",
   authController.isLoggedIn,
-  viewsController.showAllEvents
+  ...viewsController.showAllEvents
 );
 
 router.get(
   "/events/showAllSchedules",
   authController.isLoggedIn,
-  viewsController.showAllSchedules
+  ...viewsController.showAllSchedules
 );
 
 router.get(
   "/events/viewMasterSchedule/:id",
   authController.isLoggedIn,
-  viewsController.viewMasterSchedule
+  ...viewsController.viewMasterSchedule
 );
 
 router.get(
   "/events/browseNew",
   authController.isLoggedIn,
-  viewsController.browseNewEvents
+  ...viewsController.browseNewEvents
 );
 
 router.get(
   "/events/myBrowse",
   authController.isLoggedIn,
-  viewsController.browseMyEvents
+  ...viewsController.browseMyEvents
 );
 
 router.get(
   "/events/create",
   authController.protect,
-  viewsController.createEvent
+  ...viewsController.createEvent
 );
+
 router.get(
   "/events/get/:id",
   authController.isLoggedIn,
-  viewsController.editEvent
+  ...viewsController.editEvent
 );
 
 router.get(
   "/events/viewMySchedule/:id",
   authController.isLoggedIn,
-  viewsController.viewMySchedule
+  ...viewsController.viewMySchedule
 );
 
 router.get(
   "/settings/get",
   authController.isLoggedIn,
   authController.restrictTo("clubAdmin", "pickleAdmin"),
-  viewsController.getSettings
+  ...viewsController.getSettings
 );
 
 router.get(
   "/events/noShowForm",
   authController.protect,
   authController.restrictTo("clubAdmin", "pickleAdmin"),
-  viewsController.showNoShowForm
+  ...viewsController.showNoShowForm
 );
 
 module.exports = router;

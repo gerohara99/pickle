@@ -1,228 +1,230 @@
 export function initFormListeners(deps) {
-  const {
-    loginApiAction,
-    getSystemSettingsApiAction,
-    manageSystemSettingsApiAction,
-    signUpApiAction,
-    updateAcApiAction,
-    forgotPasswordApiAction,
-    resetPasswordApiAction,
-    createUserApiAction,
-    editUserApiAction,
-    createEventApiAction,
-    updateEventApiAction,
-    markNoShowApiAction,
-  } = deps;
-
-  const loginForm = document.getElementById("loginForm");
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!loginForm.checkValidity()) {
-        loginForm.reportValidity();
-        return;
-      }
-      try {
-        await loginApiAction(
-          document.getElementById("email").value,
-          document.getElementById("password").value
-        );
-        await getSystemSettingsApiAction();
-      } catch (err) {
-        console.error("Login failed:", err);
-      }
-    });
+  // Graceful Degradation: Check for missing dependencies
+  function depCheck(fn, name) {
+    if (typeof fn !== "function") {
+      return async () => {
+        showError(`Required API action "${name}" is not available.`);
+        throw new Error(`Missing dependency: ${name}`);
+      };
+    }
+    return fn;
   }
 
-  const saveSystemSettingsForm = document.getElementById(
-    "saveSystemSettingsForm"
+  // User-friendly error display
+  function showError(message) {
+    alert(message); // Replace with custom UI if desired
+  }
+
+  // Network Reliability: Retry wrapper for transient errors
+  async function retryAsync(fn, args = [], retries = 2, delay = 500) {
+    let lastErr;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await fn(...args);
+      } catch (err) {
+        lastErr = err;
+        // Only retry for network errors (can be customized)
+        if (
+          err instanceof TypeError ||
+          (err.message && err.message.includes("Network"))
+        ) {
+          await new Promise((res) => setTimeout(res, delay));
+        } else {
+          break;
+        }
+      }
+    }
+    throw lastErr;
+  }
+
+  // Dependency checks
+  const loginApiAction = depCheck(deps.loginApiAction, "loginApiAction");
+  const getSystemSettingsApiAction = depCheck(
+    deps.getSystemSettingsApiAction,
+    "getSystemSettingsApiAction"
   );
-  if (saveSystemSettingsForm) {
-    saveSystemSettingsForm.addEventListener("submit", async (e) => {
+  const manageSystemSettingsApiAction = depCheck(
+    deps.manageSystemSettingsApiAction,
+    "manageSystemSettingsApiAction"
+  );
+  const signUpApiAction = depCheck(deps.signUpApiAction, "signUpApiAction");
+  const updateAcApiAction = depCheck(
+    deps.updateAcApiAction,
+    "updateAcApiAction"
+  );
+  const forgotPasswordApiAction = depCheck(
+    deps.forgotPasswordApiAction,
+    "forgotPasswordApiAction"
+  );
+  const resetPasswordApiAction = depCheck(
+    deps.resetPasswordApiAction,
+    "resetPasswordApiAction"
+  );
+  const createUserApiAction = depCheck(
+    deps.createUserApiAction,
+    "createUserApiAction"
+  );
+  const editUserApiAction = depCheck(
+    deps.editUserApiAction,
+    "editUserApiAction"
+  );
+  const createEventApiAction = depCheck(
+    deps.createEventApiAction,
+    "createEventApiAction"
+  );
+  const updateEventApiAction = depCheck(
+    deps.updateEventApiAction,
+    "updateEventApiAction"
+  );
+  const markNoShowApiAction = depCheck(
+    deps.markNoShowApiAction,
+    "markNoShowApiAction"
+  );
+
+  function handleFormSubmit(form, asyncFn, getArgs = () => [], successCb) {
+    if (!form) return;
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!saveSystemSettingsForm.checkValidity()) {
-        saveSystemSettingsForm.reportValidity();
+      if (!form.checkValidity()) {
+        form.reportValidity();
         return;
       }
+      const submitBtn = form.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
       try {
-        await manageSystemSettingsApiAction({
-          systemDefaults: {
-            numOfStandOuts: document.getElementById("numOfStandOuts").value,
-            numOfRounds: document.getElementById("numOfRounds").value,
-            numOfCourts: document.getElementById("numOfCourts").value,
-            numOfPairingsPerCourt: document.getElementById(
-              "numOfPairingsPerCourt"
-            ).value,
-            waitListSize: document.getElementById("waitListSize").value,
-          },
-        });
+        await retryAsync(asyncFn, getArgs(), 2, 500);
+        if (typeof successCb === "function") successCb();
       } catch (err) {
-        console.error("Save system settings failed:", err);
+        console.error("Form submission failed:", err);
+        showError("An error occurred. Please try again.");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
   }
 
-  const signUpForm = document.getElementById("signUpForm");
-  if (signUpForm) {
-    signUpForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!signUpForm.checkValidity()) {
-        signUpForm.reportValidity();
-        return;
-      }
-      try {
-        await signUpApiAction(
-          document.getElementById("name").value,
-          document.getElementById("email").value,
-          document.getElementById("mobile").value,
-          document.getElementById("password").value,
-          document.getElementById("passwordConfirm").value
-        );
-      } catch (err) {
-        console.error("Sign Up failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("loginForm"),
+    async (...args) => {
+      await loginApiAction(...args);
+      await getSystemSettingsApiAction();
+    },
+    () => [
+      document.getElementById("email").value,
+      document.getElementById("password").value,
+    ]
+  );
 
-  const acDetailsForm = document.getElementById("acDetailsForm");
-  if (acDetailsForm) {
-    acDetailsForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!acDetailsForm.checkValidity()) {
-        acDetailsForm.reportValidity();
-        return;
-      }
-      try {
-        await updateAcApiAction(
-          {
-            name: document.getElementById("name").value,
-            email: document.getElementById("email").value,
-            mobile: document.getElementById("mobile").value,
-            userId: document.getElementById("userId").value,
-          },
-          "account"
-        );
-        location.assign("/events/browseNew");
-      } catch (err) {
-        console.error("Update account failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("saveSystemSettingsForm"),
+    manageSystemSettingsApiAction,
+    () => [
+      {
+        systemDefaults: {
+          numOfStandOuts: document.getElementById("numOfStandOuts").value,
+          numOfRounds: document.getElementById("numOfRounds").value,
+          numOfCourts: document.getElementById("numOfCourts").value,
+          numOfPairingsPerCourt: document.getElementById(
+            "numOfPairingsPerCourt"
+          ).value,
+          waitListSize: document.getElementById("waitListSize").value,
+        },
+      },
+    ]
+  );
 
-  const updatePasswordForm = document.getElementById("updatePasswordForm");
-  if (updatePasswordForm) {
-    updatePasswordForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!updatePasswordForm.checkValidity()) {
-        updatePasswordForm.reportValidity();
-        return;
-      }
-      try {
-        await updateAcApiAction(
-          {
-            currentPassword: document.getElementById("currentPassword").value,
-            newPassword: document.getElementById("newPassword").value,
-            newPasswordConfirm:
-              document.getElementById("newPasswordConfirm").value,
-            userId: document.getElementById("userId").textContent,
-          },
-          "password"
-        );
-        location.assign("/events/browseNew");
-      } catch (err) {
-        console.error("Update password failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("signUpForm"),
+    signUpApiAction,
+    () => [
+      document.getElementById("name").value,
+      document.getElementById("email").value,
+      document.getElementById("mobile").value,
+      document.getElementById("password").value,
+      document.getElementById("passwordConfirm").value,
+    ]
+  );
 
-  const forgotPasswordForm = document.getElementById("forgotPasswordForm");
-  if (forgotPasswordForm) {
-    forgotPasswordForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      try {
-        await forgotPasswordApiAction({
-          email: document.getElementById("email").value,
-        });
-      } catch (err) {
-        console.error("Forgot password failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("acDetailsForm"),
+    async (data) => {
+      await updateAcApiAction(data, "account");
+      location.assign("/events/browseNew");
+    },
+    () => [
+      {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        mobile: document.getElementById("mobile").value,
+        userId: document.getElementById("userId").value,
+      },
+    ]
+  );
 
-  const resetPasswordForm = document.getElementById("resetPasswordForm");
-  if (resetPasswordForm) {
-    resetPasswordForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!resetPasswordForm.checkValidity()) {
-        resetPasswordForm.reportValidity();
-        return;
-      }
-      try {
-        await resetPasswordApiAction({
-          password: document.getElementById("newPassword").value,
-          passwordConfirm: document.getElementById("newPasswordConfirm").value,
-          resetToken: document.getElementById("resetToken").textContent,
-        });
-      } catch (err) {
-        console.error("Reset password failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("updatePasswordForm"),
+    async (data) => {
+      await updateAcApiAction(data, "password");
+      location.assign("/events/browseNew");
+    },
+    () => [
+      {
+        currentPassword: document.getElementById("currentPassword").value,
+        newPassword: document.getElementById("newPassword").value,
+        newPasswordConfirm: document.getElementById("newPasswordConfirm").value,
+        userId: document.getElementById("userId").textContent,
+      },
+    ]
+  );
 
-  const createUserForm = document.getElementById("createUserForm");
-  if (createUserForm) {
-    createUserForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!createUserForm.checkValidity()) {
-        createUserForm.reportValidity();
-        return;
-      }
-      try {
-        await createUserApiAction(
-          document.getElementById("name").value,
-          document.getElementById("email").value,
-          document.getElementById("mobile").value,
-          document.getElementById("password").value,
-          document.getElementById("passwordConfirm").value,
-          document.getElementById("active").checked
-        );
-      } catch (err) {
-        console.error("Create user failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("forgotPasswordForm"),
+    forgotPasswordApiAction,
+    () => [{ email: document.getElementById("email").value }]
+  );
 
-  const editUserForm = document.getElementById("editUserForm");
-  if (editUserForm) {
-    editUserForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!editUserForm.checkValidity()) {
-        editUserForm.reportValidity();
-        return;
-      }
-      try {
-        await editUserApiAction(
-          document.getElementById("userId").value,
-          document.getElementById("name").value,
-          document.getElementById("email").value,
-          document.getElementById("mobile").value,
-          document.getElementById("active").checked
-        );
-      } catch (err) {
-        console.error("Edit user failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("resetPasswordForm"),
+    resetPasswordApiAction,
+    () => [
+      {
+        password: document.getElementById("newPassword").value,
+        passwordConfirm: document.getElementById("newPasswordConfirm").value,
+        resetToken: document.getElementById("resetToken").textContent,
+      },
+    ]
+  );
 
-  const createEventForm = document.getElementById("createEventForm");
-  if (createEventForm) {
-    createEventForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!createEventForm.checkValidity()) {
-        createEventForm.reportValidity();
-        return;
-      }
-      const data = {
+  handleFormSubmit(
+    document.getElementById("createUserForm"),
+    createUserApiAction,
+    () => [
+      document.getElementById("name").value,
+      document.getElementById("email").value,
+      document.getElementById("mobile").value,
+      document.getElementById("password").value,
+      document.getElementById("passwordConfirm").value,
+      document.getElementById("active").checked,
+    ]
+  );
+
+  handleFormSubmit(
+    document.getElementById("editUserForm"),
+    editUserApiAction,
+    () => [
+      document.getElementById("userId").value,
+      document.getElementById("name").value,
+      document.getElementById("email").value,
+      document.getElementById("mobile").value,
+      document.getElementById("active").checked,
+    ]
+  );
+
+  handleFormSubmit(
+    document.getElementById("createEventForm"),
+    createEventApiAction,
+    () => [
+      {
         eventName: document.getElementById("eventName").value,
         eventLocation: document.getElementById("eventLocation").value,
         eventType: document.getElementById("eventType").value,
@@ -237,24 +239,15 @@ export function initFormListeners(deps) {
         eventWaitListSize: document.getElementById("eventWaitListSize").value,
         eventNumOfPairings: document.getElementById("eventNumOfPairings").value,
         active: document.getElementById("active").checked,
-      };
-      try {
-        await createEventApiAction(data);
-      } catch (err) {
-        console.error("Event creation failed:", err);
-      }
-    });
-  }
+      },
+    ]
+  );
 
-  const saveEventForm = document.getElementById("saveEventForm");
-  if (saveEventForm) {
-    saveEventForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!saveEventForm.checkValidity()) {
-        saveEventForm.reportValidity();
-        return;
-      }
-      const data = {
+  handleFormSubmit(
+    document.getElementById("saveEventForm"),
+    updateEventApiAction,
+    () => [
+      {
         eventId: document.getElementById("eventId").value,
         eventName: document.getElementById("eventName").value,
         eventLocation: document.getElementById("eventLocation").value,
@@ -270,50 +263,33 @@ export function initFormListeners(deps) {
         eventWaitListSize: document.getElementById("eventWaitListSize").value,
         eventNumOfPairings: document.getElementById("eventNumOfPairings").value,
         active: document.getElementById("active").checked,
-      };
-      try {
-        await updateEventApiAction(data);
-      } catch (err) {
-        console.error("Event update failed:", err);
-      }
-    });
+      },
+    ]
+  );
 
-    const noShowForm = document.getElementById("noShowForm");
-    if (noShowForm) {
-      noShowForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!noShowForm.checkValidity()) {
-          noShowForm.reportValidity();
-          return;
-        }
-        const eventId = document.getElementById("eventId").value;
-        const userId = document.getElementById("userId").value;
-        try {
-          await markNoShowApiAction(eventId, userId);
-          // Optionally, reset the form or show a success message here
-        } catch (err) {
-          console.error("No show failed:", err);
-        }
-      });
-    }
-  }
+  // No Show Form
+  handleFormSubmit(
+    document.getElementById("noShowForm"),
+    async (eventId, userId) => {
+      await markNoShowApiAction(eventId, userId);
+    },
+    () => [
+      document.getElementById("eventId").value,
+      document.getElementById("userId").value,
+    ]
+  );
 
-  const saveFeaturesForm = document.getElementById("saveFeaturesForm");
-  if (saveFeaturesForm) {
-    saveFeaturesForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      // Checkbox value handling
-      const teamCanEditScore =
-        document.getElementById("teamCanEditScore").checked;
-      try {
-        await manageSystemSettingsApiAction({
-          features: { teamCanEditScore },
-        });
-      } catch (err) {
-        console.error("Save features failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("saveFeaturesForm"),
+    manageSystemSettingsApiAction,
+    () => [
+      {
+        features: {
+          teamCanEditScore: document.getElementById("teamCanEditScore").checked,
+        },
+      },
+    ]
+  );
 
   document.addEventListener("DOMContentLoaded", function () {
     const toggle = document.getElementById("togglePassword");
