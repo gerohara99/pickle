@@ -19,11 +19,29 @@ const userRouter = require("./routes/userRoutes");
 const viewRouter = require("./routes/viewRoutes");
 const eventRouter = require("./routes/eventRoutes");
 const settingsRouter = require("./routes/settingsRoutes");
+require("dotenv").config({ path: path.resolve(__dirname, "config.env") });
 
-// Expanded environment variable validation (recommendation 3)
-const requiredEnv = [
-  "DATABASE",
-  "DATABASE_PASSWORD",
+// Define required environment variables for each environment
+const envVarsByEnv = {
+  production: [
+    "PROD_DATABASE",
+    "PROD_DATABASE_PASSWORD",
+    // Add any other prod-only variables here
+  ],
+  staging: [
+    "STAGE_DATABASE",
+    "STAGE_DATABASE_PASSWORD",
+    // Add any other staging-only variables here
+  ],
+  development: [
+    "DEV_DATABASE",
+    "DEV_DATABASE_PASSWORD",
+    // Add any other dev-only variables here
+  ],
+};
+
+// Variables required in all environments
+const alwaysRequired = [
   "SESSIONS_SECRET",
   "TWILIO_ACCOUNT_SID",
   "TWILIO_AUTH_TOKEN",
@@ -32,6 +50,13 @@ const requiredEnv = [
   "EMAIL_USERNAME",
   "EMAIL_PASSWORD",
 ];
+
+// Determine which environment variables to check
+const requiredEnv = (
+  envVarsByEnv[process.env.NODE_ENV] || envVarsByEnv.development
+).concat(alwaysRequired);
+
+// Check for missing environment variables
 requiredEnv.forEach((key) => {
   if (!process.env[key]) {
     console.error(`Missing required environment variable: ${key}`);
@@ -42,11 +67,23 @@ requiredEnv.forEach((key) => {
 //Start express app
 const app = express();
 
-// ***************** DATABASE Setup with retry logic (recommendation 1) ***************************************
-const DATABASE = process.env.DATABASE.replace(
-  "<PASSWORD>",
-  process.env.DATABASE_PASSWORD
-);
+// ***************** DATABASE Setup with retry logic (recommendation 1)
+let DATABASE, DATABASE_PASSWORD;
+if (process.env.NODE_ENV === "production") {
+  DATABASE = process.env.PROD_DATABASE;
+  DATABASE_PASSWORD = process.env.PROD_DATABASE_PASSWORD;
+} else if (process.env.NODE_ENV === "staging") {
+  DATABASE = process.env.STAGE_DATABASE;
+  DATABASE_PASSWORD = process.env.STAGE_DATABASE_PASSWORD;
+} else {
+  DATABASE = process.env.DEV_DATABASE;
+  DATABASE_PASSWORD = process.env.DEV_DATABASE_PASSWORD;
+}
+
+// Replace <PASSWORD> placeholder if present
+if (DATABASE.includes("<PASSWORD>")) {
+  DATABASE = DATABASE.replace("<PASSWORD>", DATABASE_PASSWORD || "");
+}
 
 async function connectWithRetry(retries = 5, delay = 5000) {
   for (let i = 0; i < retries; i++) {
