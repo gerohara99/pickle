@@ -32,7 +32,7 @@ block content
 											- i++;
 
 									div.form-buttons
-										- const isWaitList = event.eventBookings.length >= event.eventNumOfPlayers - 1
+										- const isWaitList = event.eventBookings.length >= event.eventNumOfPlayers
 										a.btn.btn--outline.bookEventButtons(href="#")
 											if isWaitList
 												| Join Wait List

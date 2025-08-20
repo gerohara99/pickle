@@ -30,7 +30,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
     }
 
     // Update event with booking
-    let newBookings = event.eventBookings;
+    let newBookings = [...event.eventBookings];
     let newBooking = {
       userId: req.session.user.userId,
       userName: req.session.user.userName,
@@ -54,7 +54,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
       return next(new AppError("Failed to update event schedule", 500));
     }
 
-    try {
+    /* try {
       await sendWhatsAppMessage(
         req.session.user.userMobile,
         `Your booking for event ${event.eventName} is confirmed!`
@@ -62,7 +62,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
     } catch (waErr) {
       // Log error but don't block booking creation
       console.error("WhatsApp message failed:", waErr);
-    }
+    } */
 
     res.status(200).json({
       status: "success",
@@ -126,7 +126,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
       );
     }
 
-    try {
+    /*try {
       await sendWhatsAppMessage(
         req.session.user.userMobile,
         `Your booking for event ${event.eventName} has been cancelled.`
@@ -134,7 +134,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     } catch (waErr) {
       // Log error but don't block cancellation
       console.error("WhatsApp message failed:", waErr);
-    }
+    } */
 
     res.status(200).json({
       status: "success",
@@ -163,37 +163,282 @@ exports.eventTimeout = (req, res, next) => {
 async function checkAndUpdateSchedule(eventId, next) {
   try {
     const event = await Event.findById(eventId);
-    if (!event) return;
+    if (!event) return next(new AppError("No event found with that ID", 404));
 
     let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
 
     if (event.eventBookings.length >= event.eventNumOfPlayers) {
-      const scheduleService = new ScheduleService();
-      
-      const numStandouts = event.numOfStandOutsPerRound || 
-        scheduleService.calculateOptimalStandouts(playerslist.length, event.eventNumOfCourts);
-      
-      const schedule = scheduleService.generateCompleteSchedule(
+      const standOuts = generateStandOutsPubJs(
         playerslist,
         event.eventNumOfRounds,
-        event.eventNumOfCourts,
-        numStandouts
+        event.numOfStandOutsPerRound
       );
-      
-      if (schedule) {
-        event.rounds = schedule;
-        await event.save();
-        console.log(`Schedule generated successfully for event ${eventId}`);
-      } else {
-        throw new AppError("Failed to generate valid schedule", 500);
-      }
+      const availablePairings = generateAvailablePairingsPubJs(playerslist);
+      const schedule = generateSchedulePubJs(
+        availablePairings,
+        standOuts,
+        event.eventNumOfCourts,
+        event.eventNumOfPairings
+      );
+      await Event.findByIdAndUpdate(
+        eventId,
+        { $set: { rounds: schedule } },
+        { new: true, runValidators: false }
+      );
     }
   } catch (err) {
     console.error("Error in checkAndUpdateSchedule:", err);
-    if (next) next(err);
+    next(err);
   }
 }
 
+function generateStandOutsPubJs(playersList, numOfRounds, numStandOuts) {
+  // Calculate total rests needed
+  const totalRests = numOfRounds * numStandOuts;
+  const baseRests = Math.floor(totalRests / playersList.length);
+  const extraRests = totalRests % playersList.length;
+
+  // Assign rest counts per player
+  const restCounts = Array(playersList.length).fill(baseRests);
+  for (let i = 0; i < extraRests; i++) {
+    restCounts[i]++;
+  }
+
+  // Track which rounds each player rests in
+  const playerRestRounds = Array(playersList.length)
+    .fill(0)
+    .map(() => []);
+
+  // For each round, pick the numStandOuts players who have the most remaining rests to assign,
+  // and who did NOT rest in the previous round
+  const restSchedule = Array(numOfRounds)
+    .fill(0)
+    .map(() => []);
+  for (let round = 0; round < numOfRounds; round++) {
+    // Build candidate list: players who still need rests, and didn't rest last round
+    let candidates = [];
+    for (let pIdx = 0; pIdx < playersList.length; pIdx++) {
+      if (
+        restCounts[pIdx] > 0 &&
+        (playerRestRounds[pIdx].length === 0 ||
+          playerRestRounds[pIdx][playerRestRounds[pIdx].length - 1] !==
+            round - 1)
+      ) {
+        candidates.push({ idx: pIdx, remaining: restCounts[pIdx] });
+      }
+    }
+    // Sort candidates by most remaining rests, then by least recent rest
+    candidates.sort((a, b) => b.remaining - a.remaining);
+
+    // Pick up to numStandOuts
+    for (let i = 0; i < numStandOuts && i < candidates.length; i++) {
+      const pIdx = candidates[i].idx;
+      restSchedule[round].push(playersList[pIdx]);
+      restCounts[pIdx]--;
+      playerRestRounds[pIdx].push(round);
+    }
+  }
+
+  // If any rests remain unassigned, fill them in remaining rounds (fallback)
+  for (let pIdx = 0; pIdx < playersList.length; pIdx++) {
+    while (restCounts[pIdx] > 0) {
+      // Find a round where this player is not already resting and not consecutive
+      let found = false;
+      for (let round = 0; round < numOfRounds; round++) {
+        if (
+          !restSchedule[round].some(
+            (p) => p.userId === playersList[pIdx].userId
+          ) &&
+          (playerRestRounds[pIdx].length === 0 ||
+            !playerRestRounds[pIdx].includes(round - 1))
+        ) {
+          restSchedule[round].push(playersList[pIdx]);
+          restCounts[pIdx]--;
+          playerRestRounds[pIdx].push(round);
+          found = true;
+          break;
+        }
+      }
+      if (!found) break; // Can't assign without consecutive rests
+    }
+  }
+
+  // Ensure each round has at most numStandOuts
+  for (let round = 0; round < numOfRounds; round++) {
+    while (restSchedule[round].length > numStandOuts) {
+      restSchedule[round].pop();
+    }
+  }
+
+  return restSchedule;
+}
+function generateAvailablePairingsPubJs(playersList) {
+  try {
+    const DUMMY = -1;
+    let availablePairings = [];
+
+    if (!playersList) throw new AppError("Players list missing", 400);
+
+    if (playersList.length % 2 === 1) {
+      playersList.push({ userName: "DUMMY" });
+    }
+
+    for (let j = 0; j < playersList.length - 1; j += 1) {
+      for (let i = 0; i < playersList.length / 2; i += 1) {
+        const o = playersList.length - 1 - i;
+        if (
+          playersList[i].userName !== "DUMMY" &&
+          playersList[o].userName !== "DUMMY" &&
+          playersList[o].userId !== playersList[i].userId
+        ) {
+          availablePairings.push({
+            playerA: playersList[o],
+            playerB: playersList[i],
+            pairingUsed: false,
+          });
+        }
+      }
+      playersList.splice(1, 0, playersList.pop());
+    }
+    return availablePairings;
+  } catch (err) {
+    console.error("Error in generateAvailablePairingsPubJs:", err);
+    throw err;
+  }
+}
+
+function generateSchedulePubJs(
+  availablePairings,
+  standOuts,
+  numOfCourts,
+  numOfPairings
+) {
+  try {
+    let schedule = [];
+
+    // Initialize schedule rounds and standOuts
+    for (let round = 0; round < standOuts.length; round++) {
+      schedule[round] = { matches: [], standOuts: [] };
+      schedule[round].standOuts = standOuts[round].map((player) => ({
+        userId: String(player.userId),
+        name: player.userName,
+      }));
+    }
+
+    // For each round, only assign matches to players NOT in standOuts for that round
+    for (let i = 0; i < standOuts.length; i++) {
+      const restingIds = new Set(standOuts[i].map((p) => String(p.userId)));
+      let assignedPlayers = new Set();
+      let roundPairings = availablePairings.filter(
+        (pair) =>
+          !restingIds.has(String(pair.playerA.userId)) &&
+          !restingIds.has(String(pair.playerB.userId)) &&
+          pair.pairingUsed === false
+      );
+
+      let courtsAssigned = 0;
+
+      // For each court, find two pairings with four unique, unassigned players
+      for (let k = 0; k < numOfCourts; k++) {
+        let found = false;
+        for (let idxA = 0; idxA < roundPairings.length; idxA++) {
+          const pA1 = String(roundPairings[idxA].playerA.userId);
+          const pB1 = String(roundPairings[idxA].playerB.userId);
+          if (assignedPlayers.has(pA1) || assignedPlayers.has(pB1)) continue;
+          for (let idxB = idxA + 1; idxB < roundPairings.length; idxB++) {
+            const pA2 = String(roundPairings[idxB].playerA.userId);
+            const pB2 = String(roundPairings[idxB].playerB.userId);
+            if (
+              assignedPlayers.has(pA2) ||
+              assignedPlayers.has(pB2) ||
+              [pA1, pB1].includes(pA2) ||
+              [pA1, pB1].includes(pB2)
+            )
+              continue;
+
+            // Found two valid pairings for this court
+            roundPairings[idxA].pairingUsed = true;
+            roundPairings[idxB].pairingUsed = true;
+            assignedPlayers.add(pA1);
+            assignedPlayers.add(pB1);
+            assignedPlayers.add(pA2);
+            assignedPlayers.add(pB2);
+
+            let teamA = {
+              playerA: roundPairings[idxA].playerA,
+              playerB: roundPairings[idxA].playerB,
+            };
+            let teamB = {
+              playerA: roundPairings[idxB].playerA,
+              playerB: roundPairings[idxB].playerB,
+            };
+
+            let newMatch = {
+              teamA: [
+                { userId: teamA.playerA.userId, name: teamA.playerA.userName },
+                { userId: teamA.playerB.userId, name: teamA.playerB.userName },
+              ],
+              teamB: [
+                { userId: teamB.playerA.userId, name: teamB.playerA.userName },
+                { userId: teamB.playerB.userId, name: teamB.playerB.userName },
+              ],
+              court: k,
+            };
+            schedule[i].matches.push(newMatch);
+            found = true;
+            break;
+          }
+          if (found) break;
+        }
+      }
+
+      // --- FIX: Ensure all players are accounted for in this round ---
+      // Gather all assigned player IDs (playing or resting)
+      const allAssigned = new Set([
+        ...schedule[i].standOuts.map((p) => String(p.userId)),
+        ...schedule[i].matches.flatMap((m) => [
+          String(m.teamA[0].userId),
+          String(m.teamA[1].userId),
+          String(m.teamB[0].userId),
+          String(m.teamB[1].userId),
+        ]),
+      ]);
+
+      // Get all player IDs from availablePairings
+      const allPlayerIds = new Set(
+        availablePairings.flatMap((pair) => [
+          String(pair.playerA.userId),
+          String(pair.playerB.userId),
+        ])
+      );
+
+      // Add any missing players to standOuts for this round
+      for (const pid of allPlayerIds) {
+        if (!allAssigned.has(pid)) {
+          // Find player object from pairings
+          const playerObj =
+            availablePairings.find(
+              (pair) => String(pair.playerA.userId) === pid
+            )?.playerA ||
+            availablePairings.find(
+              (pair) => String(pair.playerB.userId) === pid
+            )?.playerB;
+          if (playerObj) {
+            schedule[i].standOuts.push({
+              userId: String(playerObj.userId),
+              name: playerObj.userName,
+            });
+          }
+        }
+      }
+      // --- END FIX ---
+    }
+    return schedule;
+  } catch (err) {
+    console.error("Error in generateSchedulePubJs:", err);
+    throw err;
+  }
+}
 exports.updateMatchScore = catchAsync(async (req, res, next) => {
   try {
     if (!req.body.eventId) throw new AppError("Event ID is required", 400);
