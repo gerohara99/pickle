@@ -3,6 +3,7 @@ const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { sendWhatsAppMessage } = require("../utils/twilioClient");
+const ScheduleService = require("../services/scheduleService");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   try {
@@ -162,170 +163,34 @@ exports.eventTimeout = (req, res, next) => {
 async function checkAndUpdateSchedule(eventId, next) {
   try {
     const event = await Event.findById(eventId);
-    if (!event) return next(new AppError("No event found with that ID", 404));
+    if (!event) return;
 
     let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
 
     if (event.eventBookings.length >= event.eventNumOfPlayers) {
-      const standOuts = generateStandOutsPubJs(
+      const scheduleService = new ScheduleService();
+      
+      const numStandouts = event.numOfStandOutsPerRound || 
+        scheduleService.calculateOptimalStandouts(playerslist.length, event.eventNumOfCourts);
+      
+      const schedule = scheduleService.generateCompleteSchedule(
         playerslist,
         event.eventNumOfRounds,
-        event.numOfStandOutsPerRound
-      );
-      const availablePairings = generateAvailablePairingsPubJs(playerslist);
-      const schedule = generateSchedulePubJs(
-        availablePairings,
-        standOuts,
         event.eventNumOfCourts,
-        event.eventNumOfPairings
+        numStandouts
       );
-      await Event.findByIdAndUpdate(
-        eventId,
-        { $set: { rounds: schedule } },
-        { new: true, runValidators: false }
-      );
+      
+      if (schedule) {
+        event.rounds = schedule;
+        await event.save();
+        console.log(`Schedule generated successfully for event ${eventId}`);
+      } else {
+        throw new AppError("Failed to generate valid schedule", 500);
+      }
     }
   } catch (err) {
     console.error("Error in checkAndUpdateSchedule:", err);
-    next(err);
-  }
-}
-
-function generateStandOutsPubJs(playersList, numOfRounds, numStandOuts) {
-  try {
-    let roundsFilled = false;
-    let i = 0;
-    let startSlice = 0;
-    let playersLeft;
-    let standOutsPerRound = [];
-
-    do {
-      playersLeft = playersList.length - startSlice;
-
-      if (playersLeft <= numStandOuts) {
-        let playersFromNext = numStandOuts - playersLeft;
-        standOutsPerRound[i] = [].concat(
-          playersList.slice(-playersLeft),
-          playersList.slice(0, playersFromNext)
-        );
-        startSlice = playersFromNext;
-      } else {
-        standOutsPerRound[i] = playersList.slice(
-          startSlice,
-          startSlice + numStandOuts
-        );
-        startSlice += numStandOuts;
-      }
-      i === numOfRounds - 1 ? (roundsFilled = true) : i++;
-    } while (!roundsFilled);
-
-    return standOutsPerRound;
-  } catch (err) {
-    console.error("Error in generateStandOutsPubJs:", err);
-    throw err;
-  }
-}
-
-function generateAvailablePairingsPubJs(playersList) {
-  try {
-    const DUMMY = -1;
-    let availablePairings = [];
-
-    if (!playersList) throw new AppError("Players list missing", 400);
-
-    if (playersList.length % 2 === 1) {
-      playersList.push({ userName: "DUMMY" });
-    }
-
-    for (let j = 0; j < playersList.length - 1; j += 1) {
-      for (let i = 0; i < playersList.length / 2; i += 1) {
-        const o = playersList.length - 1 - i;
-        if (
-          playersList[i].userName !== "DUMMY" &&
-          playersList[o].userName !== "DUMMY" &&
-          playersList[o].userId !== playersList[i].userId
-        ) {
-          availablePairings.push({
-            playerA: playersList[o],
-            playerB: playersList[i],
-            pairingUsed: false,
-          });
-        }
-      }
-      playersList.splice(1, 0, playersList.pop());
-    }
-    return availablePairings;
-  } catch (err) {
-    console.error("Error in generateAvailablePairingsPubJs:", err);
-    throw err;
-  }
-}
-
-function generateSchedulePubJs(
-  availablePairings,
-  standOuts,
-  numOfCourts,
-  numOfPairings
-) {
-  try {
-    let schedule = [];
-    let teamA = {};
-    let teamB = {};
-
-    for (let round = 0; round < standOuts.length; round++) {
-      schedule[round] = { matches: [], standOuts: [] };
-      schedule[round].standOuts = standOuts[round].map((player) => ({
-        userId: String(player.userId),
-        name: player.userName,
-      }));
-    }
-
-    for (let i = 0; i < standOuts.length; i++) {
-      for (let k = 0; k < numOfCourts; k++) {
-        for (let x = 0; x < numOfPairings; x++) {
-          for (let j = 0; j < availablePairings.length; j++) {
-            if (
-              standOuts[i].find(
-                (element) =>
-                  element.userId !== availablePairings[j].playerA.userId
-              ) &&
-              standOuts[i].find(
-                (element) =>
-                  element.userId !== availablePairings[j].playerB.userId
-              ) &&
-              availablePairings[j].pairingUsed === false
-            ) {
-              availablePairings[j].pairingUsed = true;
-              if (x % 2 === 0) {
-                ((teamA.playerA = availablePairings[j].playerA),
-                  (teamA.playerB = availablePairings[j].playerB));
-              } else {
-                ((teamB.playerA = availablePairings[j].playerA),
-                  (teamB.playerB = availablePairings[j].playerB));
-              }
-              break;
-            }
-          }
-        }
-
-        let newMatch = {
-          teamA: [
-            { userId: teamA.playerA.userId, name: teamA.playerA.userName },
-            { userId: teamA.playerB.userId, name: teamA.playerB.userName },
-          ],
-          teamB: [
-            { userId: teamB.playerA.userId, name: teamB.playerA.userName },
-            { userId: teamB.playerB.userId, name: teamB.playerB.userName },
-          ],
-          court: k,
-        };
-        schedule[i].matches.push(newMatch);
-      }
-    }
-    return schedule;
-  } catch (err) {
-    console.error("Error in generateSchedulePubJs:", err);
-    throw err;
+    if (next) next(err);
   }
 }
 
