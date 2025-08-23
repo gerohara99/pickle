@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>RallyPoint Events - Prototype</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google Fonts for a modern look -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #ff7f50;
+        --secondary: #2d2d2d;
+        --accent: #ffe066;
+        --bg: #f7f7fa;
+        --card-bg: #fff;
+        --nav-bg: #2d2d2d;
+        --nav-text: #fff;
+        --nav-accent: #ff7f50;
+        --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        --radius: 18px;
+      }
+      body {
+        font-family: "Rubik", sans-serif;
+        background: var(--bg);
+        margin: 0;
+        color: var(--secondary);
+        min-height: 100vh;
+      }
+      .navbar {
+        background: var(--nav-bg);
+        color: var(--nav-text);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.8rem 2.4rem;
+        box-shadow: var(--shadow);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .navbar .logo {
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: var(--nav-accent);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .navbar .logo img {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(255, 127, 80, 0.15);
+        background: var(--accent);
+      }
+      .navbar .nav-links {
+        display: flex;
+        gap: 2.2rem;
+      }
+      .navbar .nav-link {
+        color: var(--nav-text);
+        text-decoration: none;
+        font-size: 1.2rem;
+        font-weight: 500;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        transition:
+          background 0.2s,
+          color 0.2s;
+        position: relative;
+      }
+      .navbar .nav-link.active,
+      .navbar .nav-link:hover {
+        background: var(--nav-accent);
+        color: var(--nav-bg);
+      }
+      .navbar .user {
+        font-size: 1.1rem;
+        background: var(--accent);
+        color: var(--nav-bg);
+        padding: 0.5rem 1.2rem;
+        border-radius: 12px;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(255, 224, 102, 0.12);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .main-content {
+        max-width: 1100px;
+        margin: 2.4rem auto;
+        padding: 0 1.2rem;
+      }
+      .page-title {
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 1.2rem;
+        letter-spacing: 1px;
+        text-align: center;
+        text-shadow: 0 2px 8px rgba(255, 127, 80, 0.08);
+      }
+      .event-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2.2rem;
+        margin-top: 2.4rem;
+      }
+      .event-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 2rem 1.6rem 1.6rem 1.6rem;
+        position: relative;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        min-height: 260px;
+        overflow: hidden;
+      }
+      .event-card:hover {
+        transform: translateY(-6px) scale(1.03);
+        box-shadow: 0 8px 32px rgba(255, 127, 80, 0.12);
+      }
+      .event-card .event-type {
+        position: absolute;
+        top: 1.2rem;
+        right: 1.2rem;
+        background: var(--primary);
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding: 0.4rem 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(255, 127, 80, 0.08);
+        letter-spacing: 1px;
+      }
+      .event-card .event-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--nav-bg);
+        margin-bottom: 0.6rem;
+        margin-top: 0.2rem;
+        letter-spacing: 0.5px;
+      }
+      .event-card .event-details {
+        font-size: 1.1rem;
+        color: #555;
+        margin-bottom: 1.2rem;
+        line-height: 1.6;
+      }
+      .event-card .event-date {
+        font-size: 1.1rem;
+        color: var(--primary);
+        font-weight: 500;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .event-card .event-players {
+        font-size: 1rem;
+        color: #333;
+        margin-bottom: 1rem;
+        margin-top: 0.5rem;
+        background: #ffe06633;
+        border-radius: 8px;
+        padding: 0.5em 0.8em;
+        font-style: italic;
+      }
+      .event-card .event-actions {
+        margin-top: auto;
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+      }
+      .event-card .btn {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.7rem 1.4rem;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(255, 127, 80, 0.08);
+      }
+      .event-card .btn:hover {
+        background: var(--nav-bg);
+        color: var(--accent);
+        box-shadow: 0 4px 16px rgba(45, 45, 45, 0.1);
+      }
+      /* Fun animated background for excitement */
+      body::before {
+        content: "";
+        position: fixed;
+        top: -100px;
+        left: -100px;
+        right: -100px;
+        bottom: -100px;
+        z-index: -1;
+        background:
+          radial-gradient(circle at 20% 30%, #ff7f50 0%, transparent 60%),
+          radial-gradient(circle at 80% 70%, #ffe066 0%, transparent 60%);
+        opacity: 0.18;
+        pointer-events: none;
+        animation: bgmove 12s infinite alternate ease-in-out;
+      }
+      @keyframes bgmove {
+        0% {
+          background-position:
+            20% 30%,
+            80% 70%;
+        }
+        100% {
+          background-position:
+            30% 40%,
+            70% 60%;
+        }
+      }
+      /* Responsive */
+      @media (max-width: 600px) {
+        .main-content {
+          padding: 0 0.5rem;
+        }
+        .page-title {
+          font-size: 2rem;
+        }
+        .event-card {
+          padding: 1.2rem 0.8rem;
+          min-height: 180px;
+        }
+        .navbar {
+          flex-direction: column;
+          gap: 0.6rem;
+        }
+        .navbar .nav-links {
+          gap: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">
+        <img
+          src="https://img.icons8.com/color/96/000000/pickleball.png"
+          alt="RallyPoint Logo"
+        />
+        RallyPoint
+      </div>
+      <div class="nav-links">
+        <a href="#" class="nav-link active" id="nav-my-events">My Events</a>
+        <a href="#" class="nav-link" id="nav-new-events">Browse New Events</a>
+      </div>
+      <div class="user">
+        <img
+          src="https://img.icons8.com/ios-filled/50/ff7f50/user-male-circle.png"
+          alt="User"
+          style="width: 22px; height: 22px"
+        />
+        Hi, Alex!
+      </div>
+    </nav>
+    <div class="main-content">
+      <div id="page-my-events">
+        <div class="page-title">My Upcoming Events</div>
+        <div class="event-list">
+          <!-- Sample cards for "My Events" -->
+          <div class="event-card">
+            <div class="event-type">League</div>
+            <div class="event-title">Tuesday Night Doubles</div>
+            <div class="event-date">🗓️ 2024-06-18 &nbsp; ⏰ 19:30</div>
+            <div class="event-details">
+              <strong>Location:</strong> St Olaf's<br />
+              <strong>Organiser:</strong> Ger<br />
+              <strong>Status:</strong> Confirmed
+            </div>
+            <div class="event-players">
+              <strong>Players:</strong> Alex, Jamie, Priya, Sam, Zoe, Chris
+            </div>
+            <div class="event-actions">
+              <button class="btn">View Schedule</button>
+              <button class="btn">Cancel Booking</button>
+            </div>
+          </div>
+          <div class="event-card">
+            <div class="event-type">Social</div>
+            <div class="event-title">Saturday Morning Drills</div>
+            <div class="event-date">🗓️ 2024-06-22 &nbsp; ⏰ 10:00</div>
+            <div class="event-details">
+              <strong>Location:</strong> Drill Place<br />
+              <strong>Organiser:</strong> Ger 22<br />
+              <strong>Status:</strong> Waitlist
+            </div>
+            <div class="event-players">
+              <strong>Players:</strong> Jamie, Priya, Sam, Zoe, Chris, Taylor
+            </div>
+            <div class="event-actions">
+              <button class="btn">View Schedule</button>
+              <button class="btn">Cancel Booking</button>
+            </div>
+          </div>
+          <div class="event-card">
+            <div class="event-type">Tournament</div>
+            <div class="event-title">Friday Night Smash</div>
+            <div class="event-date">🗓️ 2024-06-21 &nbsp; ⏰ 20:00</div>
+            <div class="event-details">
+              <strong>Location:</strong> Smash Arena<br />
+              <strong>Organiser:</strong> Priya<br />
+              <strong>Status:</strong> Confirmed
+            </div>
+            <div class="event-players">
+              <strong>Players:</strong> Alex, Jamie, Zoe, Chris, Taylor, Morgan
+            </div>
+            <div class="event-actions">
+              <button class="btn">View Schedule</button>
+              <button class="btn">Cancel Booking</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="page-new-events" style="display: none">
+        <div class="page-title">Browse & Book New Events</div>
+        <div class="event-list">
+          <!-- Sample cards for "Browse New Events" -->
+          <div class="event-card">
+            <div class="event-type">Tournament</div>
+            <div class="event-title">Thursday Open Challenge</div>
+            <div class="event-date">🗓️ 2024-06-20 &nbsp; ⏰ 19:00</div>
+            <div class="event-details">
+              <strong>Location:</strong> St Olaf's<br />
+              <strong>Organiser:</strong> Ger<br />
+              <strong>Spaces Left:</strong> 3
+            </div>
+            <div class="event-players">
+              <strong>Players:</strong> Jamie, Priya, Sam, Zoe, Chris
+            </div>
+            <div class="event-actions">
+              <button class="btn">Book Now</button>
+              <button class="btn">Details</button>
+            </div>
+          </div>
+          <div class="event-card">
+            <div class="event-type">Social</div>
+            <div class="event-title">Sunday Fun Rally</div>
+            <div class="event-date">🗓️ 2024-06-23 &nbsp; ⏰ 11:00</div>
+            <div class="event-details">
+              <strong>Location:</strong> City Courts<br />
+              <strong>Organiser:</strong> Jane<br />
+              <strong>Spaces Left:</strong> 8
+            </div>
+            <div class="event-players">
+              <strong>Players:</strong> Alex, Jamie, Zoe, Chris, Taylor
+            </div>
+            <div class="event-actions">
+              <button class="btn">Book Now</button>
+              <button class="btn">Details</button>
+            </div>
+          </div>
+          <div class="event-card">
+            <div class="event-type">League</div>
+            <div class="event-title">Monday Power Play</div>
+            <div class="event-date">🗓️ 2024-06-24 &nbsp; ⏰ 18:30</div>
+            <div class="event-details">
+              <strong>Location:</strong> Power Arena<br />
+              <strong>Organiser:</strong> Morgan<br />
+              <strong>Spaces Left:</strong> 5
+            </div>
+            <div class="event-players">
+              <strong>Players:</strong> Priya, Sam, Zoe, Chris, Taylor, Morgan
+            </div>
+            <div class="event-actions">
+              <button class="btn">Book Now</button>
+              <button class="btn">Details</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Simple nav switching logic
+      const navMyEvents = document.getElementById("nav-my-events");
+      const navNewEvents = document.getElementById("nav-new-events");
+      const pageMyEvents = document.getElementById("page-my-events");
+      const pageNewEvents = document.getElementById("page-new-events");
+      navMyEvents.addEventListener("click", function (e) {
+        e.preventDefault();
+        navMyEvents.classList.add("active");
+        navNewEvents.classList.remove("active");
+        pageMyEvents.style.display = "";
+        pageNewEvents.style.display = "none";
+      });
+      navNewEvents.addEventListener("click", function (e) {
+        e.preventDefault();
+        navNewEvents.classList.add("active");
+        navMyEvents.classList.remove("active");
+        pageNewEvents.style.display = "";
+        pageMyEvents.style.display = "none";
+      });
+    </script>
+  </body>
+</html>

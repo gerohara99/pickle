@@ -1,8 +1,17 @@
 # Codebase Review
 
+## Procfile
+
+*Size: 24 bytes*
+
+```
+web: npm run start:prod
+
+```
+
 ## app.js
 
-*Size: 6240 bytes*
+*Size: 7362 bytes*
 
 ```js
 const path = require("path");
@@ -26,11 +35,29 @@ const userRouter = require("./routes/userRoutes");
 const viewRouter = require("./routes/viewRoutes");
 const eventRouter = require("./routes/eventRoutes");
 const settingsRouter = require("./routes/settingsRoutes");
+require("dotenv").config({ path: path.resolve(__dirname, "config.env") });
 
-// Expanded environment variable validation (recommendation 3)
-const requiredEnv = [
-  "DATABASE",
-  "DATABASE_PASSWORD",
+// Define required environment variables for each environment
+const envVarsByEnv = {
+  production: [
+    "PROD_DATABASE",
+    "PROD_DATABASE_PASSWORD",
+    // Add any other prod-only variables here
+  ],
+  staging: [
+    "STAGE_DATABASE",
+    "STAGE_DATABASE_PASSWORD",
+    // Add any other staging-only variables here
+  ],
+  development: [
+    "DEV_DATABASE",
+    "DEV_DATABASE_PASSWORD",
+    // Add any other dev-only variables here
+  ],
+};
+
+// Variables required in all environments
+const alwaysRequired = [
   "SESSIONS_SECRET",
   "TWILIO_ACCOUNT_SID",
   "TWILIO_AUTH_TOKEN",
@@ -39,6 +66,13 @@ const requiredEnv = [
   "EMAIL_USERNAME",
   "EMAIL_PASSWORD",
 ];
+
+// Determine which environment variables to check
+const requiredEnv = (
+  envVarsByEnv[process.env.NODE_ENV] || envVarsByEnv.development
+).concat(alwaysRequired);
+
+// Check for missing environment variables
 requiredEnv.forEach((key) => {
   if (!process.env[key]) {
     console.error(`Missing required environment variable: ${key}`);
@@ -49,11 +83,23 @@ requiredEnv.forEach((key) => {
 //Start express app
 const app = express();
 
-// ***************** DATABASE Setup with retry logic (recommendation 1) ***************************************
-const DATABASE = process.env.DATABASE.replace(
-  "<PASSWORD>",
-  process.env.DATABASE_PASSWORD
-);
+// ***************** DATABASE Setup with retry logic (recommendation 1)
+let DATABASE, DATABASE_PASSWORD;
+if (process.env.NODE_ENV === "production") {
+  DATABASE = process.env.PROD_DATABASE;
+  DATABASE_PASSWORD = process.env.PROD_DATABASE_PASSWORD;
+} else if (process.env.NODE_ENV === "staging") {
+  DATABASE = process.env.STAGE_DATABASE;
+  DATABASE_PASSWORD = process.env.STAGE_DATABASE_PASSWORD;
+} else {
+  DATABASE = process.env.DEV_DATABASE;
+  DATABASE_PASSWORD = process.env.DEV_DATABASE_PASSWORD;
+}
+
+// Replace <PASSWORD> placeholder if present
+if (DATABASE.includes("<PASSWORD>")) {
+  DATABASE = DATABASE.replace("<PASSWORD>", DATABASE_PASSWORD || "");
+}
 
 async function connectWithRetry(retries = 5, delay = 5000) {
   for (let i = 0; i < retries; i++) {
@@ -243,7 +289,7 @@ module.exports = app;
 
 ## controllers/authController.js
 
-*Size: 10104 bytes*
+*Size: 12581 bytes*
 
 ```js
 const crypto = require("crypto");
@@ -256,13 +302,17 @@ const catchAsync = require("../utils/catchAsync");
 const sendEMail = require("../utils/email");
 const mongoose = require("mongoose");
 
-// --- Request Timeout Middleware ---
 exports.authTimeout = (req, res, next) => {
-  res.setTimeout(15000, () => {
-    console.warn(`Auth request timed out: ${req.originalUrl}`);
-    res.status(503).send("Request timed out");
-  });
-  next();
+  try {
+    res.setTimeout(15000, () => {
+      console.warn(`Auth request timed out: ${req.originalUrl}`);
+      res.status(503).send("Request timed out");
+    });
+    next();
+  } catch (err) {
+    console.error("Error in authTimeout middleware:", err);
+    next(err);
+  }
 };
 
 const signToken = (id) =>
@@ -271,41 +321,55 @@ const signToken = (id) =>
   });
 
 const createSendToken = (user, statusCode, req, res, next) => {
-  const token = signToken(user._id);
+  try {
+    const token = signToken(user._id);
 
-  res.cookie("jwt", token, {
-    expiresIn: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-  });
-
-  req.session.user = {};
-  req.session.systemDefaults = {};
-
-  req.session.user.userId = user._id.toString();
-  req.session.user.userName = user.name;
-  req.session.user.userRole = user.role;
-  req.session.user.userMobile = user.mobile;
-  user.password = undefined;
-
-  req.session.save((error) => {
-    if (error) {
-      console.error("Session save error:", error);
-      return next(error);
-    }
-
-    res.status(statusCode).json({
-      status: "success",
-      token,
-      user: user,
+    res.cookie("jwt", token, {
+      expiresIn: new Date(
+        Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+      ),
+      httpOnly: true,
+      secure: req.secure || req.headers["x-forwarded-proto"] === "https",
     });
-  });
+
+    req.session.user = {};
+    req.session.systemDefaults = {};
+
+    req.session.user.userId = user._id.toString();
+    req.session.user.userName = user.name;
+    req.session.user.userRole = user.role;
+    req.session.user.userMobile = user.mobile;
+    user.password = undefined;
+
+    req.session.save((error) => {
+      if (error) {
+        console.error("Session save error:", error);
+        return next(error);
+      }
+
+      res.status(statusCode).json({
+        status: "success",
+        token,
+        user: user,
+      });
+    });
+  } catch (err) {
+    console.error("Synchronous error in createSendToken:", err);
+    next(err);
+  }
 };
 
-// --- Atomic Operations: Use transactions for multi-step DB changes ---
 exports.signup = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.email) throw new AppError("Email is required", 400);
+    if (!req.body.password) throw new AppError("Password is required", 400);
+    if (!req.body.passwordConfirm)
+      throw new AppError("Password confirmation is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in signup:", err);
+    return next(err);
+  }
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -336,6 +400,16 @@ exports.signup = catchAsync(async (req, res, next) => {
 });
 
 exports.create = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.email) throw new AppError("Email is required", 400);
+    if (!req.body.password) throw new AppError("Password is required", 400);
+    if (!req.body.passwordConfirm)
+      throw new AppError("Password confirmation is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in create:", err);
+    return next(err);
+  }
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -365,11 +439,15 @@ exports.create = catchAsync(async (req, res, next) => {
 });
 
 exports.login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return next(new AppError("Please provide email and password", 400));
+  try {
+    if (!req.body.email) throw new AppError("Please provide email", 400);
+    if (!req.body.password) throw new AppError("Please provide password", 400);
+  } catch (err) {
+    console.error("Synchronous error in login:", err);
+    return next(err);
   }
+
+  const { email, password } = req.body;
 
   const user = await User.findOne({ email }).select("+password");
 
@@ -380,13 +458,18 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, req, res, next);
 });
 
-exports.logout = (req, res) => {
-  res.cookie("jwt", "loggedout", {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
-  });
-  res.locals.user = undefined;
-  res.status(200).json({ status: "success" });
+exports.logout = (req, res, next) => {
+  try {
+    res.cookie("jwt", "loggedout", {
+      expires: new Date(Date.now() + 10 * 1000),
+      httpOnly: true,
+    });
+    res.locals.user = undefined;
+    res.status(200).json({ status: "success" });
+  } catch (err) {
+    console.error("Synchronous error in logout:", err);
+    next(err);
+  }
 };
 
 exports.isLoggedIn = async (req, res, next) => {
@@ -418,17 +501,22 @@ exports.isLoggedIn = async (req, res, next) => {
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
-  }
+  try {
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    } else if (req.cookies.jwt) {
+      token = req.cookies.jwt;
+    }
 
-  if (!token) {
-    return next(new AppError("You are not logged in", 401));
+    if (!token) {
+      throw new AppError("You are not logged in", 401);
+    }
+  } catch (err) {
+    console.error("Synchronous error in protect:", err);
+    return next(err);
   }
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
@@ -454,15 +542,28 @@ exports.protect = catchAsync(async (req, res, next) => {
 exports.restrictTo =
   (...roles) =>
   (req, res, next) => {
-    if (!roles.includes(req.session.user.userRole)) {
-      return next(
-        new AppError("You do not have permission to perform this action", 403)
-      );
+    try {
+      if (!roles.includes(req.session.user.userRole)) {
+        throw new AppError(
+          "You do not have permission to perform this action",
+          403
+        );
+      }
+      next();
+    } catch (err) {
+      console.error("Synchronous error in restrictTo:", err);
+      next(err);
     }
-    next();
   };
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.email) throw new AppError("Email is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in forgotPassword:", err);
+    return next(err);
+  }
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -515,6 +616,17 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.passwordReset = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.resetToken)
+      throw new AppError("Reset token is required", 400);
+    if (!req.body.password) throw new AppError("Password is required", 400);
+    if (!req.body.passwordConfirm)
+      throw new AppError("Password confirmation is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in passwordReset:", err);
+    return next(err);
+  }
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -553,6 +665,19 @@ exports.passwordReset = catchAsync(async (req, res, next) => {
 });
 
 exports.updateMyPassword = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.userId) throw new AppError("User ID is required", 400);
+    if (!req.body.currentPassword)
+      throw new AppError("Current password is required", 400);
+    if (!req.body.newPassword)
+      throw new AppError("New password is required", 400);
+    if (!req.body.newPasswordConfirm)
+      throw new AppError("New password confirmation is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in updateMyPassword:", err);
+    return next(err);
+  }
+
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -599,108 +724,159 @@ exports.updateMyPassword = catchAsync(async (req, res, next) => {
 
 ## controllers/errorController.js
 
-*Size: 3086 bytes*
+*Size: 4759 bytes*
 
 ```js
-const AppError = require('../utils/appError');
+const AppError = require("../utils/appError");
 
 const handleCastErrorDB = (err) => {
-  const message = `Invalid ${err.path}: ${err.value}.`;
-  return new AppError(message, 400);
+  try {
+    const message = `Invalid ${err.path}: ${err.value}.`;
+    return new AppError(message, 400);
+  } catch (syncErr) {
+    console.error("Synchronous error in handleCastErrorDB:", syncErr);
+    return new AppError("Database cast error", 500);
+  }
 };
 
 const handleDuplicateFieldsDB = (err) => {
-  const duplicates = Object.values(err.keyValue);
-  const message = `Duplicate value - ${duplicates}. Please enter a different value`;
-  return new AppError(message, 400);
+  try {
+    const duplicates = Object.values(err.keyValue);
+    const message = `Duplicate value - ${duplicates}. Please enter a different value`;
+    return new AppError(message, 400);
+  } catch (syncErr) {
+    console.error("Synchronous error in handleDuplicateFieldsDB:", syncErr);
+    return new AppError("Database duplicate error", 500);
+  }
 };
 
 const handleValidationErrorDB = (err) => {
-  const errors = Object.values(err.errors).map((el) => el.message);
-  const message = `Invalid input data ${errors.join('. ')}`;
-  return new AppError(message, 400);
+  try {
+    const errors = Object.values(err.errors).map((el) => el.message);
+    const message = `Invalid input data ${errors.join(". ")}`;
+    return new AppError(message, 400);
+  } catch (syncErr) {
+    console.error("Synchronous error in handleValidationErrorDB:", syncErr);
+    return new AppError("Database validation error", 500);
+  }
 };
 
-const handleJWTError = () =>
-  new AppError('Invalid token. Please log in again', 401);
+const handleJWTError = () => {
+  try {
+    return new AppError("Invalid token. Please log in again", 401);
+  } catch (syncErr) {
+    console.error("Synchronous error in handleJWTError:", syncErr);
+    return new AppError("JWT error", 500);
+  }
+};
 
-const handleTokenExpiredError = () =>
-  new AppError('Your login has expired.', 401);
+const handleTokenExpiredError = () => {
+  try {
+    return new AppError("Your login has expired.", 401);
+  } catch (syncErr) {
+    console.error("Synchronous error in handleTokenExpiredError:", syncErr);
+    return new AppError("Token expired error", 500);
+  }
+};
 
 const sendErrorDev = (err, req, res) => {
-  // A) API
-  if (req.originalUrl.startsWith('/api')) {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      error: err,
-      message: err.message,
-      stack: err.stack,
+  try {
+    // A) API
+    if (req.originalUrl.startsWith("/api")) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        error: err,
+        message: err.message,
+        stack: err.stack,
+      });
+    }
+
+    // B) RENDERED WEBSITE
+    console.error("ERROR 💥", err);
+    return res.status(err.statusCode).render("error", {
+      title: "Something went wrong!",
+      msg: err.message,
+    });
+  } catch (syncErr) {
+    console.error("Synchronous error in sendErrorDev:", syncErr);
+    return res.status(500).render("error", {
+      title: "Something went wrong!",
+      msg: "Please try again later.",
     });
   }
-
-  // B) RENDERED WEBSITE
-  console.error('ERROR 💥', err);
-  return res.status(err.statusCode).render('error', {
-    title: 'Something went wrong!',
-    msg: err.message,
-  });
 };
 
 const sendErrorProd = (err, req, res) => {
-  // A) API
-  if (req.originalUrl.startsWith('/api')) {
+  try {
+    // A) API
+    if (req.originalUrl.startsWith("/api")) {
+      // A) Operational, trusted error: send message to client
+      if (err.isOperational) {
+        return res.status(err.statusCode).json({
+          status: err.status,
+          message: err.message,
+        });
+      }
+      // B) Programming or other unknown error: don't leak error details
+      // 1) Log error
+      console.error("ERROR 💥", err);
+      // 2) Send generic message
+      return res.status(500).json({
+        status: "error",
+        message: "Something went very wrong!",
+      });
+    }
+
+    // B) RENDERED WEBSITE
     // A) Operational, trusted error: send message to client
     if (err.isOperational) {
-      return res.status(err.statusCode).json({
-        status: err.status,
-        message: err.message,
+      return res.status(err.statusCode).render("error", {
+        title: "Something went wrong!",
+        msg: err.message,
       });
     }
     // B) Programming or other unknown error: don't leak error details
     // 1) Log error
-    console.error('ERROR 💥', err);
+    console.error("ERROR 💥", err);
     // 2) Send generic message
-    return res.status(500).json({
-      status: 'error',
-      message: 'Something went very wrong!',
+    return res.status(err.statusCode).render("error", {
+      title: "Something went wrong!",
+      msg: "Please try again later.",
+    });
+  } catch (syncErr) {
+    console.error("Synchronous error in sendErrorProd:", syncErr);
+    return res.status(500).render("error", {
+      title: "Something went wrong!",
+      msg: "Please try again later.",
     });
   }
-
-  // B) RENDERED WEBSITE
-  // A) Operational, trusted error: send message to client
-  if (err.isOperational) {
-    return res.status(err.statusCode).render('error', {
-      title: 'Something went wrong!',
-      msg: err.message,
-    });
-  }
-  // B) Programming or other unknown error: don't leak error details
-  // 1) Log error
-  console.error('ERROR 💥', err);
-  // 2) Send generic message
-  return res.status(err.statusCode).render('error', {
-    title: 'Something went wrong!',
-    msg: 'Please try again later.',
-  });
 };
 
 module.exports = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
+  try {
+    err.statusCode = err.statusCode || 500;
+    err.status = err.status || "error";
 
-  if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, req, res);
-  } else if (process.env.NODE_ENV === 'production') {
-    let error = { ...err };
-    error.message = err.message;
+    if (process.env.NODE_ENV === "development") {
+      sendErrorDev(err, req, res);
+    } else if (process.env.NODE_ENV === "production") {
+      let error = { ...err };
+      error.message = err.message;
 
-    if (err.name === 'CastError') error = handleCastErrorDB(error);
-    if (err.code === 11000) error = handleDuplicateFieldsDB(error);
-    if (err._message === 'Tour validation failed')
-      error = handleValidationErrorDB(error);
-    if (error.name === 'JsonWebTokenError') error = handleJWTError();
-    if (error.name === 'TokenExpiredError') error = handleTokenExpiredError();
-    sendErrorProd(error, req, res);
+      if (err.name === "CastError") error = handleCastErrorDB(error);
+      if (err.code === 11000) error = handleDuplicateFieldsDB(error);
+      if (err._message === "Tour validation failed")
+        error = handleValidationErrorDB(error);
+      if (error.name === "JsonWebTokenError") error = handleJWTError();
+      if (error.name === "TokenExpiredError") error = handleTokenExpiredError();
+      sendErrorProd(error, req, res);
+    }
+  } catch (syncErr) {
+    console.error("Synchronous error in errorController middleware:", syncErr);
+    res.status(500).render("error", {
+      title: "Something went wrong!",
+      msg: "Please try again later.",
+    });
   }
 };
 
@@ -708,7 +884,7 @@ module.exports = (err, req, res, next) => {
 
 ## controllers/eventController.js
 
-*Size: 13256 bytes*
+*Size: 19674 bytes*
 
 ```js
 const Event = require("../models/eventModel");
@@ -716,10 +892,18 @@ const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { sendWhatsAppMessage } = require("../utils/twilioClient");
-
-// --- Error Handling: Use catchAsync everywhere, log errors, fallback logic for middleware ---
+const ScheduleService = require("../services/scheduleService");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.eventId) {
+      throw new AppError("Event ID is required", 400);
+    }
+  } catch (err) {
+    console.error("Synchronous error in createBooking:", err);
+    return next(err);
+  }
+
   try {
     const event = await Event.findById(req.body.eventId);
 
@@ -727,7 +911,6 @@ exports.createBooking = catchAsync(async (req, res, next) => {
       return next(new AppError("No event found with that ID", 404));
     }
 
-    // Validation
     if (
       event.eventBookings.length ===
       event.eventNumOfPlayers + event.eventWaitListSize
@@ -736,7 +919,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
     }
 
     // Update event with booking
-    let newBookings = event.eventBookings;
+    let newBookings = [...event.eventBookings];
     let newBooking = {
       userId: req.session.user.userId,
       userName: req.session.user.userName,
@@ -760,7 +943,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
       return next(new AppError("Failed to update event schedule", 500));
     }
 
-    try {
+    /* try {
       await sendWhatsAppMessage(
         req.session.user.userMobile,
         `Your booking for event ${event.eventName} is confirmed!`
@@ -768,7 +951,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
     } catch (waErr) {
       // Log error but don't block booking creation
       console.error("WhatsApp message failed:", waErr);
-    }
+    } */
 
     res.status(200).json({
       status: "success",
@@ -781,6 +964,18 @@ exports.createBooking = catchAsync(async (req, res, next) => {
 });
 
 exports.cancelBooking = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.session.user || !req.session.user.userId) {
+      throw new AppError("User not authenticated", 401);
+    }
+    if (!req.body.eventId) {
+      throw new AppError("Event ID is required", 400);
+    }
+  } catch (err) {
+    console.error("Synchronous error in cancelBooking:", err);
+    return next(err);
+  }
+
   try {
     const userId = req.session.user.userId;
     const eventId = req.body.eventId;
@@ -820,7 +1015,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
       );
     }
 
-    try {
+    /*try {
       await sendWhatsAppMessage(
         req.session.user.userMobile,
         `Your booking for event ${event.eventName} has been cancelled.`
@@ -828,7 +1023,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     } catch (waErr) {
       // Log error but don't block cancellation
       console.error("WhatsApp message failed:", waErr);
-    }
+    } */
 
     res.status(200).json({
       status: "success",
@@ -841,103 +1036,164 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
   }
 });
 
-// --- Request Timeout: Add timeout middleware (should be in app.js, but shown here for reference) ---
 exports.eventTimeout = (req, res, next) => {
-  res.setTimeout(15000, () => {
-    console.warn(`Request timed out: ${req.originalUrl}`);
-    res.status(503).send("Request timed out");
-  });
-  next();
+  try {
+    res.setTimeout(15000, () => {
+      console.warn(`Request timed out: ${req.originalUrl}`);
+      res.status(503).send("Request timed out");
+    });
+    next();
+  } catch (err) {
+    console.error("Error in eventTimeout middleware:", err);
+    next(err);
+  }
 };
 
-// --- Atomic Operations: Use transactions for multi-step DB changes (example for booking/cancellation) ---
-// For simplicity, not using transactions here, but you can wrap multi-step DB changes in a session if needed.
-
 async function checkAndUpdateSchedule(eventId, next) {
-  const event = await Event.findById(eventId);
-  if (!event) return next(new AppError("No event found with that ID", 404));
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) return next(new AppError("No event found with that ID", 404));
 
-  let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
+    let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
 
-  if (event.eventBookings.length >= event.eventNumOfPlayers) {
-    const standOuts = generateStandOutsPubJs(
-      playerslist,
-      event.eventNumOfRounds,
-      event.numOfStandOutsPerRound
-    );
-    const availablePairings = generateAvailablePairingsPubJs(playerslist);
-    const schedule = generateSchedulePubJs(
-      availablePairings,
-      standOuts,
-      event.eventNumOfCourts,
-      event.eventNumOfPairings
-    );
-    await Event.findByIdAndUpdate(
-      eventId,
-      { $set: { rounds: schedule } },
-      { new: true, runValidators: false }
-    );
+    if (event.eventBookings.length >= event.eventNumOfPlayers) {
+      const standOuts = generateStandOutsPubJs(
+        playerslist,
+        event.eventNumOfRounds,
+        event.numOfStandOutsPerRound
+      );
+      const availablePairings = generateAvailablePairingsPubJs(playerslist);
+      const schedule = generateSchedulePubJs(
+        availablePairings,
+        standOuts,
+        event.eventNumOfCourts,
+        event.eventNumOfPairings
+      );
+      await Event.findByIdAndUpdate(
+        eventId,
+        { $set: { rounds: schedule } },
+        { new: true, runValidators: false }
+      );
+    }
+  } catch (err) {
+    console.error("Error in checkAndUpdateSchedule:", err);
+    next(err);
   }
 }
 
 function generateStandOutsPubJs(playersList, numOfRounds, numStandOuts) {
-  let roundsFilled = false;
-  let i = 0;
-  let startSlice = 0;
-  let playersLeft;
-  let standOutsPerRound = [];
+  // Calculate total rests needed
+  const totalRests = numOfRounds * numStandOuts;
+  const baseRests = Math.floor(totalRests / playersList.length);
+  const extraRests = totalRests % playersList.length;
 
-  do {
-    playersLeft = playersList.length - startSlice;
-
-    if (playersLeft <= numStandOuts) {
-      let playersFromNext = numStandOuts - playersLeft;
-      standOutsPerRound[i] = [].concat(
-        playersList.slice(-playersLeft),
-        playersList.slice(0, playersFromNext)
-      );
-      startSlice = playersFromNext;
-    } else {
-      standOutsPerRound[i] = playersList.slice(
-        startSlice,
-        startSlice + numStandOuts
-      );
-      startSlice += numStandOuts;
-    }
-    i === numOfRounds - 1 ? (roundsFilled = true) : i++;
-  } while (!roundsFilled);
-
-  return standOutsPerRound;
-}
-
-function generateAvailablePairingsPubJs(playersList) {
-  const DUMMY = -1;
-  let availablePairings = [];
-
-  if (!playersList) return -1;
-
-  if (playersList.length % 2 === 1) {
-    playersList.push({ userName: "DUMMY" });
+  // Assign rest counts per player
+  const restCounts = Array(playersList.length).fill(baseRests);
+  for (let i = 0; i < extraRests; i++) {
+    restCounts[i]++;
   }
 
-  for (let j = 0; j < playersList.length - 1; j += 1) {
-    for (let i = 0; i < playersList.length / 2; i += 1) {
-      const o = playersList.length - 1 - i;
+  // Track which rounds each player rests in
+  const playerRestRounds = Array(playersList.length)
+    .fill(0)
+    .map(() => []);
+
+  // For each round, pick the numStandOuts players who have the most remaining rests to assign,
+  // and who did NOT rest in the previous round
+  const restSchedule = Array(numOfRounds)
+    .fill(0)
+    .map(() => []);
+  for (let round = 0; round < numOfRounds; round++) {
+    // Build candidate list: players who still need rests, and didn't rest last round
+    let candidates = [];
+    for (let pIdx = 0; pIdx < playersList.length; pIdx++) {
       if (
-        playersList[i].userName !== "DUMMY" &&
-        playersList[o].userName !== "DUMMY" &&
-        playersList[o].userId !== playersList[i].userId
+        restCounts[pIdx] > 0 &&
+        (playerRestRounds[pIdx].length === 0 ||
+          playerRestRounds[pIdx][playerRestRounds[pIdx].length - 1] !==
+            round - 1)
       ) {
-        availablePairings.push({
-          playerA: playersList[o],
-          playerB: playersList[i],
-          pairingUsed: false,
-        });
+        candidates.push({ idx: pIdx, remaining: restCounts[pIdx] });
       }
     }
-    playersList.splice(1, 0, playersList.pop());
+    // Sort candidates by most remaining rests, then by least recent rest
+    candidates.sort((a, b) => b.remaining - a.remaining);
+
+    // Pick up to numStandOuts
+    for (let i = 0; i < numStandOuts && i < candidates.length; i++) {
+      const pIdx = candidates[i].idx;
+      restSchedule[round].push(playersList[pIdx]);
+      restCounts[pIdx]--;
+      playerRestRounds[pIdx].push(round);
+    }
   }
-  return availablePairings;
+
+  // If any rests remain unassigned, fill them in remaining rounds (fallback)
+  for (let pIdx = 0; pIdx < playersList.length; pIdx++) {
+    while (restCounts[pIdx] > 0) {
+      // Find a round where this player is not already resting and not consecutive
+      let found = false;
+      for (let round = 0; round < numOfRounds; round++) {
+        if (
+          !restSchedule[round].some(
+            (p) => p.userId === playersList[pIdx].userId
+          ) &&
+          (playerRestRounds[pIdx].length === 0 ||
+            !playerRestRounds[pIdx].includes(round - 1))
+        ) {
+          restSchedule[round].push(playersList[pIdx]);
+          restCounts[pIdx]--;
+          playerRestRounds[pIdx].push(round);
+          found = true;
+          break;
+        }
+      }
+      if (!found) break; // Can't assign without consecutive rests
+    }
+  }
+
+  // Ensure each round has at most numStandOuts
+  for (let round = 0; round < numOfRounds; round++) {
+    while (restSchedule[round].length > numStandOuts) {
+      restSchedule[round].pop();
+    }
+  }
+
+  return restSchedule;
+}
+function generateAvailablePairingsPubJs(playersList) {
+  try {
+    const DUMMY = -1;
+    let availablePairings = [];
+
+    if (!playersList) throw new AppError("Players list missing", 400);
+
+    if (playersList.length % 2 === 1) {
+      playersList.push({ userName: "DUMMY" });
+    }
+
+    for (let j = 0; j < playersList.length - 1; j += 1) {
+      for (let i = 0; i < playersList.length / 2; i += 1) {
+        const o = playersList.length - 1 - i;
+        if (
+          playersList[i].userName !== "DUMMY" &&
+          playersList[o].userName !== "DUMMY" &&
+          playersList[o].userId !== playersList[i].userId
+        ) {
+          availablePairings.push({
+            playerA: playersList[o],
+            playerB: playersList[i],
+            pairingUsed: false,
+          });
+        }
+      }
+      playersList.splice(1, 0, playersList.pop());
+    }
+    return availablePairings;
+  } catch (err) {
+    console.error("Error in generateAvailablePairingsPubJs:", err);
+    throw err;
+  }
 }
 
 function generateSchedulePubJs(
@@ -946,69 +1202,147 @@ function generateSchedulePubJs(
   numOfCourts,
   numOfPairings
 ) {
-  let schedule = [];
-  let teamA = {};
-  let teamB = {};
+  try {
+    let schedule = [];
 
-  for (let round = 0; round < standOuts.length; round++) {
-    schedule[round] = { matches: [], standOuts: [] };
-    schedule[round].standOuts = standOuts[round].map((player) => ({
-      userId: String(player.userId),
-      name: player.userName,
-    }));
-  }
+    // Initialize schedule rounds and standOuts
+    for (let round = 0; round < standOuts.length; round++) {
+      schedule[round] = { matches: [], standOuts: [] };
+      schedule[round].standOuts = standOuts[round].map((player) => ({
+        userId: String(player.userId),
+        name: player.userName,
+      }));
+    }
 
-  for (let i = 0; i < standOuts.length; i++) {
-    for (let k = 0; k < numOfCourts; k++) {
-      for (let x = 0; x < numOfPairings; x++) {
-        for (let j = 0; j < availablePairings.length; j++) {
-          if (
-            standOuts[i].find(
-              (element) =>
-                element.userId !== availablePairings[j].playerA.userId
-            ) &&
-            standOuts[i].find(
-              (element) =>
-                element.userId !== availablePairings[j].playerB.userId
-            ) &&
-            availablePairings[j].pairingUsed === false
-          ) {
-            availablePairings[j].pairingUsed = true;
-            if (x % 2 === 0) {
-              ((teamA.playerA = availablePairings[j].playerA),
-                (teamA.playerB = availablePairings[j].playerB));
-            } else {
-              ((teamB.playerA = availablePairings[j].playerA),
-                (teamB.playerB = availablePairings[j].playerB));
-            }
+    // For each round, only assign matches to players NOT in standOuts for that round
+    for (let i = 0; i < standOuts.length; i++) {
+      const restingIds = new Set(standOuts[i].map((p) => String(p.userId)));
+      let assignedPlayers = new Set();
+      let roundPairings = availablePairings.filter(
+        (pair) =>
+          !restingIds.has(String(pair.playerA.userId)) &&
+          !restingIds.has(String(pair.playerB.userId)) &&
+          pair.pairingUsed === false
+      );
+
+      let courtsAssigned = 0;
+
+      // For each court, find two pairings with four unique, unassigned players
+      for (let k = 0; k < numOfCourts; k++) {
+        let found = false;
+        for (let idxA = 0; idxA < roundPairings.length; idxA++) {
+          const pA1 = String(roundPairings[idxA].playerA.userId);
+          const pB1 = String(roundPairings[idxA].playerB.userId);
+          if (assignedPlayers.has(pA1) || assignedPlayers.has(pB1)) continue;
+          for (let idxB = idxA + 1; idxB < roundPairings.length; idxB++) {
+            const pA2 = String(roundPairings[idxB].playerA.userId);
+            const pB2 = String(roundPairings[idxB].playerB.userId);
+            if (
+              assignedPlayers.has(pA2) ||
+              assignedPlayers.has(pB2) ||
+              [pA1, pB1].includes(pA2) ||
+              [pA1, pB1].includes(pB2)
+            )
+              continue;
+
+            // Found two valid pairings for this court
+            roundPairings[idxA].pairingUsed = true;
+            roundPairings[idxB].pairingUsed = true;
+            assignedPlayers.add(pA1);
+            assignedPlayers.add(pB1);
+            assignedPlayers.add(pA2);
+            assignedPlayers.add(pB2);
+
+            let teamA = {
+              playerA: roundPairings[idxA].playerA,
+              playerB: roundPairings[idxA].playerB,
+            };
+            let teamB = {
+              playerA: roundPairings[idxB].playerA,
+              playerB: roundPairings[idxB].playerB,
+            };
+
+            let newMatch = {
+              teamA: [
+                { userId: teamA.playerA.userId, name: teamA.playerA.userName },
+                { userId: teamA.playerB.userId, name: teamA.playerB.userName },
+              ],
+              teamB: [
+                { userId: teamB.playerA.userId, name: teamB.playerA.userName },
+                { userId: teamB.playerB.userId, name: teamB.playerB.userName },
+              ],
+              court: k,
+            };
+            schedule[i].matches.push(newMatch);
+            found = true;
             break;
           }
+          if (found) break;
         }
       }
 
-      let newMatch = {
-        teamA: [
-          { userId: teamA.playerA.userId, name: teamA.playerA.userName },
-          { userId: teamA.playerB.userId, name: teamA.playerB.userName },
-        ],
-        teamB: [
-          { userId: teamB.playerA.userId, name: teamB.playerA.userName },
-          { userId: teamB.playerB.userId, name: teamB.playerB.userName },
-        ],
-        court: k,
-      };
-      schedule[i].matches.push(newMatch);
+      // --- FIX: Ensure all players are accounted for in this round ---
+      // Gather all assigned player IDs (playing or resting)
+      const allAssigned = new Set([
+        ...schedule[i].standOuts.map((p) => String(p.userId)),
+        ...schedule[i].matches.flatMap((m) => [
+          String(m.teamA[0].userId),
+          String(m.teamA[1].userId),
+          String(m.teamB[0].userId),
+          String(m.teamB[1].userId),
+        ]),
+      ]);
+
+      // Get all player IDs from availablePairings
+      const allPlayerIds = new Set(
+        availablePairings.flatMap((pair) => [
+          String(pair.playerA.userId),
+          String(pair.playerB.userId),
+        ])
+      );
+
+      // Add any missing players to standOuts for this round
+      for (const pid of allPlayerIds) {
+        if (!allAssigned.has(pid)) {
+          // Find player object from pairings
+          const playerObj =
+            availablePairings.find(
+              (pair) => String(pair.playerA.userId) === pid
+            )?.playerA ||
+            availablePairings.find(
+              (pair) => String(pair.playerB.userId) === pid
+            )?.playerB;
+          if (playerObj) {
+            schedule[i].standOuts.push({
+              userId: String(playerObj.userId),
+              name: playerObj.userName,
+            });
+          }
+        }
+      }
+      // --- END FIX ---
     }
+    return schedule;
+  } catch (err) {
+    console.error("Error in generateSchedulePubJs:", err);
+    throw err;
   }
-  return schedule;
 }
-
 exports.updateMatchScore = catchAsync(async (req, res, next) => {
-  const { eventId, roundIndex, matchIndex, teamAScore, teamBScore } = req.body;
-
-  if (isNaN(teamAScore) || isNaN(teamBScore)) {
-    return next(new AppError("Scores must be valid numbers", 400));
+  try {
+    if (!req.body.eventId) throw new AppError("Event ID is required", 400);
+    if (typeof req.body.roundIndex === "undefined")
+      throw new AppError("Round index is required", 400);
+    if (typeof req.body.matchIndex === "undefined")
+      throw new AppError("Match index is required", 400);
+    if (isNaN(req.body.teamAScore) || isNaN(req.body.teamBScore))
+      throw new AppError("Scores must be valid numbers", 400);
+  } catch (err) {
+    console.error("Synchronous error in updateMatchScore:", err);
+    return next(err);
   }
+
+  const { eventId, roundIndex, matchIndex, teamAScore, teamBScore } = req.body;
 
   const roundIdx = Number(roundIndex);
   const matchIdx = Number(matchIndex);
@@ -1043,6 +1377,14 @@ exports.updateMatchScore = catchAsync(async (req, res, next) => {
 });
 
 exports.createEvent = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.eventName) throw new AppError("Event name is required", 400);
+    if (!req.body.eventDate) throw new AppError("Event date is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in createEvent:", err);
+    return next(err);
+  }
+
   let activeValue = false;
   if (typeof req.body.active !== "undefined") {
     if (typeof req.body.active === "string") {
@@ -1078,6 +1420,13 @@ exports.createEvent = catchAsync(async (req, res, next) => {
 });
 
 exports.updateEvent = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.eventId) throw new AppError("Event ID is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in updateEvent:", err);
+    return next(err);
+  }
+
   let activeValue = undefined;
   if (typeof req.body.active !== "undefined") {
     if (typeof req.body.active === "string") {
@@ -1122,6 +1471,14 @@ exports.updateEvent = catchAsync(async (req, res, next) => {
 });
 
 exports.handleNoShow = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.body.eventId) throw new AppError("Event ID is required", 400);
+    if (!req.body.userId) throw new AppError("User ID is required", 400);
+  } catch (err) {
+    console.error("Synchronous error in handleNoShow:", err);
+    return next(err);
+  }
+
   const { eventId, userId } = req.body;
 
   const event = await Event.findById(eventId);
@@ -1159,7 +1516,7 @@ exports.deleteEvent = factory.deleteOne(Event);
 
 ## controllers/handlerFactory.js
 
-*Size: 4375 bytes*
+*Size: 5160 bytes*
 
 ```js
 const catchAsync = require("../utils/catchAsync");
@@ -1167,20 +1524,29 @@ const AppError = require("../utils/appError");
 const APIFeatures = require("../utils/apiFeatures");
 const mongoose = require("mongoose");
 
-// --- Request Timeout Middleware ---
 const requestTimeout = (req, res, next) => {
-  res.setTimeout(15000, () => {
-    console.warn(`Request timed out: ${req.originalUrl}`);
-    res.status(503).send("Request timed out");
-  });
-  next();
+  try {
+    res.setTimeout(15000, () => {
+      console.warn(`Request timed out: ${req.originalUrl}`);
+      res.status(503).send("Request timed out");
+    });
+    next();
+  } catch (err) {
+    console.error("Synchronous error in requestTimeout:", err);
+    next(err);
+  }
 };
-
-// --- Error Handling & Atomic Operations (Transactions) ---
 
 exports.deleteOne = (Model) => [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.params.id) throw new AppError("ID is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in deleteOne:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1212,6 +1578,13 @@ exports.deleteOne = (Model) => [
 exports.updateOne = (Model) => [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.params.id) throw new AppError("ID is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in updateOne:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1244,6 +1617,13 @@ exports.updateOne = (Model) => [
 exports.createOne = (Model) => [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.body) throw new AppError("Request body is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in createOne:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1273,6 +1653,13 @@ exports.createOne = (Model) => [
 exports.getOne = (Model, popOptions) => [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.params.id) throw new AppError("ID is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in getOne:", err);
+      return next(err);
+    }
+
     try {
       let query = Model.findById(req.params.id);
       if (popOptions) query = query.populate(popOptions);
@@ -1326,7 +1713,7 @@ exports.getAll = (Model) => [
 
 ## controllers/settingsController.js
 
-*Size: 3231 bytes*
+*Size: 3727 bytes*
 
 ```js
 const Settings = require("../models/settingsModel");
@@ -1334,20 +1721,29 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const mongoose = require("mongoose");
 
-// --- Request Timeout Middleware ---
 const requestTimeout = (req, res, next) => {
-  res.setTimeout(15000, () => {
-    console.warn(`Settings request timed out: ${req.originalUrl}`);
-    res.status(503).send("Request timed out");
-  });
-  next();
+  try {
+    res.setTimeout(15000, () => {
+      console.warn(`Settings request timed out: ${req.originalUrl}`);
+      res.status(503).send("Request timed out");
+    });
+    next();
+  } catch (err) {
+    console.error("Synchronous error in requestTimeout:", err);
+    next(err);
+  }
 };
-
-// --- Error Handling & Atomic Operations (Transactions) ---
 
 exports.getSystemSettings = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.session) throw new AppError("Session not available", 500);
+    } catch (err) {
+      console.error("Synchronous error in getSystemSettings:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1393,6 +1789,14 @@ exports.getSystemSettings = [
 exports.saveSettings = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.session) throw new AppError("Session not available", 500);
+      if (!req.body) throw new AppError("Request body is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in saveSettings:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1440,7 +1844,7 @@ exports.saveSettings = [
 
 ## controllers/userController.js
 
-*Size: 6443 bytes*
+*Size: 8676 bytes*
 
 ```js
 const User = require("../models/userModel");
@@ -1449,25 +1853,45 @@ const AppError = require("../utils/appError");
 const factory = require("./handlerFactory");
 const mongoose = require("mongoose");
 
-// --- Request Timeout Middleware ---
 const requestTimeout = (req, res, next) => {
-  res.setTimeout(15000, () => {
-    console.warn(`User request timed out: ${req.originalUrl}`);
-    res.status(503).send("Request timed out");
-  });
-  next();
+  try {
+    res.setTimeout(15000, () => {
+      console.warn(`User request timed out: ${req.originalUrl}`);
+      res.status(503).send("Request timed out");
+    });
+    next();
+  } catch (err) {
+    console.error("Synchronous error in requestTimeout:", err);
+    next(err);
+  }
 };
 
-// Compatible with userRoutes.js: use [requestTimeout, catchAsync(...)] for atomic ops
-
 exports.getMe = (req, res, next) => {
-  req.params.id = req.session.user.userId;
-  next();
+  try {
+    if (!req.session || !req.session.user || !req.session.user.userId) {
+      throw new AppError("Session user ID not available", 401);
+    }
+    req.params.id = req.session.user.userId;
+    next();
+  } catch (err) {
+    console.error("Synchronous error in getMe:", err);
+    next(err);
+  }
 };
 
 exports.updateAcDetails = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.body.userId) throw new AppError("User ID is required", 400);
+      if (!req.body.name) throw new AppError("Name is required", 400);
+      if (!req.body.email) throw new AppError("Email is required", 400);
+      if (!req.body.mobile) throw new AppError("Mobile is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in updateAcDetails:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1495,6 +1919,14 @@ exports.updateAcDetails = [
 exports.deleteMe = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.user || !req.user.id)
+        throw new AppError("User not authenticated", 401);
+    } catch (err) {
+      console.error("Synchronous error in deleteMe:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1517,6 +1949,18 @@ exports.deleteMe = [
 exports.createUser = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.body.name) throw new AppError("Name is required", 400);
+      if (!req.body.email) throw new AppError("Email is required", 400);
+      if (!req.body.mobile) throw new AppError("Mobile is required", 400);
+      if (!req.body.password) throw new AppError("Password is required", 400);
+      if (!req.body.passwordConfirm)
+        throw new AppError("Password confirmation is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in createUser:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1561,6 +2005,16 @@ exports.createUser = [
 exports.updateUser = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.params.id) throw new AppError("User ID param is required", 400);
+      if (!req.body.name) throw new AppError("Name is required", 400);
+      if (!req.body.email) throw new AppError("Email is required", 400);
+      if (!req.body.mobile) throw new AppError("Mobile is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in updateUser:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1614,6 +2068,13 @@ exports.updateUser = [
 exports.deleteUser = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.params.id) throw new AppError("User ID param is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in deleteUser:", err);
+      return next(err);
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -1643,6 +2104,13 @@ exports.deleteUser = [
 exports.getUser = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
+    try {
+      if (!req.params.id) throw new AppError("User ID param is required", 400);
+    } catch (err) {
+      console.error("Synchronous error in getUser:", err);
+      return next(err);
+    }
+
     try {
       const user = await User.findById(req.params.id);
       if (!user) {
@@ -1680,7 +2148,7 @@ exports.getAllUsers = [
 
 ## controllers/viewsController.js
 
-*Size: 19058 bytes*
+*Size: 20343 bytes*
 
 ```js
 const catchAsync = require("../utils/catchAsync");
@@ -1691,98 +2159,136 @@ const settings = require("../models/settingsModel");
 const paginate = require("../utils/paginate");
 const mongoose = require("mongoose");
 
-// --- Request Timeout Middleware ---
 const requestTimeout = (req, res, next) => {
-  res.setTimeout(15000, () => {
-    console.warn(`View request timed out: ${req.originalUrl}`);
-    res.status(503).send("Request timed out");
-  });
-  next();
+  try {
+    res.setTimeout(15000, () => {
+      console.warn(`View request timed out: ${req.originalUrl}`);
+      res.status(503).send("Request timed out");
+    });
+    next();
+  } catch (err) {
+    console.error("Synchronous error in requestTimeout:", err);
+    next(err);
+  }
 };
 
-// Display HOMEPAGE
 exports.getHomePage = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
-    res.status(200).render("homepage", {
-      title: "Pickle Admin !!!",
-      userRole: null,
-      showNav: false,
-    });
+    try {
+      res.status(200).render("homepage", {
+        title: "Pickle Admin !!!",
+        userRole: null,
+        showNav: false,
+      });
+    } catch (err) {
+      console.error("Synchronous error in getHomePage:", err);
+      next(err);
+    }
   }),
 ];
 
 // INDIVIDUAL USER FUNCTIONALITY
 exports.getLoginForm = [
   requestTimeout,
-  (req, res) => {
-    res.status(200).render("login", {
-      title: "log into your account",
-      userRole: null,
-      showNav: false,
-    });
+  (req, res, next) => {
+    try {
+      res.status(200).render("login", {
+        title: "log into your account",
+        userRole: null,
+        showNav: false,
+      });
+    } catch (err) {
+      console.error("Synchronous error in getLoginForm:", err);
+      next(err);
+    }
   },
 ];
 
 exports.getsignupForm = [
   requestTimeout,
-  (req, res) => {
-    res.status(200).render("signUp", {
-      title: "create your account",
-      userRole: null,
-      showNav: false,
-    });
+  (req, res, next) => {
+    try {
+      res.status(200).render("signUp", {
+        title: "create your account",
+        userRole: null,
+        showNav: false,
+      });
+    } catch (err) {
+      console.error("Synchronous error in getsignupForm:", err);
+      next(err);
+    }
   },
 ];
 
 exports.getMyAccountDetails = [
   requestTimeout,
-  (req, res) => {
-    res.status(200).render("myAccountDetails", {
-      title: "Your account",
-      userRole: req.session.user.userRole,
-      userName: req.session.user.userName,
-      showNav: true,
-    });
+  (req, res, next) => {
+    try {
+      res.status(200).render("myAccountDetails", {
+        title: "Your account",
+        userRole: req.session.user.userRole,
+        userName: req.session.user.userName,
+        showNav: true,
+      });
+    } catch (err) {
+      console.error("Synchronous error in getMyAccountDetails:", err);
+      next(err);
+    }
   },
 ];
 
 exports.myPasswordUpdate = [
   requestTimeout,
-  (req, res) => {
-    res.status(200).render("myPasswordUpdate", {
-      title: "Update Password",
-      userRole: req.session.user.userRole,
-      userName: req.session.user.userName,
-      showNav: true,
-    });
+  (req, res, next) => {
+    try {
+      res.status(200).render("myPasswordUpdate", {
+        title: "Update Password",
+        userRole: req.session.user.userRole,
+        userName: req.session.user.userName,
+        showNav: true,
+      });
+    } catch (err) {
+      console.error("Synchronous error in myPasswordUpdate:", err);
+      next(err);
+    }
   },
 ];
 
 exports.forgotPassword = [
   requestTimeout,
-  (req, res) => {
-    res.status(200).render("myPasswordForgot", {
-      title: "Forgot Password",
-      userRole: req.session.user.userRole,
-      showNav: false,
-    });
+  (req, res, next) => {
+    try {
+      res.status(200).render("myPasswordForgot", {
+        title: "Forgot Password",
+        userRole: req.session.user.userRole,
+        showNav: false,
+      });
+    } catch (err) {
+      console.error("Synchronous error in forgotPassword:", err);
+      next(err);
+    }
   },
 ];
 
 exports.myPasswordReset = [
   requestTimeout,
-  (req, res) => {
-    const resetToken = req.params.resetToken;
-    let data = {};
-    data.resetToken = resetToken;
-    res.status(200).render("myPasswordReset", {
-      title: "Reset Password",
-      data,
-      userRole: req.session.user.userRole,
-      userName: req.session.user.userName,
-      showNav: false,
-    });
+  (req, res, next) => {
+    try {
+      const resetToken = req.params.resetToken;
+      let data = {};
+      data.resetToken = resetToken;
+      res.status(200).render("myPasswordReset", {
+        title: "Reset Password",
+        data,
+        userRole: req.session.user.userRole,
+        userName: req.session.user.userName,
+        showNav: false,
+      });
+    } catch (err) {
+      console.error("Synchronous error in myPasswordReset:", err);
+      next(err);
+    }
   },
 ];
 
@@ -1836,13 +2342,18 @@ exports.showAllUsers = [
 
 exports.createUser = [
   requestTimeout,
-  (req, res) => {
-    res.status(200).render("createUser", {
-      title: "Create User",
-      userRole: req.session.user.userRole,
-      userName: req.session.user.userName,
-      showNav: true,
-    });
+  (req, res, next) => {
+    try {
+      res.status(200).render("createUser", {
+        title: "Create User",
+        userRole: req.session.user.userRole,
+        userName: req.session.user.userName,
+        showNav: true,
+      });
+    } catch (err) {
+      console.error("Synchronous error in createUser:", err);
+      next(err);
+    }
   },
 ];
 
@@ -1885,14 +2396,19 @@ exports.editUser = [
 // EVENTS FUNCTIONALITY
 exports.createEvent = [
   requestTimeout,
-  (req, res) => {
-    res.status(200).render("createEvent", {
-      title: "Events",
-      userRole: req.session.user.userRole,
-      userName: req.session.user.userName,
-      systemDefaults: req.session.systemDefaults,
-      showNav: true,
-    });
+  (req, res, next) => {
+    try {
+      res.status(200).render("createEvent", {
+        title: "Events",
+        userRole: req.session.user.userRole,
+        userName: req.session.user.userName,
+        systemDefaults: req.session.systemDefaults,
+        showNav: true,
+      });
+    } catch (err) {
+      console.error("Synchronous error in createEvent:", err);
+      next(err);
+    }
   },
 ];
 
@@ -2334,6 +2850,268 @@ exports.showNoShowForm = [
 
 ```
 
+## data/copyDb.js
+
+*Size: 1941 bytes*
+
+```js
+const { exec } = require("child_process");
+const readline = require("readline");
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../config.env") });
+
+const PROD_URI = process.env.PROD_DATABASE;
+const STAGE_URI = process.env.STAGE_DATABASE;
+const DEV_URI = process.env.DEV_DATABASE;
+const PROD_DB_NAME = process.env.PROD_DATABASE_NAME.replace(/"/g, "");
+const DUMP_PATH = path.resolve(__dirname, "../dump");
+
+function run(command) {
+  return new Promise((resolve, reject) => {
+    exec(command, (err, stdout, stderr) => {
+      if (err) return reject(stderr || err);
+      resolve(stdout);
+    });
+  });
+}
+
+async function copyDb(target) {
+  let targetUri;
+  let targetName;
+  if (target === "staging") {
+    targetUri = STAGE_URI;
+    targetName = "STAGE";
+  } else if (target === "dev") {
+    targetUri = DEV_URI;
+    targetName = "DEV";
+  } else {
+    console.error("Invalid target environment.");
+    return;
+  }
+
+  try {
+    console.log(`Dumping production database (${PROD_DB_NAME})...`);
+    await run(
+      `mongodump --uri="${PROD_URI}" --db=${PROD_DB_NAME} --out=${DUMP_PATH}`
+    );
+    console.log(`Restoring to ${targetName} database...`);
+    await run(
+      `mongorestore --uri="${targetUri}" --drop ${DUMP_PATH}/${PROD_DB_NAME}`
+    );
+    console.log(
+      `Copy complete! Production data copied to ${targetName} database.`
+    );
+  } catch (err) {
+    console.error("Error copying database:", err);
+  }
+}
+
+function promptEnvironment() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  rl.question("Copy production data to (staging/dev)? ", (answer) => {
+    const env = answer.trim().toLowerCase();
+    if (env === "staging" || env === "dev") {
+      copyDb(env).finally(() => rl.close());
+    } else {
+      console.log("Invalid input. Please enter 'staging' or 'dev'.");
+      rl.close();
+    }
+  });
+}
+
+promptEnvironment();
+
+```
+
+## dump/Pickle-Database/events.bson
+
+*Size: 15902 bytes*
+
+```bson
+�5  _id h�@Z� 7x�ueventName    Tuesday at St Olaf's eventLocation 
+   St Olaf's eventType    Text Event Type 	eventDate  4�O�  eventStartTime    19:25 eventOrganiser    Ger eventNumOfCourts    numOfStandOutsPerRound    eventNumOfRounds 	   eventWaitListSize    eventNumOfPairings    eventBookings   0 B   _id h�Z� 7x��userId hD��>�5�� userName 
+   testuser2  1 B   _id h�)Z� 7x��userId hD�,>�5��¤userName 
+   testuser3  2 B   _id h�JZ� 7x��userId hD��>�5��®userName 
+   testuser4  3 B   _id h�kZ� 7x��userId hD��>�5����userName 
+   testuser5  4 B   _id h�Z� 7x��userId hD��>�5��¸userName 
+   testuser7  5 B   _id h�Z� 7x�userId hD��>�5��½userName 
+   testuser8  6 B   _id h�EZ� 7x�)userId hD��>�5����userName 
+   testuser9  7 C   _id h��Z� 7x��userId hx�fu�8T�m\�userName    testuser12  8 C   _id h��Z� 7x��userId hxގu�8T�m]userName    testuser13  9 C   _id h�(Z� 7x��userId hx޶u�8T�m]userName    testuser14  10 C   _id h�aZ� 7x��userId hx��u�8T�m]userName    testuser15  11 C   _id h��Z� 7x�'userId hx��u�8T�m]userName    testuser16  12 C   _id h�\Z:薻wuserId h{��kp�KF�userName    testuser20  13 C   _id h��^1��nuserId h7]Wf���pJ]userName    testuser76  14 C   _id h�CT�+u ���userId hD�7>�5����userName    testuser11   eventNumOfPlayers    __v     active rounds 0  0 P  _id h�CT�+u ���matches +  0 _  teamAScore     teamBScore     _id h�CT�+u ���teamA �   0 ?   _id h�CT�+u ���userId hD�7>�5����name    testuser11  1 >   _id h�CT�+u ���userId hD�,>�5��¤name 
+   testuser3   teamB �   0 ?   _id h�CT�+u ���userId h7]Wf���pJ]name    testuser76  1 >   _id h�CT�+u ���userId hD��>�5��®name 
+   testuser4   court      1 _  teamAScore     teamBScore     _id h�CT�+u ���teamA �   0 ?   _id h�CT�+u ���userId h{��kp�KF�name    testuser20  1 >   _id h�CT�+u ���userId hD��>�5����name 
+   testuser5   teamB �   0 ?   _id h�CT�+u ���userId hx��u�8T�m]name    testuser16  1 >   _id h�CT�+u ���userId hD��>�5��¸name 
+   testuser7   court     2 _  teamAScore     teamBScore     _id h�CT�+u ���teamA �   0 ?   _id h�CT�+u ���userId hx��u�8T�m]name    testuser15  1 >   _id h�CT�+u ���userId hD��>�5��½name 
+   testuser8   teamB �   0 ?   _id h�CT�+u ���userId hx޶u�8T�m]name    testuser14  1 >   _id h�CT�+u ���userId hD��>�5����name 
+   testuser9   court      standOuts �   0 O   _id h�CT�+u ���userId    684484e13efd35198cbac2a0 name 
+   testuser2  1 O   _id h�CT�+u ���userId    6844852c3efd35198cbac2a4 name 
+   testuser3  2 O   _id h�CT�+u ���userId    684485873efd35198cbac2ae name 
+   testuser4    1 Q  _id h�CT�+u ���matches ,  0 `  teamAScore     teamBScore     _id h�CT�+u ���teamA �   0 ?   _id h�CT�+u ���userId hxގu�8T�m]name    testuser13  1 ?   _id h�CT�+u �� userId hx�fu�8T�m\�name    testuser12   teamB �   0 ?   _id h�CT�+u ��userId hD�7>�5����name    testuser11  1 >   _id h�CT�+u ��userId hD��>�5�� name 
+   testuser2   court      1 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId h{��kp�KF�name    testuser20  1 >   _id h�CT�+u ��userId hD�,>�5��¤name 
+   testuser3   teamB �   0 ?   _id h�CT�+u ��userId hx��u�8T�m]name    testuser16  1 >   _id h�CT�+u ��userId hD��>�5��®name 
+   testuser4   court     2 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��	userId hx��u�8T�m]name    testuser15  1 >   _id h�CT�+u ��
+userId hD��>�5����name 
+   testuser5   teamB �   0 ?   _id h�CT�+u ��userId hx޶u�8T�m]name    testuser14  1 >   _id h�CT�+u ��userId hD��>�5��¸name 
+   testuser7   court      standOuts �   0 O   _id h�CT�+u ��userId    684486893efd35198cbac2db name 
+   testuser5  1 O   _id h�CT�+u ��userId    684485c93efd35198cbac2b8 name 
+   testuser7  2 O   _id h�CT�+u ��userId    684485e53efd35198cbac2bd name 
+   testuser8    2 S  _id h�CT�+u ��matches ,  0 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId hxގu�8T�m]name    testuser13  1 >   _id h�CT�+u ��userId hD��>�5��½name 
+   testuser8   teamB �   0 ?   _id h�CT�+u ��userId hx�fu�8T�m\�name    testuser12  1 >   _id h�CT�+u ��userId hD��>�5����name 
+   testuser9   court      1 `  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId h7]Wf���pJ]name    testuser76  1 >   _id h�CT�+u ��userId hD��>�5�� name 
+   testuser2   teamB �   0 ?   _id h�CT�+u ��userId h{��kp�KF�name    testuser20  1 ?   _id h�CT�+u ��userId hD�7>�5����name    testuser11   court     2 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId hx��u�8T�m]name    testuser15  1 >   _id h�CT�+u ��userId hD�,>�5��¤name 
+   testuser3   teamB �   0 ?   _id h�CT�+u ��userId hx޶u�8T�m]name    testuser14  1 >   _id h�CT�+u ��userId hD��>�5��®name 
+   testuser4   court      standOuts �   0 O   _id h�CT�+u �� userId    684485fd3efd35198cbac2c2 name 
+   testuser9  1 P   _id h�CT�+u ��!userId    6878de6675ce3854a16d5cfb name    testuser12  2 P   _id h�CT�+u ��"userId    6878de8e75ce3854a16d5d05 name    testuser13    3 T  _id h�CT�+u ��#matches ,  0 _  teamAScore     teamBScore     _id h�CT�+u ��$teamA �   0 ?   _id h�CT�+u ��%userId hxގu�8T�m]name    testuser13  1 >   _id h�CT�+u ��&userId hD��>�5����name 
+   testuser5   teamB �   0 ?   _id h�CT�+u ��'userId hx�fu�8T�m\�name    testuser12  1 >   _id h�CT�+u ��(userId hD��>�5��¸name 
+   testuser7   court      1 ^  teamAScore     teamBScore     _id h�CT�+u ��)teamA �   0 >   _id h�CT�+u ��*userId hD��>�5����name 
+   testuser9  1 >   _id h�CT�+u ��+userId hD��>�5��½name 
+   testuser8   teamB �   0 ?   _id h�CT�+u ��,userId h{��kp�KF�name    testuser20  1 >   _id h�CT�+u ��-userId hD��>�5�� name 
+   testuser2   court     2 a  teamAScore     teamBScore     _id h�CT�+u ��.teamA �   0 ?   _id h�CT�+u ��/userId hx��u�8T�m]name    testuser16  1 ?   _id h�CT�+u ��0userId h7]Wf���pJ]name    testuser76   teamB �   0 ?   _id h�CT�+u ��1userId hx��u�8T�m]name    testuser15  1 ?   _id h�CT�+u ��2userId hD�7>�5����name    testuser11   court      standOuts �   0 P   _id h�CT�+u ��3userId    6878deb675ce3854a16d5d0b name    testuser14  1 P   _id h�CT�+u ��4userId    6878ded475ce3854a16d5d11 name    testuser15  2 P   _id h�CT�+u ��5userId    6878deef75ce3854a16d5d17 name    testuser16    4 R  _id h�CT�+u ��6matches *  0 _  teamAScore     teamBScore     _id h�CT�+u ��7teamA �   0 ?   _id h�CT�+u ��8userId hxގu�8T�m]name    testuser13  1 >   _id h�CT�+u ��9userId hD�,>�5��¤name 
+   testuser3   teamB �   0 ?   _id h�CT�+u ��:userId hx�fu�8T�m\�name    testuser12  1 >   _id h�CT�+u ��;userId hD��>�5��®name 
+   testuser4   court      1 ]  teamAScore     teamBScore     _id h�CT�+u ��<teamA �   0 >   _id h�CT�+u ��=userId hD��>�5����name 
+   testuser9  1 >   _id h�CT�+u ��>userId hD��>�5����name 
+   testuser5   teamB �   0 >   _id h�CT�+u ��?userId hD��>�5��½name 
+   testuser8  1 >   _id h�CT�+u ��@userId hD��>�5��¸name 
+   testuser7   court     2 `  teamAScore     teamBScore     _id h�CT�+u ��AteamA �   0 ?   _id h�CT�+u ��BuserId hx��u�8T�m]name    testuser16  1 >   _id h�CT�+u ��CuserId hD��>�5�� name 
+   testuser2   teamB �   0 ?   _id h�CT�+u ��DuserId hx��u�8T�m]name    testuser15  1 ?   _id h�CT�+u ��EuserId h{��kp�KF�name    testuser20   court      standOuts �   0 P   _id h�CT�+u ��FuserId    687ba7c66b70db16084b46a2 name    testuser20  1 P   _id h�CT�+u ��GuserId    68375d5766f0f087704a5d13 name    testuser76  2 P   _id h�CT�+u ��HuserId    684486373efd35198cbac2cc name    testuser11    5 O  _id h�CT�+u ��Imatches *  0 a  teamAScore     teamBScore     _id h�CT�+u ��JteamA �   0 ?   _id h�CT�+u ��KuserId hx޶u�8T�m]name    testuser14  1 ?   _id h�CT�+u ��LuserId h7]Wf���pJ]name    testuser76   teamB �   0 ?   _id h�CT�+u ��MuserId hxގu�8T�m]name    testuser13  1 ?   _id h�CT�+u ��NuserId hD�7>�5����name    testuser11   court      1 ]  teamAScore     teamBScore     _id h�CT�+u ��OteamA �   0 >   _id h�CT�+u ��PuserId hD��>�5����name 
+   testuser9  1 >   _id h�CT�+u ��QuserId hD�,>�5��¤name 
+   testuser3   teamB �   0 >   _id h�CT�+u ��RuserId hD��>�5��½name 
+   testuser8  1 >   _id h�CT�+u ��SuserId hD��>�5��®name 
+   testuser4   court     2 ^  teamAScore     teamBScore     _id h�CT�+u ��TteamA �   0 >   _id h�CT�+u ��UuserId hD��>�5��¸name 
+   testuser7  1 >   _id h�CT�+u ��VuserId hD��>�5����name 
+   testuser5   teamB �   0 ?   _id h�CT�+u ��WuserId hx��u�8T�m]name    testuser15  1 >   _id h�CT�+u ��XuserId hD��>�5�� name 
+   testuser2   court      standOuts �   0 O   _id h�CT�+u ��YuserId    684484e13efd35198cbac2a0 name 
+   testuser2  1 O   _id h�CT�+u ��ZuserId    6844852c3efd35198cbac2a4 name 
+   testuser3  2 O   _id h�CT�+u ��[userId    684485873efd35198cbac2ae name 
+   testuser4    6 Q  _id h�CT�+u ��\matches ,  0 a  teamAScore     teamBScore     _id h�CT�+u ��]teamA �   0 ?   _id h�CT�+u ��^userId hx޶u�8T�m]name    testuser14  1 ?   _id h�CT�+u ��_userId hx��u�8T�m]name    testuser16   teamB �   0 ?   _id h�CT�+u ��`userId hxގu�8T�m]name    testuser13  1 ?   _id h�CT�+u ��auserId h{��kp�KF�name    testuser20   court      1 `  teamAScore     teamBScore     _id h�CT�+u ��bteamA �   0 ?   _id h�CT�+u ��cuserId hx�fu�8T�m\�name    testuser12  1 ?   _id h�CT�+u ��duserId h7]Wf���pJ]name    testuser76   teamB �   0 >   _id h�CT�+u ��euserId hD��>�5����name 
+   testuser9  1 ?   _id h�CT�+u ��fuserId hD�7>�5����name    testuser11   court     2 ]  teamAScore     teamBScore     _id h�CT�+u ��gteamA �   0 >   _id h�CT�+u ��huserId hD��>�5��¸name 
+   testuser7  1 >   _id h�CT�+u ��iuserId hD�,>�5��¤name 
+   testuser3   teamB �   0 >   _id h�CT�+u ��juserId hD��>�5����name 
+   testuser5  1 >   _id h�CT�+u ��kuserId hD��>�5��®name 
+   testuser4   court      standOuts �   0 O   _id h�CT�+u ��luserId    684486893efd35198cbac2db name 
+   testuser5  1 O   _id h�CT�+u ��muserId    684485c93efd35198cbac2b8 name 
+   testuser7  2 O   _id h�CT�+u ��nuserId    684485e53efd35198cbac2bd name 
+   testuser8    7 T  _id h�CT�+u ��omatches -  0 `  teamAScore     teamBScore     _id h�CT�+u ��pteamA �   0 ?   _id h�CT�+u ��quserId hx޶u�8T�m]name    testuser14  1 >   _id h�CT�+u ��ruserId hD��>�5�� name 
+   testuser2   teamB �   0 ?   _id h�CT�+u ��suserId hxގu�8T�m]name    testuser13  1 ?   _id h�CT�+u ��tuserId hx��u�8T�m]name    testuser15   court      1 `  teamAScore     teamBScore     _id h�CT�+u ��uteamA �   0 ?   _id h�CT�+u ��vuserId hx�fu�8T�m\�name    testuser12  1 ?   _id h�CT�+u ��wuserId hx��u�8T�m]name    testuser16   teamB �   0 >   _id h�CT�+u ��xuserId hD��>�5����name 
+   testuser9  1 ?   _id h�CT�+u ��yuserId h{��kp�KF�name    testuser20   court     2 _  teamAScore     teamBScore     _id h�CT�+u ��zteamA �   0 >   _id h�CT�+u ��{userId hD��>�5��½name 
+   testuser8  1 ?   _id h�CT�+u ��|userId h7]Wf���pJ]name    testuser76   teamB �   0 >   _id h�CT�+u ��}userId hD��>�5��¸name 
+   testuser7  1 ?   _id h�CT�+u ��~userId hD�7>�5����name    testuser11   court      standOuts �   0 O   _id h�CT�+u ��userId    684485fd3efd35198cbac2c2 name 
+   testuser9  1 P   _id h�CT�+u ��userId    6878de6675ce3854a16d5cfb name    testuser12  2 P   _id h�CT�+u ��userId    6878de8e75ce3854a16d5d05 name    testuser13    8 S  _id h�CT�+u ��matches +  0 ^  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 >   _id h�CT�+u ��userId hD��>�5��®name 
+   testuser4  1 >   _id h�CT�+u ��userId hD�,>�5��¤name 
+   testuser3   teamB �   0 ?   _id h�CT�+u ��userId hxގu�8T�m]name    testuser13  1 >   _id h�CT�+u ��userId hD��>�5�� name 
+   testuser2   court      1 `  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId hx�fu�8T�m\�name    testuser12  1 ?   _id h�CT�+u ��userId hx޶u�8T�m]name    testuser14   teamB �   0 >   _id h�CT�+u ��userId hD��>�5����name 
+   testuser9  1 ?   _id h�CT�+u ��userId hx��u�8T�m]name    testuser15   court     2 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 >   _id h�CT�+u ��userId hD��>�5��½name 
+   testuser8  1 ?   _id h�CT�+u ��userId hx��u�8T�m]name    testuser16   teamB �   0 >   _id h�CT�+u ��userId hD��>�5��¸name 
+   testuser7  1 ?   _id h�CT�+u ��userId h{��kp�KF�name    testuser20   court      standOuts �   0 P   _id h�CT�+u ��userId    6878deb675ce3854a16d5d0b name    testuser14  1 P   _id h�CT�+u ��userId    6878ded475ce3854a16d5d11 name    testuser15  2 P   _id h�CT�+u ��userId    6878deef75ce3854a16d5d17 name    testuser16      �  _id h�}Z� 7x�{eventName    Thursday at St Olaf's eventLocation 
+   St Olaf's eventType    test event type 	eventDate  �kd�  eventStartTime    19:00 eventOrganiser    Ger eventNumOfCourts    numOfStandOutsPerRound    eventNumOfRounds 	   eventWaitListSize    eventNumOfPairings    eventBookings a  0 B   _id h�0Z� 7x��userId hD�,>�5��¤userName 
+   testuser3  1 B   _id h�lZ� 7x��userId hD��>�5����userName 
+   testuser5  2 C   _id h�pZ� 7x�ZuserId hD�>�5����userName    testuser10  3 C   _id h��Z� 7x��userId hx�fu�8T�m\�userName    testuser12  4 C   _id h��Z� 7x��userId h{�*��sA{�<userName    testuser17   rounds     eventNumOfPlayers    __v     active  5  _id h��Z� 7x��eventName    Sarturday Drills eventLocation    Drill Place eventType    test event type 	eventDate   _@�  eventStartTime    10:00 eventOrganiser    Ger 22 eventNumOfCourts    numOfStandOutsPerRound    eventNumOfRounds 	   eventWaitListSize    eventNumOfPairings    eventBookings �  0 B   _id h�Z� 7x��userId hD��>�5�� userName 
+   testuser2  1 B   _id h�OZ� 7x��userId hD��>�5��®userName 
+   testuser4  2 B   _id h�!Z� 7x�userId hD��>�5��½userName 
+   testuser8  3 B   _id h�OZ� 7x�9userId hD��>�5����userName 
+   testuser9  4 C   _id h��Z� 7x��userId hxގu�8T�m]userName    testuser13  5 C   _id h�,Z� 7x��userId hx޶u�8T�m]userName    testuser14  6 C   _id h�eZ� 7x�userId hx��u�8T�m]userName    testuser15  7 C   _id h��Z� 7x��userId hx��u�8T�m]userName    testuser16  8 C   _id h��Z� 7x�KuserId h{��kp�KF�userName    testuser18  9 C   _id h��S��FV���;userId hD�7>�5����userName    testuser11   rounds     eventNumOfPlayers    __v     active  �  _id h�y���<lr��active  eventName %   Tuesday at St Olaf's - Not active mm eventLocation    Dublin eventType    Social 	eventDate  �y��  eventStartTime    20:04 eventOrganiser    Ger eventNumOfCourts    numOfStandOutsPerRound    eventNumOfRounds 	   eventWaitListSize    eventNumOfPairings    eventBookings     rounds     eventNumOfPlayers    __v      
+```
+
+## dump/Pickle-Database/events.metadata.json
+
+*Size: 266 bytes*
+
+```json
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"slug":{"$numberInt":"1"}},"name":"slug_1","background":true}],"uuid":"c8c5797ba0d7437f8cc6150158483192","collectionName":"events","type":"collection"}
+```
+
+## dump/Pickle-Database/prelude.json
+
+*Size: 51 bytes*
+
+```json
+{"ServerVersion":"8.0.12","ToolVersion":"100.12.1"}
+```
+
+## dump/Pickle-Database/sessions.bson
+
+*Size: 1872 bytes*
+
+```bson
+�  _id !   nwEb5JwsVGSrEfu6WqDDZo3p3QoIlG-o 	expires 4���  session �  cookie r   originalMaxAge  �$
+partitioned 
+priority 	expires 4���  
+secure httpOnly 
+domain path    / 
+sameSite  user j   userId    684486373efd35198cbac2cc userName    testuser11 userRole    user userMobile  ��q�TB systemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore     �  _id !   F9GKoSQ4an8X1ZNuglpOXgvgOez9jerT 	expires ���  session �  cookie r   originalMaxAge  �$
+partitioned 
+priority 	expires ���  
+secure httpOnly 
+domain path    / 
+sameSite  user j   userId    684486373efd35198cbac2cc userName    testuser11 userRole    user userMobile  ��q�TB systemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore     �  _id !   LF65mqjbK-LlB_iLwbSCw3fNuDhJq9vz 	expires ��*�  session �  cookie r   originalMaxAge  �$
+partitioned 
+priority 	expires ��*�  
+secure httpOnly 
+domain path    / 
+sameSite  user r   userId    682f180f32ccbd78850a8bb7 userName    Club Admin 99 userRole 
+   clubAdmin userMobile   ��:0B systemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore     �  _id !   UJFZGSjp-nO_DPnBNKIyvvSXugdeZ8D2 	expires ���  session �  cookie r   originalMaxAge  �$
+partitioned 
+priority 	expires ���  
+secure httpOnly 
+domain path    / 
+sameSite  user j   userId    684486373efd35198cbac2cc userName    testuser11 userRole    user userMobile  ��q�TB systemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore     
+```
+
+## dump/Pickle-Database/sessions.metadata.json
+
+*Size: 296 bytes*
+
+```json
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"expires":{"$numberInt":"1"}},"name":"expires_1","expireAfterSeconds":{"$numberInt":"0"}}],"uuid":"7679231002214e978ad3b5122fc8ede9","collectionName":"sessions","type":"collection"}
+```
+
+## dump/Pickle-Database/settings.bson
+
+*Size: 176 bytes*
+
+```bson
+�   _id h���O Vf|wۭsystemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore    
+```
+
+## dump/Pickle-Database/settings.metadata.json
+
+*Size: 175 bytes*
+
+```json
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"6028de3724694ac38479cfbb38d73fea","collectionName":"settings","type":"collection"}
+```
+
+## dump/Pickle-Database/users.bson
+
+*Size: 5310 bytes*
+
+```bson
+G  _id h/2̽x�
+��role 
+   clubAdmin active name    Club Admin 99 email    clubadmin99@gmail.com mobile   ��:0Bpassword =   $2a$12$CUyq3garlwUuIoES627.Muxl7D3.CZVa8cOGLJabmRp5Kuu/Ca7mm __v     	passwordResetExpires .�J�  passwordResetToken A   9fad9b7675255ef7c6c6596f8bbe29c80ecc451ddcfed47e216b7c3479ad4ecb  �   _id h7]Wf���pJ]role    user active  name    testuser76 email    testuser76@gmail.com mobile 8VLpassword =   $2a$12$ZbIOd8fhwXGqPZ/Xg4sabOfW.NiEPuwyPcLn45nBT4ikZamOw9t1m __v      �   _id hD��>�5��role    user active name 
+   testuser1 email    testuser1@gmail.com mobile    password =   $2a$12$IPPk9YGC5/BKhuYhmIjCreAwZZ.i7543t9MUtkELdJayd44GwY/Nm __v      �   _id hD��>�5�� role    user active name 
+   testuser2 email    testuser2@gmail.com mobile    password =   $2a$12$CGOhWpq9LXZti7/1AyNMT.20m/I9hz2kS9ZJ8CwV/loa5C/RtHCuq __v      �   _id hD�,>�5��¤role    user active name 
+   testuser3 email    testuser3@gmail.com mobile    password =   $2a$12$As.Uo9loofsLJ61LHuyptO6jKeCDpGJj2O42Ow6LTpW0a9gigPLiC __v      �   _id hD��>�5��®role    user active name 
+   testuser4 email    testuser4@gmail.com mobile    password =   $2a$12$oDGSuNgDkjY6opFu8HFlB.F238xV4eAORLHDvZQdRDuEHaoi4FH96 __v      �   _id hD��>�5��³role    user active name 
+   testuser6 email    testuser6@gmail.com mobile    password =   $2a$12$MSVYVdkEGOYd5xpEyhO0Her8Y411c5DjGxw2IvoD1UVPqKSXmH.VS __v      �   _id hD��>�5��¸role    user active name 
+   testuser7 email    testuser7@gmail.com mobile    password =   $2a$12$UCxdeO4E7xJz6O/Z/ek98.YkOoqzayQCLBPyExfIyh7Ocpw5UtHNy __v      �   _id hD��>�5��½role    user active name 
+   testuser8 email    testuser8@gmail.com mobile    password =   $2a$12$f9vPOJDHlxkhVDYMICtpX.md5HrcAk56M6aHGN5S3Pr6aA10eUOU6 __v      �   _id hD��>�5����role    user active name 
+   testuser9 email    testuser9@gmail.com mobile 	   password =   $2a$12$Pf4TQcsB7u5yWCAShNwUTuIIL6Gxt7J4ko/UZCVYx5FhfPyNye.WC __v      �   _id hD�>�5����role    user active name    testuser10 email    testuser10@gmail.com mobile 
+   password =   $2a$12$eEl1ZXKrM4enWPIgvC7Ze.yZpcQ60JgFkuhF7mHA5qOY5aeOM925m __v      �   _id hD�7>�5����role    user active name    testuser11 email    testuser11@gmail.com mobile  ��q�TBpassword =   $2a$12$6XSMu.Ng9SPtsKCFiroAs.VvwiZsttRXPVSyaONGG4quqMnFmIvgi __v      �   _id hD��>�5����role    user active name 
+   testuser5 email    testuser5@gmail.com mobile    password =   $2a$12$.rxZ3XhbW8UNoP8gNBOrIOA840Zgo8qv5ZZdMRzQZYZ.CADKVnfqK __v      �   _id hx�fu�8T�m\�role    user active name    testuser12 email    testuser12@gmail.com mobile ��3password =   $2a$12$9rxvmpT3.l9iPJkkS8bPLOjwAZG9Tg1hjgd.4E5NuDADDnO9pMOKy __v      �   _id hxގu�8T�m]role    user active name    testuser13 email    testuser13@gmail.com mobile    password =   $2a$12$OwMIjxnzr5E4BvQRyxEG1.9oP4E23.W6.lpNZlDcrDnBQMMRFM4cq __v      �   _id hx޶u�8T�m]role    user active name    testuser14 email    testuser14@gmail.com mobile    password =   $2a$12$p2vawh3jSeZIlZgnfzaLeeuWCA28SqZ4IeGj/AgdZ8N6itZuwGEiW __v      �   _id hx��u�8T�m]role    user active name    testuser15 email    testuser15@gmail.com mobile    password =   $2a$12$6sxrFeA/FnA3sfBVobUuBejqw13TtDZJ2LTyqtk55tg/vepU2YT3a __v      �   _id hx��u�8T�m]role    user active name    testuser16 email    testuser16@gmail.com mobile    password =   $2a$12$afVbHqktnTeth47dFrMLoeHYYNvjD7cLthNX7nZCCYIo/BQyomZ8. __v      �   _id h{�*��sA{�<role    user active name    testuser17 email    testuser17@gmail.com mobile    password =   $2a$12$QEROcku7TATpNHU0O3q0/eULd/GsjAgOOzq8OUk3ly/.DUCTk2Jnq __v      �   _id h{��kp�KF�role    user active name    testuser18 email    testuser18@gmail.com mobile    password =   $2a$12$tNLuc.ZSJ28wB/Twv.8LMult.JcBKx0mfCC8sYbh8TgMMOQuuUcoO __v      �   _id h{��kp�KF�role    user active name    testuser19 email    testuser19@gmail.com mobile    password =   $2a$12$nHgsoOvppcrbKOXlJMpuzuSDkG1.ZtwIbBclqdRUF37oxIZR57YNe __v      �   _id h{��kp�KF�role    user active name    testuser20 email    testuser20@gmail.com mobile    password =   $2a$12$Q5Kq7PbuYgUHgR5QkEcFQOoSwmQ9rPkdMcePLTaEfh1dblSI7JAWy __v      �   _id h{��kp�KF�role    user active name    testuser21 email    testuser21@gmail.com mobile    password =   $2a$12$yJJImFwFZctxQt22kNcMSud11JyortfXPk0Ghm504IEeWl3tWfy3O __v      =  _id h}:��,�9��&role    user active  name    Gerard O'Hara email    gerohara99@gmail.com mobile N   password =   $2a$12$1xJavp/QWyCh57zvm7BdPOcii34AqvQedsXKnqvPNVlUg6yJJcTMy __v     	passwordResetExpires ���  passwordResetToken A   54c9ec7a8efeb914443490abe6e28af69d86408a8eee354a8bc12ebc05c261bb  �   _id h�<�.ٲ���role    user active name    testuser30 email    testuser30@gmail.com mobile    password =   $2a$12$v5rg8qDWm9.Vi88DiBZqFODAYtsTKQczHrFLhE9YedF9NfYNI5.Aq __v      �   _id h���d��Q��)role    user active name    testuser31 email    testuser31@gmail.com mobile    password =   $2a$12$gDxIdwAmpnow0cNkuQRvc.R.2EoKWkzd5K9HgOuzmU2UACak9XUay __v      
+```
+
+## dump/Pickle-Database/users.metadata.json
+
+*Size: 392 bytes*
+
+```json
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"email":{"$numberInt":"1"}},"name":"email_1","background":true,"unique":true},{"v":{"$numberInt":"2"},"key":{"mobile":{"$numberInt":"1"}},"name":"mobile_1","background":true,"unique":true}],"uuid":"754d86c70ad64b99986659b17900ba11","collectionName":"users","type":"collection"}
+```
+
 ## manifest.webmanifest
 
 *Size: 222 bytes*
@@ -2643,6 +3421,468 @@ userSchema.methods.createPasswordResetToken = function () {
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
+
+```
+
+## prototype/generateSchedule.js
+
+*Size: 7859 bytes*
+
+```js
+/**
+ * Generate a perfect schedule given only:
+ *   - number of courts
+ *   - number of rests per player
+ * The code calculates the ideal number of players and rounds to guarantee:
+ *   - unique partners every round
+ *   - each player rests the same number of times
+ *   - rests are evenly distributed
+ */
+
+function factorial(n) {
+  return n <= 1 ? 1 : n * factorial(n - 1);
+}
+
+// Helper: Calculate max rounds for unique partners
+function maxRoundsForUniquePartners(numPlayers, numCourts) {
+  const uniquePairs = (numPlayers * (numPlayers - 1)) / 2;
+  const matchesPerRound = numCourts;
+  const pairsPerRound = matchesPerRound * 2; // 2 pairs per match
+  return Math.floor(uniquePairs / pairsPerRound);
+}
+
+// Helper: Find ideal number of players and rounds for perfect schedule
+function findIdealConfig(numCourts, restsPerPlayer) {
+  // Try increasing player count until all requirements are met
+  for (let numPlayers = numCourts * 2 + 2; numPlayers < 100; numPlayers++) {
+    // Each round: numCourts matches × 4 players = numCourts * 4 players playing
+    // Resting per round: numPlayers - numCourts * 4
+    const playingPerRound = numCourts * 4;
+    const restingPerRound = numPlayers - playingPerRound;
+    if (restingPerRound <= 0) continue;
+
+    // Total rests needed: numPlayers * restsPerPlayer
+    // Total rounds needed: totalRests / restingPerRound
+    const totalRests = numPlayers * restsPerPlayer;
+    if (totalRests % restingPerRound !== 0) continue;
+    const numRounds = totalRests / restingPerRound;
+
+    // Check if unique partners possible
+    const maxRounds = maxRoundsForUniquePartners(numPlayers, numCourts);
+    if (numRounds <= maxRounds) {
+      return { numPlayers, numRounds, restingPerRound, playingPerRound };
+    }
+  }
+  throw new Error("No ideal configuration found for these inputs.");
+}
+
+// Generate dummy players
+function generateDummyPlayers(num) {
+  return Array.from({ length: num }, (_, i) => ({
+    userId: `user${i + 1}`,
+    userName: `Player${i + 1}`,
+  }));
+}
+
+// Assign rests evenly and spread out
+function assignRests(players, numRounds, restingPerRound) {
+  const totalRests = numRounds * restingPerRound;
+  const baseRests = Math.floor(totalRests / players.length);
+  const extraRests = totalRests % players.length;
+  const restCounts = Array(players.length).fill(baseRests);
+  for (let i = 0; i < extraRests; i++) restCounts[i]++;
+
+  const playerRestRounds = Array(players.length)
+    .fill(0)
+    .map(() => []);
+  const restSchedule = Array(numRounds)
+    .fill(0)
+    .map(() => []);
+
+  for (let round = 0; round < numRounds; round++) {
+    let candidates = [];
+    for (let pIdx = 0; pIdx < players.length; pIdx++) {
+      if (
+        restCounts[pIdx] > 0 &&
+        (playerRestRounds[pIdx].length === 0 ||
+          playerRestRounds[pIdx][playerRestRounds[pIdx].length - 1] !==
+            round - 1)
+      ) {
+        candidates.push({ idx: pIdx, remaining: restCounts[pIdx] });
+      }
+    }
+    candidates.sort((a, b) => b.remaining - a.remaining);
+    for (let i = 0; i < restingPerRound && i < candidates.length; i++) {
+      const pIdx = candidates[i].idx;
+      restSchedule[round].push(players[pIdx]);
+      restCounts[pIdx]--;
+      playerRestRounds[pIdx].push(round);
+    }
+  }
+
+  // Fallback for any unassigned rests
+  for (let pIdx = 0; pIdx < players.length; pIdx++) {
+    while (restCounts[pIdx] > 0) {
+      let found = false;
+      for (let round = 0; round < numRounds; round++) {
+        if (
+          !restSchedule[round].some((p) => p.userId === players[pIdx].userId) &&
+          (playerRestRounds[pIdx].length === 0 ||
+            !playerRestRounds[pIdx].includes(round - 1))
+        ) {
+          restSchedule[round].push(players[pIdx]);
+          restCounts[pIdx]--;
+          playerRestRounds[pIdx].push(round);
+          found = true;
+          break;
+        }
+      }
+      if (!found) break;
+    }
+  }
+
+  // Ensure each round has at most restingPerRound
+  for (let round = 0; round < numRounds; round++) {
+    while (restSchedule[round].length > restingPerRound) {
+      restSchedule[round].pop();
+    }
+  }
+
+  return restSchedule;
+}
+
+// Unique partner assignment for each round
+function buildUniquePartnerSchedule(
+  players,
+  numRounds,
+  restingPerRound,
+  numCourts
+) {
+  const restSchedule = assignRests(players, numRounds, restingPerRound);
+  const schedule = [];
+  const playerIds = players.map((p) => p.userId);
+
+  // Track previous partners for each player
+  const partnersHistory = {};
+  playerIds.forEach((pid) => (partnersHistory[pid] = new Set()));
+
+  for (let round = 0; round < numRounds; round++) {
+    const restingIds = new Set(restSchedule[round].map((p) => p.userId));
+    const playingPlayers = players.filter((p) => !restingIds.has(p.userId));
+    const available = [...playingPlayers.map((p) => p.userId)];
+    const matches = [];
+
+    // Greedy pairing for unique partners
+    while (available.length >= 4) {
+      available.sort(
+        (a, b) => partnersHistory[a].size - partnersHistory[b].size
+      );
+      const p1 = available[0];
+      let p2 = null;
+      for (let i = 1; i < available.length; i++) {
+        if (!partnersHistory[p1].has(available[i])) {
+          p2 = available[i];
+          break;
+        }
+      }
+      if (!p2) p2 = available[1];
+      available.splice(available.indexOf(p1), 1);
+      available.splice(available.indexOf(p2), 1);
+
+      available.sort(
+        (a, b) => partnersHistory[a].size - partnersHistory[b].size
+      );
+      const p3 = available[0];
+      let p4 = null;
+      for (let i = 1; i < available.length; i++) {
+        if (!partnersHistory[p3].has(available[i])) {
+          p4 = available[i];
+          break;
+        }
+      }
+      if (!p4) p4 = available[1];
+      available.splice(available.indexOf(p3), 1);
+      available.splice(available.indexOf(p4), 1);
+
+      partnersHistory[p1].add(p2);
+      partnersHistory[p2].add(p1);
+      partnersHistory[p3].add(p4);
+      partnersHistory[p4].add(p3);
+
+      matches.push({
+        teamA: [p1, p2],
+        teamB: [p3, p4],
+      });
+    }
+
+    schedule.push({
+      round: round + 1,
+      standOuts: restSchedule[round].map((p) => p.userName),
+      matches: matches.map((m, idx) => ({
+        court: idx % numCourts,
+        teamA: m.teamA.map(
+          (pid) => players.find((p) => p.userId === pid).userName
+        ),
+        teamB: m.teamB.map(
+          (pid) => players.find((p) => p.userId === pid).userName
+        ),
+      })),
+    });
+  }
+  return schedule;
+}
+
+// Main runner: accepts only number of courts and rests per player
+function main(numCourts, restsPerPlayer) {
+  try {
+    const config = findIdealConfig(numCourts, restsPerPlayer);
+    const { numPlayers, numRounds, restingPerRound, playingPerRound } = config;
+
+    console.log("\n=== Perfect Schedule Configuration ===");
+    console.log(`Courts: ${numCourts}`);
+    console.log(`Rests per player: ${restsPerPlayer}`);
+    console.log(`Total players: ${numPlayers}`);
+    console.log(`Rounds: ${numRounds}`);
+    console.log(`Players resting per round: ${restingPerRound}`);
+    console.log(`Players playing per round: ${playingPerRound}`);
+
+    const dummyPlayers = generateDummyPlayers(numPlayers);
+
+    const schedule = buildUniquePartnerSchedule(
+      dummyPlayers,
+      numRounds,
+      restingPerRound,
+      numCourts
+    );
+
+    schedule.forEach((round) => {
+      console.log(`\nRound ${round.round}:`);
+      console.log(`  Resting: ${round.standOuts.join(", ")}`);
+      round.matches.forEach((match, idx) => {
+        console.log(
+          `  Court ${match.court}: TeamA [${match.teamA.join(", ")}] vs TeamB [${match.teamB.join(", ")}]`
+        );
+      });
+    });
+  } catch (err) {
+    console.error("Error:", err.message);
+  }
+}
+
+// Example usage: change these values to test different configurations
+main(3, 2); // 3 courts, 2 rests per player
+
+```
+
+## prototype/scheduleCalculator.html
+
+*Size: 6980 bytes*
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pickle Event Schedule Calculator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2em;
+      }
+      label {
+        display: block;
+        margin-top: 1em;
+      }
+      input[type="number"] {
+        width: 60px;
+      }
+      .result {
+        margin-top: 2em;
+        padding: 1em;
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+      }
+      .error {
+        color: red;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Pickle Event Schedule Calculator</h2>
+    <form id="scheduleForm">
+      <label>
+        Number of courts:
+        <input type="number" id="numCourts" min="1" value="3" required />
+      </label>
+      <label>
+        Pairings per court:
+        <input type="number" id="numPairings" min="1" value="2" required />
+      </label>
+      <label>
+        Rest rounds per player (event):
+        <input type="number" id="restsPerPlayer" min="0" value="2" required />
+      </label>
+      <div id="roundsInputContainer" class="hidden">
+        <label>
+          Number of rounds:
+          <input type="number" id="numRounds" min="1" />
+        </label>
+      </div>
+      <button type="submit">Calculate</button>
+    </form>
+
+    <div class="result" id="result"></div>
+
+    <script>
+      let roundsEditable = false;
+
+      function maxUniquePartnerRounds(numPlayers) {
+        return numPlayers - 1;
+      }
+
+      function minRounds(numPlayers, numCourts, numPairings, restsPerPlayer) {
+        const playingPerRound = numCourts * numPairings * 2;
+        const restingPerRound = numPlayers - playingPerRound;
+        if (restingPerRound <= 0) return null;
+        const totalRests = numPlayers * restsPerPlayer;
+        if (totalRests % restingPerRound !== 0) return null;
+        return totalRests / restingPerRound;
+      }
+
+      function findTotalPlayers(numCourts, numPairings, restsPerPlayer) {
+        for (
+          let numPlayers = numCourts * numPairings * 2 + 2;
+          numPlayers < 100;
+          numPlayers++
+        ) {
+          const playingPerRound = numCourts * numPairings * 2;
+          const restingPerRound = numPlayers - playingPerRound;
+          if (restingPerRound <= 0) continue;
+          const totalRests = numPlayers * restsPerPlayer;
+          if (totalRests % restingPerRound !== 0) continue;
+          const minRoundsVal = totalRests / restingPerRound;
+          const maxRoundsVal = maxUniquePartnerRounds(numPlayers);
+          if (minRoundsVal <= maxRoundsVal) {
+            return numPlayers;
+          }
+        }
+        return null;
+      }
+
+      function restPlayUniformity(
+        numPlayers,
+        numRounds,
+        numCourts,
+        numPairings
+      ) {
+        const playingPerRound = numCourts * numPairings * 2;
+        const restingPerRound = numPlayers - playingPerRound;
+        if (restingPerRound < 0)
+          return {
+            restsPerPlayer: 0,
+            playsPerPlayer: 0,
+          };
+        const totalRests = numRounds * restingPerRound;
+        const restsPerPlayer = totalRests / numPlayers;
+        const playsPerPlayer = numRounds - restsPerPlayer;
+        return {
+          restsPerPlayer,
+          playsPerPlayer,
+        };
+      }
+
+      document
+        .getElementById("scheduleForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const numCourts = parseInt(
+            document.getElementById("numCourts").value,
+            10
+          );
+          const numPairings = parseInt(
+            document.getElementById("numPairings").value,
+            10
+          );
+          const restsPerPlayer = parseInt(
+            document.getElementById("restsPerPlayer").value,
+            10
+          );
+          const roundsInputContainer = document.getElementById(
+            "roundsInputContainer"
+          );
+          const numRoundsInput = document.getElementById("numRounds");
+          const resultDiv = document.getElementById("result");
+
+          // Find total players needed for perfect schedule
+          const totalPlayersNeeded = findTotalPlayers(
+            numCourts,
+            numPairings,
+            restsPerPlayer
+          );
+
+          // Calculate min/max rounds for unique partners
+          let minRoundsVal = null;
+          let maxRoundsVal = null;
+          if (totalPlayersNeeded) {
+            minRoundsVal = minRounds(
+              totalPlayersNeeded,
+              numCourts,
+              numPairings,
+              restsPerPlayer
+            );
+            maxRoundsVal = maxUniquePartnerRounds(totalPlayersNeeded);
+          }
+
+          let numRounds = minRoundsVal;
+          let warningMsg = "";
+
+          // If user has already edited rounds, use their value
+          if (roundsEditable && numRoundsInput.value) {
+            numRounds = parseInt(numRoundsInput.value, 10);
+            if (numRounds > maxRoundsVal) {
+              warningMsg = `<span class="error">Warning: With ${numRounds} rounds, some players will have to repeat partners. Maximum rounds for unique partners is ${maxRoundsVal}.</span><br>`;
+            }
+            if (minRoundsVal && numRounds < minRoundsVal) {
+              warningMsg += `<span class="error">Warning: With ${numRounds} rounds, not all players will have equal rest time. Minimum rounds for equal rest is ${minRoundsVal}.</span><br>`;
+            }
+            if (totalPlayersNeeded - numCourts * numPairings * 2 < 0) {
+              warningMsg += `<span class="error">Error: Too many players assigned to play per round. Increase number of players or reduce courts/pairings.</span><br>`;
+            }
+          }
+
+          // Calculate rest/play values for current rounds
+          const dist = restPlayUniformity(
+            totalPlayersNeeded || 0,
+            numRounds,
+            numCourts,
+            numPairings
+          );
+
+          resultDiv.innerHTML = `
+          ${warningMsg}
+          <strong>Schedule Summary:</strong><br>
+          <ul>
+            <li><strong>Number of rounds:</strong> ${numRounds !== null ? numRounds : "N/A"}</li>
+            <li><strong>Total players needed:</strong> ${totalPlayersNeeded !== null ? totalPlayersNeeded : "N/A"}</li>
+            <li><strong>Rests per player:</strong> ${dist.restsPerPlayer.toFixed(2)}</li>
+            <li><strong>Playing rounds per player:</strong> ${dist.playsPerPlayer.toFixed(2)}</li>
+          </ul>
+          <em>Adjust the values above and click "Calculate" to see the implications for your event configuration.</em>
+        `;
+
+          // After first calculation, show and enable rounds input for editing
+          if (!roundsEditable && minRoundsVal !== null) {
+            roundsEditable = true;
+            roundsInputContainer.classList.remove("hidden");
+            numRoundsInput.value = minRoundsVal;
+          }
+        });
+    </script>
+  </body>
+</html>
 
 ```
 
@@ -4396,7 +5636,7 @@ export const manageSystemSettingsApiAction = async (data) =>
 
 ## public/js/buttonDelegates.js
 
-*Size: 3443 bytes*
+*Size: 5842 bytes*
 
 ```js
 export function initButtonDelegates(deps) {
@@ -4407,6 +5647,37 @@ export function initButtonDelegates(deps) {
     eventCancelBookingApiAction,
     deleteEventApiAction,
   } = deps;
+
+  // Graceful Degradation: Check for missing dependencies
+  function safeApiCall(fn, ...args) {
+    if (typeof fn !== "function") {
+      alert("This action is currently unavailable.");
+      return Promise.reject(new Error("Missing dependency"));
+    }
+    return fn(...args);
+  }
+
+  // Network Reliability: Retry wrapper for transient errors
+  async function retryAsync(fn, args = [], retries = 2, delay = 500) {
+    let lastErr;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await fn(...args);
+      } catch (err) {
+        lastErr = err;
+        // Only retry for network errors (can be customized)
+        if (
+          err instanceof TypeError ||
+          (err.message && err.message.includes("Network"))
+        ) {
+          await new Promise((res) => setTimeout(res, delay));
+        } else {
+          break;
+        }
+      }
+    }
+    throw lastErr;
+  }
 
   function delegate(parent, selector, eventType, handler) {
     parent.addEventListener(eventType, (event) => {
@@ -4419,10 +5690,14 @@ export function initButtonDelegates(deps) {
 
   delegate(document.body, "a.logOutButton", "click", async (e, target) => {
     e.preventDefault();
+    target.disabled = true;
     try {
-      await logOutApiAction();
+      await retryAsync(() => safeApiCall(logOutApiAction), [], 2, 500);
     } catch (err) {
+      alert("Logout failed. Please try again.");
       console.error("Logout failed:", err);
+    } finally {
+      target.disabled = false;
     }
   });
 
@@ -4434,11 +5709,27 @@ export function initButtonDelegates(deps) {
     location.assign(`/users/get/${userId}`);
   });
 
-  delegate(document.body, "a.deleteUserButtons", "click", (e, target) => {
+  delegate(document.body, "a.deleteUserButtons", "click", async (e, target) => {
     e.preventDefault();
+    target.disabled = true;
     const userIdElem = target.parentElement.querySelector(".userId");
-    if (!userIdElem) return;
-    deleteUserApiAction(userIdElem.textContent);
+    if (!userIdElem) {
+      target.disabled = false;
+      return;
+    }
+    try {
+      await retryAsync(
+        () => safeApiCall(deleteUserApiAction, userIdElem.textContent),
+        [],
+        2,
+        500
+      );
+    } catch (err) {
+      alert("Delete user failed. Please try again.");
+      console.error("Delete user failed:", err);
+    } finally {
+      target.disabled = false;
+    }
   });
 
   delegate(document.body, "a.editEventButtons", "click", (e, target) => {
@@ -4448,21 +5739,54 @@ export function initButtonDelegates(deps) {
     location.assign(`/events/get/${eventIdElem.textContent}`);
   });
 
-  delegate(document.body, "a.deleteEventButtons", "click", (e, target) => {
-    e.preventDefault();
-    const eventIdElem = target.parentElement.querySelector(".eventId");
-    if (!eventIdElem) return;
-    deleteEventApiAction(eventIdElem.textContent);
-  });
+  delegate(
+    document.body,
+    "a.deleteEventButtons",
+    "click",
+    async (e, target) => {
+      e.preventDefault();
+      target.disabled = true;
+      const eventIdElem = target.parentElement.querySelector(".eventId");
+      if (!eventIdElem) {
+        target.disabled = false;
+        return;
+      }
+      try {
+        await retryAsync(
+          () => safeApiCall(deleteEventApiAction, eventIdElem.textContent),
+          [],
+          2,
+          500
+        );
+      } catch (err) {
+        alert("Delete event failed. Please try again.");
+        console.error("Delete event failed:", err);
+      } finally {
+        target.disabled = false;
+      }
+    }
+  );
 
   delegate(document.body, "a.bookEventButtons", "click", async (e, target) => {
     e.preventDefault();
+    target.disabled = true;
     const eventIdElem = target.parentElement.querySelector(".eventId");
-    if (!eventIdElem) return;
+    if (!eventIdElem) {
+      target.disabled = false;
+      return;
+    }
     try {
-      await eventCreateBookingApiAction(eventIdElem.textContent);
+      await retryAsync(
+        () => safeApiCall(eventCreateBookingApiAction, eventIdElem.textContent),
+        [],
+        2,
+        500
+      );
     } catch (err) {
+      alert("Booking failed. Please try again.");
       console.error("Create booking failed:", err);
+    } finally {
+      target.disabled = false;
     }
   });
 
@@ -4472,12 +5796,25 @@ export function initButtonDelegates(deps) {
     "click",
     async (e, target) => {
       e.preventDefault();
+      target.disabled = true;
       const eventIdElem = target.parentElement.querySelector(".eventId");
-      if (!eventIdElem) return;
+      if (!eventIdElem) {
+        target.disabled = false;
+        return;
+      }
       try {
-        await eventCancelBookingApiAction(eventIdElem.textContent);
+        await retryAsync(
+          () =>
+            safeApiCall(eventCancelBookingApiAction, eventIdElem.textContent),
+          [],
+          2,
+          500
+        );
       } catch (err) {
+        alert("Cancel booking failed. Please try again.");
         console.error("Cancel booking failed:", err);
+      } finally {
+        target.disabled = false;
       }
     }
   );
@@ -4513,234 +5850,236 @@ if (settingsToggle && settingsDropdown) {
 
 ## public/js/formListeners.js
 
-*Size: 11167 bytes*
+*Size: 9700 bytes*
 
 ```js
 export function initFormListeners(deps) {
-  const {
-    loginApiAction,
-    getSystemSettingsApiAction,
-    manageSystemSettingsApiAction,
-    signUpApiAction,
-    updateAcApiAction,
-    forgotPasswordApiAction,
-    resetPasswordApiAction,
-    createUserApiAction,
-    editUserApiAction,
-    createEventApiAction,
-    updateEventApiAction,
-    markNoShowApiAction,
-  } = deps;
-
-  const loginForm = document.getElementById("loginForm");
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!loginForm.checkValidity()) {
-        loginForm.reportValidity();
-        return;
-      }
-      try {
-        await loginApiAction(
-          document.getElementById("email").value,
-          document.getElementById("password").value
-        );
-        await getSystemSettingsApiAction();
-      } catch (err) {
-        console.error("Login failed:", err);
-      }
-    });
+  // Graceful Degradation: Check for missing dependencies
+  function depCheck(fn, name) {
+    if (typeof fn !== "function") {
+      return async () => {
+        showError(`Required API action "${name}" is not available.`);
+        throw new Error(`Missing dependency: ${name}`);
+      };
+    }
+    return fn;
   }
 
-  const saveSystemSettingsForm = document.getElementById(
-    "saveSystemSettingsForm"
+  // User-friendly error display
+  function showError(message) {
+    alert(message); // Replace with custom UI if desired
+  }
+
+  // Network Reliability: Retry wrapper for transient errors
+  async function retryAsync(fn, args = [], retries = 2, delay = 500) {
+    let lastErr;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        return await fn(...args);
+      } catch (err) {
+        lastErr = err;
+        // Only retry for network errors (can be customized)
+        if (
+          err instanceof TypeError ||
+          (err.message && err.message.includes("Network"))
+        ) {
+          await new Promise((res) => setTimeout(res, delay));
+        } else {
+          break;
+        }
+      }
+    }
+    throw lastErr;
+  }
+
+  // Dependency checks
+  const loginApiAction = depCheck(deps.loginApiAction, "loginApiAction");
+  const getSystemSettingsApiAction = depCheck(
+    deps.getSystemSettingsApiAction,
+    "getSystemSettingsApiAction"
   );
-  if (saveSystemSettingsForm) {
-    saveSystemSettingsForm.addEventListener("submit", async (e) => {
+  const manageSystemSettingsApiAction = depCheck(
+    deps.manageSystemSettingsApiAction,
+    "manageSystemSettingsApiAction"
+  );
+  const signUpApiAction = depCheck(deps.signUpApiAction, "signUpApiAction");
+  const updateAcApiAction = depCheck(
+    deps.updateAcApiAction,
+    "updateAcApiAction"
+  );
+  const forgotPasswordApiAction = depCheck(
+    deps.forgotPasswordApiAction,
+    "forgotPasswordApiAction"
+  );
+  const resetPasswordApiAction = depCheck(
+    deps.resetPasswordApiAction,
+    "resetPasswordApiAction"
+  );
+  const createUserApiAction = depCheck(
+    deps.createUserApiAction,
+    "createUserApiAction"
+  );
+  const editUserApiAction = depCheck(
+    deps.editUserApiAction,
+    "editUserApiAction"
+  );
+  const createEventApiAction = depCheck(
+    deps.createEventApiAction,
+    "createEventApiAction"
+  );
+  const updateEventApiAction = depCheck(
+    deps.updateEventApiAction,
+    "updateEventApiAction"
+  );
+  const markNoShowApiAction = depCheck(
+    deps.markNoShowApiAction,
+    "markNoShowApiAction"
+  );
+
+  function handleFormSubmit(form, asyncFn, getArgs = () => [], successCb) {
+    if (!form) return;
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!saveSystemSettingsForm.checkValidity()) {
-        saveSystemSettingsForm.reportValidity();
+      if (!form.checkValidity()) {
+        form.reportValidity();
         return;
       }
+      const submitBtn = form.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
       try {
-        await manageSystemSettingsApiAction({
-          systemDefaults: {
-            numOfStandOuts: document.getElementById("numOfStandOuts").value,
-            numOfRounds: document.getElementById("numOfRounds").value,
-            numOfCourts: document.getElementById("numOfCourts").value,
-            numOfPairingsPerCourt: document.getElementById(
-              "numOfPairingsPerCourt"
-            ).value,
-            waitListSize: document.getElementById("waitListSize").value,
-          },
-        });
+        await retryAsync(asyncFn, getArgs(), 2, 500);
+        if (typeof successCb === "function") successCb();
       } catch (err) {
-        console.error("Save system settings failed:", err);
+        console.error("Form submission failed:", err);
+        showError("An error occurred. Please try again.");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
   }
 
-  const signUpForm = document.getElementById("signUpForm");
-  if (signUpForm) {
-    signUpForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!signUpForm.checkValidity()) {
-        signUpForm.reportValidity();
-        return;
-      }
-      try {
-        await signUpApiAction(
-          document.getElementById("name").value,
-          document.getElementById("email").value,
-          document.getElementById("mobile").value,
-          document.getElementById("password").value,
-          document.getElementById("passwordConfirm").value
-        );
-      } catch (err) {
-        console.error("Sign Up failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("loginForm"),
+    async (...args) => {
+      await loginApiAction(...args);
+      await getSystemSettingsApiAction();
+    },
+    () => [
+      document.getElementById("email").value,
+      document.getElementById("password").value,
+    ]
+  );
 
-  const acDetailsForm = document.getElementById("acDetailsForm");
-  if (acDetailsForm) {
-    acDetailsForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!acDetailsForm.checkValidity()) {
-        acDetailsForm.reportValidity();
-        return;
-      }
-      try {
-        await updateAcApiAction(
-          {
-            name: document.getElementById("name").value,
-            email: document.getElementById("email").value,
-            mobile: document.getElementById("mobile").value,
-            userId: document.getElementById("userId").value,
-          },
-          "account"
-        );
-        location.assign("/events/browseNew");
-      } catch (err) {
-        console.error("Update account failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("saveSystemSettingsForm"),
+    manageSystemSettingsApiAction,
+    () => [
+      {
+        systemDefaults: {
+          numOfStandOuts: document.getElementById("numOfStandOuts").value,
+          numOfRounds: document.getElementById("numOfRounds").value,
+          numOfCourts: document.getElementById("numOfCourts").value,
+          numOfPairingsPerCourt: document.getElementById(
+            "numOfPairingsPerCourt"
+          ).value,
+          waitListSize: document.getElementById("waitListSize").value,
+        },
+      },
+    ]
+  );
 
-  const updatePasswordForm = document.getElementById("updatePasswordForm");
-  if (updatePasswordForm) {
-    updatePasswordForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!updatePasswordForm.checkValidity()) {
-        updatePasswordForm.reportValidity();
-        return;
-      }
-      try {
-        await updateAcApiAction(
-          {
-            currentPassword: document.getElementById("currentPassword").value,
-            newPassword: document.getElementById("newPassword").value,
-            newPasswordConfirm:
-              document.getElementById("newPasswordConfirm").value,
-            userId: document.getElementById("userId").textContent,
-          },
-          "password"
-        );
-        location.assign("/events/browseNew");
-      } catch (err) {
-        console.error("Update password failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("signUpForm"),
+    signUpApiAction,
+    () => [
+      document.getElementById("name").value,
+      document.getElementById("email").value,
+      document.getElementById("mobile").value,
+      document.getElementById("password").value,
+      document.getElementById("passwordConfirm").value,
+    ]
+  );
 
-  const forgotPasswordForm = document.getElementById("forgotPasswordForm");
-  if (forgotPasswordForm) {
-    forgotPasswordForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      try {
-        await forgotPasswordApiAction({
-          email: document.getElementById("email").value,
-        });
-      } catch (err) {
-        console.error("Forgot password failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("acDetailsForm"),
+    async (data) => {
+      await updateAcApiAction(data, "account");
+      location.assign("/events/browseNew");
+    },
+    () => [
+      {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        mobile: document.getElementById("mobile").value,
+        userId: document.getElementById("userId").value,
+      },
+    ]
+  );
 
-  const resetPasswordForm = document.getElementById("resetPasswordForm");
-  if (resetPasswordForm) {
-    resetPasswordForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!resetPasswordForm.checkValidity()) {
-        resetPasswordForm.reportValidity();
-        return;
-      }
-      try {
-        await resetPasswordApiAction({
-          password: document.getElementById("newPassword").value,
-          passwordConfirm: document.getElementById("newPasswordConfirm").value,
-          resetToken: document.getElementById("resetToken").textContent,
-        });
-      } catch (err) {
-        console.error("Reset password failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("updatePasswordForm"),
+    async (data) => {
+      await updateAcApiAction(data, "password");
+      location.assign("/events/browseNew");
+    },
+    () => [
+      {
+        currentPassword: document.getElementById("currentPassword").value,
+        newPassword: document.getElementById("newPassword").value,
+        newPasswordConfirm: document.getElementById("newPasswordConfirm").value,
+        userId: document.getElementById("userId").textContent,
+      },
+    ]
+  );
 
-  const createUserForm = document.getElementById("createUserForm");
-  if (createUserForm) {
-    createUserForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!createUserForm.checkValidity()) {
-        createUserForm.reportValidity();
-        return;
-      }
-      try {
-        await createUserApiAction(
-          document.getElementById("name").value,
-          document.getElementById("email").value,
-          document.getElementById("mobile").value,
-          document.getElementById("password").value,
-          document.getElementById("passwordConfirm").value,
-          document.getElementById("active").checked
-        );
-      } catch (err) {
-        console.error("Create user failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("forgotPasswordForm"),
+    forgotPasswordApiAction,
+    () => [{ email: document.getElementById("email").value }]
+  );
 
-  const editUserForm = document.getElementById("editUserForm");
-  if (editUserForm) {
-    editUserForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!editUserForm.checkValidity()) {
-        editUserForm.reportValidity();
-        return;
-      }
-      try {
-        await editUserApiAction(
-          document.getElementById("userId").value,
-          document.getElementById("name").value,
-          document.getElementById("email").value,
-          document.getElementById("mobile").value,
-          document.getElementById("active").checked
-        );
-      } catch (err) {
-        console.error("Edit user failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("resetPasswordForm"),
+    resetPasswordApiAction,
+    () => [
+      {
+        password: document.getElementById("newPassword").value,
+        passwordConfirm: document.getElementById("newPasswordConfirm").value,
+        resetToken: document.getElementById("resetToken").textContent,
+      },
+    ]
+  );
 
-  const createEventForm = document.getElementById("createEventForm");
-  if (createEventForm) {
-    createEventForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!createEventForm.checkValidity()) {
-        createEventForm.reportValidity();
-        return;
-      }
-      const data = {
+  handleFormSubmit(
+    document.getElementById("createUserForm"),
+    createUserApiAction,
+    () => [
+      document.getElementById("name").value,
+      document.getElementById("email").value,
+      document.getElementById("mobile").value,
+      document.getElementById("password").value,
+      document.getElementById("passwordConfirm").value,
+      document.getElementById("active").checked,
+    ]
+  );
+
+  handleFormSubmit(
+    document.getElementById("editUserForm"),
+    editUserApiAction,
+    () => [
+      document.getElementById("userId").value,
+      document.getElementById("name").value,
+      document.getElementById("email").value,
+      document.getElementById("mobile").value,
+      document.getElementById("active").checked,
+    ]
+  );
+
+  handleFormSubmit(
+    document.getElementById("createEventForm"),
+    createEventApiAction,
+    () => [
+      {
         eventName: document.getElementById("eventName").value,
         eventLocation: document.getElementById("eventLocation").value,
         eventType: document.getElementById("eventType").value,
@@ -4755,24 +6094,15 @@ export function initFormListeners(deps) {
         eventWaitListSize: document.getElementById("eventWaitListSize").value,
         eventNumOfPairings: document.getElementById("eventNumOfPairings").value,
         active: document.getElementById("active").checked,
-      };
-      try {
-        await createEventApiAction(data);
-      } catch (err) {
-        console.error("Event creation failed:", err);
-      }
-    });
-  }
+      },
+    ]
+  );
 
-  const saveEventForm = document.getElementById("saveEventForm");
-  if (saveEventForm) {
-    saveEventForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!saveEventForm.checkValidity()) {
-        saveEventForm.reportValidity();
-        return;
-      }
-      const data = {
+  handleFormSubmit(
+    document.getElementById("saveEventForm"),
+    updateEventApiAction,
+    () => [
+      {
         eventId: document.getElementById("eventId").value,
         eventName: document.getElementById("eventName").value,
         eventLocation: document.getElementById("eventLocation").value,
@@ -4788,50 +6118,33 @@ export function initFormListeners(deps) {
         eventWaitListSize: document.getElementById("eventWaitListSize").value,
         eventNumOfPairings: document.getElementById("eventNumOfPairings").value,
         active: document.getElementById("active").checked,
-      };
-      try {
-        await updateEventApiAction(data);
-      } catch (err) {
-        console.error("Event update failed:", err);
-      }
-    });
+      },
+    ]
+  );
 
-    const noShowForm = document.getElementById("noShowForm");
-    if (noShowForm) {
-      noShowForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!noShowForm.checkValidity()) {
-          noShowForm.reportValidity();
-          return;
-        }
-        const eventId = document.getElementById("eventId").value;
-        const userId = document.getElementById("userId").value;
-        try {
-          await markNoShowApiAction(eventId, userId);
-          // Optionally, reset the form or show a success message here
-        } catch (err) {
-          console.error("No show failed:", err);
-        }
-      });
-    }
-  }
+  // No Show Form
+  handleFormSubmit(
+    document.getElementById("noShowForm"),
+    async (eventId, userId) => {
+      await markNoShowApiAction(eventId, userId);
+    },
+    () => [
+      document.getElementById("eventId").value,
+      document.getElementById("userId").value,
+    ]
+  );
 
-  const saveFeaturesForm = document.getElementById("saveFeaturesForm");
-  if (saveFeaturesForm) {
-    saveFeaturesForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      // Checkbox value handling
-      const teamCanEditScore =
-        document.getElementById("teamCanEditScore").checked;
-      try {
-        await manageSystemSettingsApiAction({
-          features: { teamCanEditScore },
-        });
-      } catch (err) {
-        console.error("Save features failed:", err);
-      }
-    });
-  }
+  handleFormSubmit(
+    document.getElementById("saveFeaturesForm"),
+    manageSystemSettingsApiAction,
+    () => [
+      {
+        features: {
+          teamCanEditScore: document.getElementById("teamCanEditScore").checked,
+        },
+      },
+    ]
+  );
 
   document.addEventListener("DOMContentLoaded", function () {
     const toggle = document.getElementById("togglePassword");
@@ -4854,15 +6167,15 @@ export function initFormListeners(deps) {
 
 ## public/js/index.js
 
-*Size: 1915 bytes*
+*Size: 3596 bytes*
 
 ```js
-/* eslint-disable */
 import { initFormListeners } from "./formListeners";
 import { initButtonDelegates } from "./buttonDelegates";
 import { initScoreModal } from "./modal";
 import { initMobileNavToggle } from "./navToggle";
 import { initTabs } from "./tabs";
+import { initScheduleCalculator } from "./scheduleCalculator.js";
 import {
   createUserApiAction,
   editUserApiAction,
@@ -4884,10 +6197,23 @@ import {
   eventCancelBookingApiAction,
 } from "./apiActions";
 
+// Dependency check helper
+function validateDeps(deps, requiredKeys, context) {
+  let missing = [];
+  requiredKeys.forEach((key) => {
+    if (typeof deps[key] !== "function") {
+      missing.push(key);
+    }
+  });
+  if (missing.length) {
+    console.warn(`Missing dependencies for ${context}: ${missing.join(", ")}`);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   try {
     // Forms
-    initFormListeners({
+    const formDeps = {
       createUserApiAction,
       editUserApiAction,
       deleteUserApiAction,
@@ -4904,9 +6230,41 @@ document.addEventListener("DOMContentLoaded", () => {
       getSystemSettingsApiAction,
       manageSystemSettingsApiAction,
       markNoShowApiAction,
-    });
+      eventCreateBookingApiAction,
+      eventCancelBookingApiAction,
+    };
+    validateDeps(
+      formDeps,
+      [
+        "createUserApiAction",
+        "editUserApiAction",
+        "deleteUserApiAction",
+        "createEventApiAction",
+        "updateEventApiAction",
+        "deleteEventApiAction",
+        "eventUpdateMatchScoreApiAction",
+        "loginApiAction",
+        "logOutApiAction",
+        "signUpApiAction",
+        "updateAcApiAction",
+        "forgotPasswordApiAction",
+        "resetPasswordApiAction",
+        "getSystemSettingsApiAction",
+        "manageSystemSettingsApiAction",
+        "markNoShowApiAction",
+        "eventCreateBookingApiAction",
+        "eventCancelBookingApiAction",
+      ],
+      "initFormListeners"
+    );
+    initFormListeners(formDeps);
 
     // Score modal
+    if (typeof eventUpdateMatchScoreApiAction !== "function") {
+      console.warn(
+        "Missing dependency for initScoreModal: eventUpdateMatchScoreApiAction"
+      );
+    }
     initScoreModal(eventUpdateMatchScoreApiAction);
 
     // Mobile nav toggle
@@ -4916,14 +6274,28 @@ document.addEventListener("DOMContentLoaded", () => {
     initTabs();
 
     // Button and link event delegation
-    initButtonDelegates({
+    const buttonDeps = {
       logOutApiAction,
       deleteUserApiAction,
       eventCreateBookingApiAction,
       eventCancelBookingApiAction,
       deleteEventApiAction,
       markNoShowApiAction,
-    });
+    };
+    validateDeps(
+      buttonDeps,
+      [
+        "logOutApiAction",
+        "deleteUserApiAction",
+        "eventCreateBookingApiAction",
+        "eventCancelBookingApiAction",
+        "deleteEventApiAction",
+        "markNoShowApiAction",
+      ],
+      "initButtonDelegates"
+    );
+    initButtonDelegates(buttonDeps);
+    initScheduleCalculator();
 
     console.log("App initialized successfully.");
   } catch (err) {
@@ -4936,7 +6308,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 ## public/js/modal.js
 
-*Size: 1909 bytes*
+*Size: 2298 bytes*
 
 ```js
 export function initScoreModal(eventUpdateMatchScorePubJs) {
@@ -4944,6 +6316,11 @@ export function initScoreModal(eventUpdateMatchScorePubJs) {
   const scoreForm = document.getElementById("scoreForm");
   const closeButton = modal ? modal.querySelector(".close") : null;
   const scoreButtons = document.querySelectorAll(".score-button");
+
+  // Helper to show user-friendly error
+  function showError(message) {
+    alert(message); // Replace with custom UI if desired
+  }
 
   if (scoreButtons && modal) {
     scoreButtons.forEach((btn) => {
@@ -4976,6 +6353,8 @@ export function initScoreModal(eventUpdateMatchScorePubJs) {
   if (scoreForm) {
     scoreForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const submitBtn = scoreForm.querySelector("button[type='submit']");
+      if (submitBtn) submitBtn.disabled = true;
       try {
         await eventUpdateMatchScorePubJs(
           document.getElementById("roundIndex").value,
@@ -4987,6 +6366,9 @@ export function initScoreModal(eventUpdateMatchScorePubJs) {
         modal.style.display = "none";
       } catch (err) {
         console.error("Update match score failed:", err);
+        showError("Failed to update score. Please try again.");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
       }
     });
   }
@@ -4996,7 +6378,7 @@ export function initScoreModal(eventUpdateMatchScorePubJs) {
 
 ## public/js/navToggle.js
 
-*Size: 714 bytes*
+*Size: 1070 bytes*
 
 ```js
 export function initMobileNavToggle() {
@@ -5005,10 +6387,26 @@ export function initMobileNavToggle() {
   const iconMenu = document.querySelector(".icon-menu");
   const iconClose = document.querySelector(".icon-close");
 
-  if (mobileNavToggle && mobileDrawer) {
-    mobileNavToggle.addEventListener("click", () => {
-      mobileDrawer.classList.toggle("open");
-      // Toggle icons
+  // Error handling for missing DOM elements
+  if (!mobileNavToggle) {
+    console.warn("Mobile nav toggle button not found.");
+    return;
+  }
+  if (!mobileDrawer) {
+    console.warn("Mobile drawer element not found.");
+    return;
+  }
+  if (!iconMenu) {
+    console.warn("Menu icon not found.");
+  }
+  if (!iconClose) {
+    console.warn("Close icon not found.");
+  }
+
+  mobileNavToggle.addEventListener("click", () => {
+    mobileDrawer.classList.toggle("open");
+    // Toggle icons
+    if (iconMenu && iconClose) {
       if (mobileDrawer.classList.contains("open")) {
         iconMenu.style.display = "none";
         iconClose.style.display = "inline";
@@ -5016,75 +6414,281 @@ export function initMobileNavToggle() {
         iconMenu.style.display = "inline";
         iconClose.style.display = "none";
       }
-    });
+    }
+  });
+}
+
+```
+
+## public/js/scheduleCalculator.js
+
+*Size: 4969 bytes*
+
+```js
+let roundsEditable = false;
+
+// Calculation helpers
+export function maxUniquePartnerRounds(numPlayers) {
+  return numPlayers - 1;
+}
+
+export function minRounds(numPlayers, numCourts, numPairings, restsPerPlayer) {
+  const playingPerRound = numCourts * numPairings * 2;
+  const restingPerRound = numPlayers - playingPerRound;
+  if (restingPerRound <= 0) return null;
+  const totalRests = numPlayers * restsPerPlayer;
+  if (totalRests % restingPerRound !== 0) return null;
+  return totalRests / restingPerRound;
+}
+
+export function findTotalPlayers(numCourts, numPairings, restsPerPlayer) {
+  for (
+    let numPlayers = numCourts * numPairings * 2 + 2;
+    numPlayers < 100;
+    numPlayers++
+  ) {
+    const playingPerRound = numCourts * numPairings * 2;
+    const restingPerRound = numPlayers - playingPerRound;
+    if (restingPerRound <= 0) continue;
+    const totalRests = numPlayers * restsPerPlayer;
+    if (totalRests % restingPerRound !== 0) continue;
+    const minRoundsVal = totalRests / restingPerRound;
+    const maxRoundsVal = maxUniquePartnerRounds(numPlayers);
+    if (minRoundsVal <= maxRoundsVal) {
+      return numPlayers;
+    }
   }
+  return null;
+}
+
+export function restPlayUniformity(
+  numPlayers,
+  numRounds,
+  numCourts,
+  numPairings
+) {
+  const playingPerRound = numCourts * numPairings * 2;
+  const restingPerRound = numPlayers - playingPerRound;
+  if (restingPerRound < 0)
+    return {
+      restsPerPlayer: 0,
+      playsPerPlayer: 0,
+    };
+  const totalRests = numRounds * restingPerRound;
+  const restsPerPlayer = totalRests / numPlayers;
+  const playsPerPlayer = numRounds - restsPerPlayer;
+  return {
+    restsPerPlayer,
+    playsPerPlayer,
+  };
+}
+
+// Main initialization function
+export function initScheduleCalculator() {
+  const scheduleForm = document.getElementById("scheduleForm");
+  if (!scheduleForm) return;
+
+  scheduleForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const numCourts = parseInt(document.getElementById("numCourts").value, 10);
+    const numPairings = parseInt(
+      document.getElementById("numPairings").value,
+      10
+    );
+    const restsPerPlayer = parseInt(
+      document.getElementById("restsPerPlayer").value,
+      10
+    );
+    const roundsInputContainer = document.getElementById(
+      "roundsInputContainer"
+    );
+    const numRoundsInput = document.getElementById("numRounds");
+    const resultDiv = document.getElementById("result");
+
+    // Find total players needed for perfect schedule
+    const totalPlayersNeeded = findTotalPlayers(
+      numCourts,
+      numPairings,
+      restsPerPlayer
+    );
+
+    // Calculate min/max rounds for unique partners
+    let minRoundsVal = null;
+    let maxRoundsVal = null;
+    if (totalPlayersNeeded) {
+      minRoundsVal = minRounds(
+        totalPlayersNeeded,
+        numCourts,
+        numPairings,
+        restsPerPlayer
+      );
+      maxRoundsVal = maxUniquePartnerRounds(totalPlayersNeeded);
+    }
+
+    let numRounds = minRoundsVal;
+    let warningMsg = "";
+
+    // If user has already edited rounds, use their value
+    if (roundsEditable && numRoundsInput.value) {
+      numRounds = parseInt(numRoundsInput.value, 10);
+      if (numRounds > maxRoundsVal) {
+        warningMsg = `<span class="error">Warning: With ${numRounds} rounds, some players will have to repeat partners. Maximum rounds for unique partners is ${maxRoundsVal}.</span><br>`;
+      }
+      if (minRoundsVal && numRounds < minRoundsVal) {
+        warningMsg += `<span class="error">Warning: With ${numRounds} rounds, not all players will have equal rest time. Minimum rounds for equal rest is ${minRoundsVal}.</span><br>`;
+      }
+      if (totalPlayersNeeded - numCourts * numPairings * 2 < 0) {
+        warningMsg += `<span class="error">Error: Too many players assigned to play per round. Increase number of players or reduce courts/pairings.</span><br>`;
+      }
+    }
+
+    // Calculate rest/play values for current rounds
+    const dist = restPlayUniformity(
+      totalPlayersNeeded || 0,
+      numRounds,
+      numCourts,
+      numPairings
+    );
+
+    resultDiv.innerHTML = `
+      ${warningMsg}
+      <strong>Schedule Summary:</strong><br>
+      <ul>
+        <li><strong>Number of rounds:</strong> ${numRounds !== null ? numRounds : "N/A"}</li>
+        <li><strong>Total players needed:</strong> ${totalPlayersNeeded !== null ? totalPlayersNeeded : "N/A"}</li>
+        <li><strong>Rests per player:</strong> ${dist.restsPerPlayer.toFixed(2)}</li>
+        <li><strong>Playing rounds per player:</strong> ${dist.playsPerPlayer.toFixed(2)}</li>
+      </ul>
+      <em>Adjust the values above and click "Calculate" to see the implications for your event configuration.</em>
+    `;
+
+    // After first calculation, show and enable rounds input for editing
+    if (!roundsEditable && minRoundsVal !== null) {
+      roundsEditable = true;
+      roundsInputContainer.classList.remove("hidden");
+      numRoundsInput.value = minRoundsVal;
+    }
+  });
 }
 
 ```
 
 ## public/js/tabs.js
 
-*Size: 639 bytes*
+*Size: 864 bytes*
 
 ```js
 export function initTabs() {
   const tabs = document.querySelectorAll(".tab");
   const tabContents = document.querySelectorAll(".tab-content");
-  if (tabs.length && tabContents.length) {
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", function () {
-        tabs.forEach((t) => t.classList.remove("active"));
-        tab.classList.add("active");
-        tabContents.forEach((tc) => tc.classList.remove("active"));
-        const targetId = tab.getAttribute("data-tab");
-        const targetContent = document.getElementById(targetId);
-        if (targetContent) targetContent.classList.add("active");
-      });
-    });
+
+  if (!tabs.length) {
+    console.warn("No tab elements found.");
+    return;
   }
+  if (!tabContents.length) {
+    console.warn("No tab-content elements found.");
+    return;
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", function () {
+      tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      tabContents.forEach((tc) => tc.classList.remove("active"));
+      const targetId = tab.getAttribute("data-tab");
+      const targetContent = document.getElementById(targetId);
+      if (!targetContent) {
+        console.warn(`Tab content element with id "${targetId}" not found.`);
+        return;
+      }
+      targetContent.classList.add("active");
+    });
+  });
 }
 
 ```
 
 ## routes/eventRoutes.js
 
-*Size: 1201 bytes*
+*Size: 2289 bytes*
 
 ```js
 const express = require("express");
+const { body } = require("express-validator");
 const eventController = require("../controllers/eventController");
 const authController = require("../controllers/authController");
 
 const router = express.Router();
 
-/// User functions
+// Input validation for critical event fields
+const validateEventFields = [
+  body("eventName").notEmpty().withMessage("Event name is required"),
+  body("eventDate").notEmpty().withMessage("Event date is required"),
+];
+
+const validateBookingFields = [
+  body("eventId").notEmpty().withMessage("Event ID is required"),
+];
+
+const validateCancelBookingFields = [
+  body("eventId").notEmpty().withMessage("Event ID is required"),
+];
+
+const validateNoShowFields = [
+  body("eventId").notEmpty().withMessage("Event ID is required"),
+  body("userId").notEmpty().withMessage("User ID is required"),
+];
+
+// User functions
 router
   .route("/updateMatchScore")
-  .patch(authController.protect, eventController.updateMatchScore);
+  .patch(
+    eventController.eventTimeout,
+    authController.protect,
+    eventController.updateMatchScore
+  );
 
-router.route("/booking/create/").patch(eventController.createBooking);
+router
+  .route("/booking/create/")
+  .patch(
+    eventController.eventTimeout,
+    validateBookingFields,
+    eventController.createBooking
+  );
 
-router.route("/booking/cancel/").patch(eventController.cancelBooking);
+router
+  .route("/booking/cancel/")
+  .patch(
+    eventController.eventTimeout,
+    validateCancelBookingFields,
+    eventController.cancelBooking
+  );
 
 // Admin functions
 router
   .route("/")
-  .get(eventController.getAllEvents)
+  .get(eventController.eventTimeout, eventController.getAllEvents)
   .post(
+    eventController.eventTimeout,
     authController.protect,
     authController.restrictTo("clubAdmin", "pickleAdmin"),
+    validateEventFields,
     eventController.createEvent
   );
 
 router
   .route("/:id")
-  .get(eventController.getEvent)
+  .get(eventController.eventTimeout, eventController.getEvent)
   .patch(
+    eventController.eventTimeout,
     authController.protect,
     authController.restrictTo("clubAdmin", "pickleAdmin"),
+    validateEventFields,
     eventController.updateEvent
   )
   .delete(
+    eventController.eventTimeout,
     authController.protect,
     authController.restrictTo("clubAdmin", "pickleAdmin"),
     eventController.deleteEvent
@@ -5092,29 +6696,43 @@ router
 
 router.post(
   "/noShow",
+  eventController.eventTimeout,
   authController.protect,
   authController.restrictTo("clubAdmin", "pickleAdmin"),
+  validateNoShowFields,
   eventController.handleNoShow
 );
 
-// ...existing code...
 module.exports = router;
 
 ```
 
 ## routes/settingsRoutes.js
 
-*Size: 502 bytes*
+*Size: 870 bytes*
 
 ```js
 const express = require("express");
+const { body } = require("express-validator");
 const authController = require("../controllers/authController");
 const settingsController = require("../controllers/settingsController");
 
 const router = express.Router();
 
+// Input validation for settings update
+const validateSettingsFields = [
+  body("systemDefaults")
+    .optional()
+    .isObject()
+    .withMessage("systemDefaults must be an object"),
+  body("features")
+    .optional()
+    .isObject()
+    .withMessage("features must be an object"),
+];
+
 // User functions
-router.route("/get").get(settingsController.getSystemSettings);
+router.route("/get").get(...settingsController.getSystemSettings);
 
 // Admin functions
 router
@@ -5122,7 +6740,8 @@ router
   .patch(
     authController.protect,
     authController.restrictTo("clubAdmin", "pickleAdmin"),
-    settingsController.saveSettings
+    ...settingsController.saveSettings,
+    validateSettingsFields
   );
 
 module.exports = router;
@@ -5131,21 +6750,30 @@ module.exports = router;
 
 ## routes/userRoutes.js
 
-*Size: 1458 bytes*
+*Size: 1956 bytes*
 
 ```js
 const express = require("express");
+const { body } = require("express-validator");
 const userController = require("../controllers/userController");
 const authController = require("../controllers/authController");
 
 const router = express.Router();
 
+// Input validation for critical user fields
+const validateUserFields = [
+  body("name").notEmpty().withMessage("Name is required"),
+  body("email").isEmail().withMessage("Valid email is required"),
+  body("mobile").notEmpty().withMessage("Mobile is required"),
+];
+
+// --- Auth routes ---
 router.post("/signup", authController.signup);
 router.post("/create", authController.create);
 router.post("/login", authController.login);
 router.get("/logout", authController.logout);
 
-router.post("/forgotPassword", authController.forgotPassword); // route to send email with reset link
+router.post("/forgotPassword", authController.forgotPassword);
 router.patch("/passwordReset", authController.passwordReset);
 
 router.patch(
@@ -5154,36 +6782,46 @@ router.patch(
   authController.updateMyPassword
 );
 
+// --- Protect all subsequent routes ---
 router.use(authController.protect);
 
-router.get("/me", userController.getMe, userController.getUser);
-router.patch("/updateAcDetails", userController.updateAcDetails);
-router.delete("/deleteMe", userController.deleteMe);
+// --- User routes with requestTimeout and validation ---
+router.get("/me", userController.getMe, ...userController.getUser);
+
+router.patch(
+  "/updateAcDetails",
+  ...userController.updateAcDetails,
+  validateUserFields
+);
+
+router.delete("/deleteMe", ...userController.deleteMe);
 
 router
   .route("/")
   .get(
     authController.restrictTo("clubAdmin", "pickleAdmin"),
-    userController.getAllUsers
+    ...userController.getAllUsers
   )
   .post(
     authController.restrictTo("clubAdmin", "pickleAdmin"),
-    userController.createUser
+    ...userController.createUser,
+    validateUserFields
   );
 
 router
   .route("/:id")
   .get(
     authController.restrictTo("clubAdmin", "pickleAdmin"),
-    userController.getUser
+    ...userController.getUser
   )
   .patch(
     authController.restrictTo("clubAdmin", "pickleAdmin"),
-    userController.updateUser
+    ...userController.updateUser,
+    validateUserFields
   )
   .delete(
     authController.restrictTo("clubAdmin", "pickleAdmin"),
-    userController.deleteUser
+    ...userController.deleteUser
   );
 
 module.exports = router;
@@ -5192,7 +6830,7 @@ module.exports = router;
 
 ## routes/viewRoutes.js
 
-*Size: 2240 bytes*
+*Size: 2319 bytes*
 
 ```js
 const path = require("path");
@@ -5202,103 +6840,111 @@ const authController = require("../controllers/authController");
 
 const router = express.Router();
 
-//Homepage
-router.get("/", viewsController.getHomePage);
+// Homepage
+router.get("/", ...viewsController.getHomePage);
 
-//Indivdiual users
-router.get("/me/login", viewsController.getLoginForm);
-router.get("/me/signup", viewsController.getsignupForm);
+// Individual users
+router.get("/me/login", ...viewsController.getLoginForm);
+router.get("/me/signup", ...viewsController.getsignupForm);
 router.get(
   "/me/myAccountDetails",
   authController.protect,
-  viewsController.getMyAccountDetails
+  ...viewsController.getMyAccountDetails
 );
 
 router.get(
   "/me/myPasswordUpdate",
   authController.protect,
-  viewsController.myPasswordUpdate
+  ...viewsController.myPasswordUpdate
 );
 
-router.get("/me/forgotPassword", viewsController.forgotPassword);
+router.get("/me/forgotPassword", ...viewsController.forgotPassword);
 
-router.get("/me/myPasswordReset/:resetToken", viewsController.myPasswordReset);
+router.get(
+  "/me/myPasswordReset/:resetToken",
+  ...viewsController.myPasswordReset
+);
 
-//Admin user functionality
+// Admin user functionality
 router.get(
   "/users/showAll",
   authController.isLoggedIn,
-  viewsController.showAllUsers
+  ...viewsController.showAllUsers
 );
 
-router.get("/users/create", authController.protect, viewsController.createUser);
+router.get(
+  "/users/create",
+  authController.protect,
+  ...viewsController.createUser
+);
 
 router.get(
   "/users/get/:id",
   authController.isLoggedIn,
-  viewsController.editUser
+  ...viewsController.editUser
 );
 
-//Events
+// Events
 router.get(
   "/events/showAll",
   authController.isLoggedIn,
-  viewsController.showAllEvents
+  ...viewsController.showAllEvents
 );
 
 router.get(
   "/events/showAllSchedules",
   authController.isLoggedIn,
-  viewsController.showAllSchedules
+  ...viewsController.showAllSchedules
 );
 
 router.get(
   "/events/viewMasterSchedule/:id",
   authController.isLoggedIn,
-  viewsController.viewMasterSchedule
+  ...viewsController.viewMasterSchedule
 );
 
 router.get(
   "/events/browseNew",
   authController.isLoggedIn,
-  viewsController.browseNewEvents
+  ...viewsController.browseNewEvents
 );
 
 router.get(
   "/events/myBrowse",
   authController.isLoggedIn,
-  viewsController.browseMyEvents
+  ...viewsController.browseMyEvents
 );
 
 router.get(
   "/events/create",
   authController.protect,
-  viewsController.createEvent
+  ...viewsController.createEvent
 );
+
 router.get(
   "/events/get/:id",
   authController.isLoggedIn,
-  viewsController.editEvent
+  ...viewsController.editEvent
 );
 
 router.get(
   "/events/viewMySchedule/:id",
   authController.isLoggedIn,
-  viewsController.viewMySchedule
+  ...viewsController.viewMySchedule
 );
 
 router.get(
   "/settings/get",
   authController.isLoggedIn,
   authController.restrictTo("clubAdmin", "pickleAdmin"),
-  viewsController.getSettings
+  ...viewsController.getSettings
 );
 
 router.get(
   "/events/noShowForm",
   authController.protect,
   authController.restrictTo("clubAdmin", "pickleAdmin"),
-  viewsController.showNoShowForm
+  ...viewsController.showNoShowForm
 );
 
 module.exports = router;
@@ -5371,83 +7017,758 @@ process.on("unhandledRejection", (err) => {
 
 ```
 
+## services/scheduleService.js
+
+*Size: 13526 bytes*
+
+```js
+const AppError = require("../utils/appError");
+
+/**
+ * Helper to distribute rest periods as evenly and spread out as possible
+ */
+function distributeRests(players, numRounds, numResting) {
+  const restSchedule = {};
+  const totalRests = numRounds * numResting;
+  const baseRests = Math.floor(totalRests / players.length);
+  const extraRests = totalRests % players.length;
+
+  players.forEach((p, i) => {
+    restSchedule[p.userId] = [];
+    const numPlayerRests = baseRests + (i < extraRests ? 1 : 0);
+    for (let r = 0; r < numPlayerRests; r++) {
+      const roundIdx =
+        Math.round(((r + 1) * numRounds) / (numPlayerRests + 1)) - 1;
+      restSchedule[p.userId].push(roundIdx);
+    }
+  });
+  return restSchedule;
+}
+
+/**
+ * Backtracking pairing algorithm to avoid repeat partnerships
+ */
+function generateRoundMatchesBT(activePlayers, numCourts, usedPairs) {
+  const matches = [];
+  const n = activePlayers.length;
+  const maxMatches = Math.min(numCourts, Math.floor(n / 4));
+
+  function backtrack(startIdx, currMatches, currUsedPlayers, currUsedPairs) {
+    if (currMatches.length === maxMatches) {
+      return currMatches;
+    }
+    for (let i = 0; i < n - 3; i++) {
+      if (currUsedPlayers.has(i)) continue;
+      for (let j = i + 1; j < n - 2; j++) {
+        if (currUsedPlayers.has(j)) continue;
+        for (let k = j + 1; k < n - 1; k++) {
+          if (currUsedPlayers.has(k)) continue;
+          for (let l = k + 1; l < n; l++) {
+            if (currUsedPlayers.has(l)) continue;
+            const combos = [
+              [
+                [i, j],
+                [k, l],
+              ],
+              [
+                [i, k],
+                [j, l],
+              ],
+              [
+                [i, l],
+                [j, k],
+              ],
+            ];
+            for (const [teamAIdx, teamBIdx] of combos) {
+              const teamA = [
+                activePlayers[teamAIdx[0]],
+                activePlayers[teamAIdx[1]],
+              ];
+              const teamB = [
+                activePlayers[teamBIdx[0]],
+                activePlayers[teamBIdx[1]],
+              ];
+              const pairA = [teamA[0].userId, teamA[1].userId].sort().join("-");
+              const pairB = [teamB[0].userId, teamB[1].userId].sort().join("-");
+              if (currUsedPairs.has(pairA) || currUsedPairs.has(pairB))
+                continue;
+              currUsedPlayers.add(teamAIdx[0]);
+              currUsedPlayers.add(teamAIdx[1]);
+              currUsedPlayers.add(teamBIdx[0]);
+              currUsedPlayers.add(teamBIdx[1]);
+              currUsedPairs.add(pairA);
+              currUsedPairs.add(pairB);
+              currMatches.push({
+                teamA: teamA.map((p) => ({
+                  userId: String(p.userId),
+                  name: p.userName,
+                })),
+                teamB: teamB.map((p) => ({
+                  userId: String(p.userId),
+                  name: p.userName,
+                })),
+                court: currMatches.length,
+              });
+              const result = backtrack(
+                i + 1,
+                currMatches,
+                currUsedPlayers,
+                currUsedPairs
+              );
+              if (result) return result;
+              currMatches.pop();
+              currUsedPlayers.delete(teamAIdx[0]);
+              currUsedPlayers.delete(teamAIdx[1]);
+              currUsedPlayers.delete(teamBIdx[0]);
+              currUsedPlayers.delete(teamBIdx[1]);
+              currUsedPairs.delete(pairA);
+              currUsedPairs.delete(pairB);
+            }
+          }
+        }
+      }
+    }
+    return currMatches.length === maxMatches ? currMatches : null;
+  }
+
+  const result = backtrack(0, [], new Set(), new Set(usedPairs));
+  return result || [];
+}
+
+class ScheduleService {
+  /**
+   * Main function to generate complete schedule for an event
+   */
+  generateCompleteSchedule(playersList, numOfRounds, numOfCourts, numResting) {
+    if (
+      !playersList ||
+      playersList.length < 4 ||
+      numOfRounds < 1 ||
+      numOfCourts < 1
+    ) {
+      throw new AppError("Invalid schedule parameters", 400);
+    }
+
+    // Distribute rest periods
+    const restSchedule = distributeRests(playersList, numOfRounds, numResting);
+
+    // Track all partnerships used so far
+    const usedPairs = new Set();
+    const rounds = [];
+
+    for (let round = 0; round < numOfRounds; round++) {
+      // Find players resting this round
+      const standOuts = playersList.filter((p) =>
+        restSchedule[String(p.userId)].includes(round)
+      );
+
+      // Active players for this round
+      const activePlayers = playersList.filter(
+        (p) => !restSchedule[String(p.userId)].includes(round)
+      );
+
+      // Generate matches for this round using backtracking
+      const matches = generateRoundMatchesBT(
+        activePlayers,
+        numOfCourts,
+        usedPairs
+      );
+
+      // Add new partnerships to usedPairs
+      matches.forEach((m) => {
+        const pairA = [m.teamA[0].userId, m.teamA[1].userId].sort().join("-");
+        const pairB = [m.teamB[0].userId, m.teamB[1].userId].sort().join("-");
+        usedPairs.add(pairA);
+        usedPairs.add(pairB);
+      });
+
+      // Ensure all players are accounted for: if not in matches, must be in standOuts
+      const accountedIds = new Set([
+        ...standOuts.map((p) => String(p.userId)),
+        ...matches.flatMap((m) => [
+          String(m.teamA[0].userId),
+          String(m.teamA[1].userId),
+          String(m.teamB[0].userId),
+          String(m.teamB[1].userId),
+        ]),
+      ]);
+      // If any player is missing, add them to standOuts for this round
+      playersList.forEach((p) => {
+        if (!accountedIds.has(String(p.userId))) {
+          standOuts.push({
+            userId: String(p.userId),
+            name: p.userName,
+          });
+        }
+      });
+
+      rounds.push({
+        matches,
+        standOuts: standOuts.map((p) => ({
+          userId: String(p.userId),
+          name: p.userName,
+        })),
+      });
+    }
+
+    // Validate and summarize
+    const validationResults = this.validateScheduleEnhanced(
+      rounds,
+      playersList
+    );
+
+    // Summary logging only
+    if (validationResults.isValid) {
+      console.log(`✅ Schedule validation passed`);
+    } else {
+      console.error(`❌ Schedule validation failed`);
+      const partnershipViolations = validationResults.errors.filter((e) =>
+        e.startsWith("Partnership violation")
+      );
+      console.error(
+        `Total partnership violations: ${partnershipViolations.length}`
+      );
+      if (partnershipViolations.length > 0) {
+        console.error(`First violation: ${partnershipViolations[0]}`);
+      }
+    }
+
+    if (validationResults.warnings.length > 0) {
+      console.warn(
+        `⚠️ Warnings: ${validationResults.warnings.length} (e.g. ${validationResults.warnings[0]})`
+      );
+    }
+
+    if (validationResults.stats) {
+      console.log(
+        `Rest distribution: min=${validationResults.stats.minRests}, max=${validationResults.stats.maxRests}, avg=${validationResults.stats.averageRests.toFixed(1)}`
+      );
+      console.log(
+        `Play distribution: min=${validationResults.stats.minPlays}, max=${validationResults.stats.maxPlays}, avg=${validationResults.stats.averagePlays.toFixed(1)}`
+      );
+    }
+
+    if (!validationResults.isValid) {
+      throw new AppError(
+        `Schedule validation failed: ${validationResults.errors.join(", ")}`,
+        500
+      );
+    }
+
+    return rounds;
+  }
+
+  /**
+   * Enhanced validation with summary reporting
+   */
+  validateScheduleEnhanced(schedule, playersList) {
+    const validationResults = {
+      isValid: true,
+      errors: [],
+      warnings: [],
+      stats: {},
+    };
+
+    try {
+      const partnershipCheck = new Map();
+      const restCount = new Map();
+      const playCount = new Map();
+
+      // Initialize tracking
+      playersList.forEach((player) => {
+        partnershipCheck.set(player.userId, new Set());
+        restCount.set(player.userId, 0);
+        playCount.set(player.userId, 0);
+      });
+
+      // Validate each round
+      for (let roundIndex = 0; roundIndex < schedule.length; roundIndex++) {
+        const round = schedule[roundIndex];
+        const playingPlayers = new Set();
+        const restingPlayers = new Set();
+
+        // Track resting players
+        round.standOuts.forEach((player) => {
+          restingPlayers.add(player.userId);
+          restCount.set(player.userId, (restCount.get(player.userId) || 0) + 1);
+        });
+
+        // Validate matches
+        for (const match of round.matches) {
+          const allMatchPlayers = [
+            ...match.teamA.map((p) => p.userId),
+            ...match.teamB.map((p) => p.userId),
+          ];
+
+          // Check for duplicate players in same match
+          if (new Set(allMatchPlayers).size !== allMatchPlayers.length) {
+            validationResults.errors.push(
+              `Duplicate player in match in round ${roundIndex + 1}`
+            );
+            validationResults.isValid = false;
+          }
+
+          // Check no player is both playing and resting
+          for (const playerId of allMatchPlayers) {
+            if (restingPlayers.has(playerId)) {
+              validationResults.errors.push(
+                `Player ${playerId} is both playing and resting in round ${roundIndex + 1}`
+              );
+              validationResults.isValid = false;
+            }
+            if (playingPlayers.has(playerId)) {
+              validationResults.errors.push(
+                `Player ${playerId} appears in multiple matches in round ${roundIndex + 1}`
+              );
+              validationResults.isValid = false;
+            }
+            playingPlayers.add(playerId);
+            playCount.set(playerId, (playCount.get(playerId) || 0) + 1);
+          }
+
+          // Check team composition (exactly 2 players per team)
+          if (match.teamA.length !== 2 || match.teamB.length !== 2) {
+            validationResults.errors.push(
+              `Invalid team size in round ${roundIndex + 1}, court ${match.court}`
+            );
+            validationResults.isValid = false;
+          }
+
+          // Check partnerships
+          const teamAPair = [match.teamA[0].userId, match.teamA[1].userId];
+          const teamBPair = [match.teamB[0].userId, match.teamB[1].userId];
+
+          for (const pair of [teamAPair, teamBPair]) {
+            const [player1, player2] = pair;
+            if (partnershipCheck.get(player1)?.has(player2)) {
+              validationResults.errors.push(
+                `Partnership violation: ${player1} and ${player2} play together again in round ${roundIndex + 1}`
+              );
+              validationResults.isValid = false;
+            }
+            partnershipCheck.get(player1)?.add(player2);
+            partnershipCheck.get(player2)?.add(player1);
+          }
+        }
+
+        // Check all eligible players are accounted for
+        const totalAccountedPlayers = playingPlayers.size + restingPlayers.size;
+        if (totalAccountedPlayers !== playersList.length) {
+          validationResults.warnings.push(
+            `Round ${roundIndex + 1}: ${totalAccountedPlayers} players accounted for, expected ${playersList.length}`
+          );
+        }
+      }
+
+      // Check rest distribution fairness
+      const restCounts = Array.from(restCount.values());
+      const minRests = Math.min(...restCounts);
+      const maxRests = Math.max(...restCounts);
+
+      if (maxRests - minRests > 1) {
+        validationResults.warnings.push(
+          `Uneven rest distribution: min=${minRests}, max=${maxRests}`
+        );
+      }
+
+      // Check minimum play requirements
+      const playCounts = Array.from(playCount.values());
+      const minPlays = Math.min(...playCounts);
+
+      if (minPlays === 0) {
+        validationResults.warnings.push(
+          `Some players never play during the event`
+        );
+      }
+
+      // Compile statistics
+      validationResults.stats = {
+        totalRounds: schedule.length,
+        totalPlayers: playersList.length,
+        restDistribution: Object.fromEntries(restCount),
+        playDistribution: Object.fromEntries(playCount),
+        restVariance: maxRests - minRests,
+        averageRests: restCounts.reduce((a, b) => a + b, 0) / restCounts.length,
+        averagePlays: playCounts.reduce((a, b) => a + b, 0) / playCounts.length,
+        minRests,
+        maxRests,
+        minPlays,
+        maxPlays: Math.max(...playCounts),
+      };
+
+      return validationResults;
+    } catch (err) {
+      console.error("Error in validateScheduleEnhanced:", err);
+      return {
+        isValid: false,
+        errors: [`Validation error: ${err.message}`],
+        warnings: [],
+        stats: {},
+      };
+    }
+  }
+
+  validateSchedule(schedule, playersList) {
+    const results = this.validateScheduleEnhanced(schedule, playersList);
+    return results.isValid;
+  }
+
+  analyzeSchedule(schedule, playersList) {
+    const validationResults = this.validateScheduleEnhanced(
+      schedule,
+      playersList
+    );
+    return {
+      isValid: validationResults.isValid,
+      summary: validationResults.stats,
+      issues: {
+        errors: validationResults.errors,
+        warnings: validationResults.warnings,
+      },
+      detailed: {
+        restDistribution: validationResults.stats.restDistribution,
+        playDistribution: validationResults.stats.playDistribution,
+      },
+    };
+  }
+}
+
+module.exports = ScheduleService;
+
+```
+
+## tests/validateSchedule.js
+
+*Size: 5836 bytes*
+
+```js
+require("dotenv").config({ path: "./config.env" });
+const mongoose = require("mongoose");
+const Event = require("../models/eventModel");
+
+const mongoUri = process.env.DEV_DATABASE || "mongodb://localhost:27017/pickle";
+
+// Helper to get user name from userId
+function getUserNameById(players, userId) {
+  const player = players.find((p) => p.userId === userId);
+  return player ? player.userName : userId;
+}
+
+async function validateEventSchedule(event) {
+  const rounds = event.rounds || [];
+  if (!rounds.length) {
+    // Skip events with empty rounds
+    return;
+  }
+  const players = event.eventBookings.map((b) => ({
+    userId: String(b.userId),
+    userName: b.userName,
+  }));
+
+  // Track partnerships: { userId: Set of userIds they've partnered with }
+  const partnerships = {};
+  players.forEach((p) => (partnerships[p.userId] = new Set()));
+
+  // Track rest/play counts and rounds
+  const restCounts = {};
+  const playCounts = {};
+  const restRounds = {};
+  players.forEach((p) => {
+    restCounts[p.userId] = 0;
+    playCounts[p.userId] = 0;
+    restRounds[p.userId] = [];
+  });
+
+  let errors = [];
+  let warnings = [];
+
+  rounds.forEach((round, roundIdx) => {
+    const resting = new Set(round.standOuts.map((p) => String(p.userId)));
+    const playing = new Set();
+
+    // Check matches
+    round.matches.forEach((match, matchIdx) => {
+      // Team size
+      if (match.teamA.length !== 2 || match.teamB.length !== 2) {
+        errors.push(
+          `Round ${roundIdx + 1}, Match ${matchIdx + 1}: Invalid team size`
+        );
+      }
+
+      // No duplicate players in a match
+      const allPlayers = [
+        ...match.teamA.map((p) => String(p.userId)),
+        ...match.teamB.map((p) => String(p.userId)),
+      ];
+      if (new Set(allPlayers).size !== allPlayers.length) {
+        errors.push(
+          `Round ${roundIdx + 1}, Match ${matchIdx + 1}: Duplicate player in match`
+        );
+      }
+
+      // No player both resting and playing
+      allPlayers.forEach((pid) => {
+        if (resting.has(pid)) {
+          errors.push(
+            `Round ${roundIdx + 1}: Player ${getUserNameById(players, pid)} is both resting and playing`
+          );
+        }
+        playing.add(pid);
+        playCounts[pid] = (playCounts[pid] || 0) + 1;
+      });
+
+      // Partnership check
+      [
+        [match.teamA[0], match.teamA[1]],
+        [match.teamB[0], match.teamB[1]],
+      ].forEach(([p1, p2]) => {
+        const id1 = String(p1.userId);
+        const id2 = String(p2.userId);
+        if (partnerships[id1].has(id2)) {
+          errors.push(
+            `Players ${getUserNameById(players, id1)} and ${getUserNameById(players, id2)} are partners more than once (repeat partnership)`
+          );
+        }
+        partnerships[id1].add(id2);
+        partnerships[id2].add(id1);
+      });
+    });
+
+    // Track rests
+    round.standOuts.forEach((p) => {
+      const pid = String(p.userId);
+      restCounts[pid] = (restCounts[pid] || 0) + 1;
+      restRounds[pid].push(roundIdx + 1);
+    });
+
+    // Check all players accounted for
+    const accounted = new Set([...resting, ...playing]);
+    if (accounted.size !== players.length) {
+      warnings.push(
+        `Round ${roundIdx + 1}: ${accounted.size} players accounted for, expected ${players.length}`
+      );
+    }
+  });
+
+  // Best effort checks
+  const restVals = Object.values(restCounts);
+  const minRest = Math.min(...restVals);
+  const maxRest = Math.max(...restVals);
+  if (maxRest - minRest > 1) {
+    warnings.push(`Uneven rest distribution: min=${minRest}, max=${maxRest}`);
+  }
+
+  // Distribution check
+  Object.entries(restRounds).forEach(([pid, rounds]) => {
+    if (rounds.length > 1) {
+      for (let i = 1; i < rounds.length; i++) {
+        if (rounds[i] - rounds[i - 1] === 1) {
+          warnings.push(
+            `Player ${getUserNameById(players, pid)} has consecutive rests in rounds ${rounds[i - 1]} and ${rounds[i]}`
+          );
+        }
+      }
+    }
+  });
+
+  // --- SUMMARY DATA AT TOP ---
+  const avgGames =
+    Object.values(playCounts).reduce((a, b) => a + b, 0) / players.length;
+  const avgRests =
+    Object.values(restCounts).reduce((a, b) => a + b, 0) / players.length;
+
+  console.log(
+    `=== Schedule Validation Results for Event: ${event._id} (${event.eventName || ""}) ===`
+  );
+  console.log(`Average number of games per player: ${avgGames.toFixed(2)}`);
+  console.log(`Average number of rests per player: ${avgRests.toFixed(2)}`);
+  // --- END SUMMARY DATA ---
+
+  if (errors.length === 0) {
+    console.log("✅ No mandatory rule violations found.");
+  } else {
+    console.error("❌ Errors:");
+    errors.forEach((e) => console.error("  - " + e));
+  }
+  if (warnings.length > 0) {
+    console.warn("⚠️ Warnings:");
+    warnings.forEach((w) => console.warn("  - " + w));
+  }
+
+  // Summary stats (show user names)
+  console.log(
+    "Rest counts per player:",
+    Object.fromEntries(
+      Object.entries(restCounts).map(([pid, count]) => [
+        getUserNameById(players, pid),
+        count,
+      ])
+    )
+  );
+  console.log(
+    "Play counts per player:",
+    Object.fromEntries(
+      Object.entries(playCounts).map(([pid, count]) => [
+        getUserNameById(players, pid),
+        count,
+      ])
+    )
+  );
+  console.log(
+    "Rest rounds per player:",
+    Object.fromEntries(
+      Object.entries(restRounds).map(([pid, rounds]) => [
+        getUserNameById(players, pid),
+        rounds,
+      ])
+    )
+  );
+  console.log("\n");
+}
+
+async function main() {
+  await mongoose.connect(mongoUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  const events = await Event.find({});
+  if (!events.length) {
+    console.log("No events found.");
+    process.exit(0);
+  }
+  for (const event of events) {
+    await validateEventSchedule(event);
+  }
+  await mongoose.disconnect();
+}
+
+main();
+
+```
+
 ## utils/apiFeatures.js
 
-*Size: 1894 bytes*
+*Size: 2233 bytes*
 
 ```js
 class APIFeatures {
   constructor(query, queryString) {
+    if (!query || typeof query.find !== "function") {
+      console.warn("APIFeatures: Invalid query object provided.");
+      throw new Error("Invalid query object for APIFeatures.");
+    }
+    if (!queryString || typeof queryString !== "object") {
+      console.warn("APIFeatures: Invalid queryString provided.");
+      throw new Error("Invalid queryString for APIFeatures.");
+    }
     this.query = query;
     this.queryString = queryString;
   }
 
   filter() {
-    /*Key point ----- the '.find' method takes an object as an argument. So the idea here is to take the initial query string, remove certain keywords out of it that are not relevant for filtering and Pass the end result to .find
-     */
-    const queryObj = { ...this.queryString };
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
-    excludedFields.forEach((el) => delete queryObj[el]);
+    try {
+      const queryObj = { ...this.queryString };
+      const excludedFields = ["page", "sort", "limit", "fields"];
+      excludedFields.forEach((el) => delete queryObj[el]);
 
-    /* 1) Turn the query object from JSON to a string so we can edit it
-      2) For mongo operators such as gte lt etc we want to insert a $ sign infront
-      3) Use replace method to search for keyword, when a key word is detcted use a callback to insert $
-      */
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+      let queryStr = JSON.stringify(queryObj);
+      queryStr = queryStr.replace(
+        /\b(gte|gt|lte|lt)\b/g,
+        (match) => `$${match}`
+      );
 
-    this.query = this.query.find(JSON.parse(queryStr));
-
+      this.query = this.query.find(JSON.parse(queryStr));
+    } catch (err) {
+      console.error("APIFeatures.filter error:", err);
+      this.query = this.query.find({});
+    }
     return this;
   }
 
   sort() {
-    if (this.queryString.sort) {
-      // replace , separator with space
-      const sortBy = this.queryString.sort.split(',').join(' ');
-
-      this.query = this.query.sort(sortBy);
-    } else {
-      this.query = this.query.sort('-createdAt'); // The '-' forces default acending order
+    try {
+      if (this.queryString.sort) {
+        const sortBy = this.queryString.sort.split(",").join(" ");
+        this.query = this.query.sort(sortBy);
+      } else {
+        this.query = this.query.sort("-createdAt");
+      }
+    } catch (err) {
+      console.error("APIFeatures.sort error:", err);
+      // fallback: no sort
     }
     return this;
   }
 
   limitFields() {
-    if (this.queryString.fields) {
-      const fields = this.queryString.fields.split(',').join(' ');
-      this.query = this.query.select(fields);
-    } else {
-      this.query = this.query.select('-__v'); // Set by default V field not returned
+    try {
+      if (this.queryString.fields) {
+        const fields = this.queryString.fields.split(",").join(" ");
+        this.query = this.query.select(fields);
+      } else {
+        this.query = this.query.select("-__v");
+      }
+    } catch (err) {
+      console.error("APIFeatures.limitFields error:", err);
+      // fallback: no field limiting
     }
     return this;
   }
 
   paginate() {
-    const page = this.queryString.page * 1 || 1;
-    const limit = this.queryString.limit * 1 || 100;
-    const skip = (page - 1) * limit;
+    try {
+      const page = Number(this.queryString.page) || 1;
+      const limit = Number(this.queryString.limit) || 100;
+      const skip = (page - 1) * limit;
 
-    this.query = this.query.skip(skip).limit(limit);
+      this.query = this.query.skip(skip).limit(limit);
+    } catch (err) {
+      console.error("APIFeatures.paginate error:", err);
+      // fallback: no pagination
+    }
     return this;
   }
 }
+
 module.exports = APIFeatures;
 
 ```
 
 ## utils/appError.js
 
-*Size: 310 bytes*
+*Size: 994 bytes*
 
 ```js
 class AppError extends Error {
-  constructor(message, statusCode) {
+  constructor(message = "An error occurred", statusCode = 500) {
+    // Type checking for parameters
+    if (typeof message !== "string") {
+      console.warn("AppError: message should be a string.");
+      message = String(message);
+    }
+    if (
+      typeof statusCode !== "number" ||
+      statusCode < 100 ||
+      statusCode > 599
+    ) {
+      console.warn("AppError: statusCode should be a valid HTTP status code.");
+      statusCode = 500;
+    }
     super(message);
+
     this.statusCode = statusCode;
-    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    this.status = `${statusCode}`.startsWith("4") ? "fail" : "error";
     this.isOperational = true;
-    Error.captureStackTrace(this, this.constructor);
+
+    // Stack trace robustness
+    if (typeof Error.captureStackTrace === "function") {
+      Error.captureStackTrace(this, this.constructor);
+    }
+
+    // Optional: log error in development
+    if (process.env.NODE_ENV === "development") {
+      console.error(`AppError created: ${message} (${statusCode})`);
+    }
   }
 }
 
@@ -5457,36 +7778,84 @@ module.exports = AppError;
 
 ## utils/catchAsync.js
 
-*Size: 195 bytes*
+*Size: 795 bytes*
 
 ```js
-//Generic wrapper for all of our async functions.
-// Removes the need for a catch block in each async function
 module.exports = (fn) => (req, res, next) => {
-  fn(req, res, next).catch(next);
+  if (typeof fn !== "function") {
+    const err = new Error("catchAsync: Wrapped value is not a function");
+    if (process.env.NODE_ENV === "development") {
+      console.error(err);
+    }
+    return next(err);
+  }
+  try {
+    const maybePromise = fn(req, res, next);
+    if (maybePromise && typeof maybePromise.catch === "function") {
+      maybePromise.catch((err) => {
+        if (process.env.NODE_ENV === "development") {
+          console.error("Async error caught:", err);
+        }
+        next(err);
+      });
+    } else {
+      // If not a promise, just return
+      return maybePromise;
+    }
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Sync error caught:", err);
+    }
+    next(err);
+  }
 };
 
 ```
 
 ## utils/email.js
 
-*Size: 670 bytes*
+*Size: 1505 bytes*
 
 ```js
-//const { send } = require('express/lib/response');
 const nodeMailer = require("nodemailer");
 
 const sendEmail = async (options) => {
-  // 1) Create a transporter
+  // Input validation
+  if (
+    !options ||
+    typeof options.email !== "string" ||
+    typeof options.subject !== "string" ||
+    typeof options.message !== "string"
+  ) {
+    throw new Error(
+      "sendEmail: Invalid options provided. 'email', 'subject', and 'message' are required strings."
+    );
+  }
+
+  // Transporter configuration validation
+  const requiredEnv = [
+    "EMAIL_HOST",
+    "EMAIL_PORT",
+    "EMAIL_USERNAME",
+    "EMAIL_PASSWORD",
+  ];
+  requiredEnv.forEach((key) => {
+    if (!process.env[key]) {
+      console.warn(`sendEmail: Missing environment variable ${key}`);
+    }
+  });
+
   const transporter = nodeMailer.createTransport({
     host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
+    port: Number(process.env.EMAIL_PORT) || 587,
+    secure: Number(process.env.EMAIL_PORT) === 465, // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USERNAME,
       pass: process.env.EMAIL_PASSWORD,
     },
+    connectionTimeout: 10000,
   });
-  // 2) Define email options
+
   const mailOptions = {
     from: "Club Admin <clubadmin@gmail.com>",
     to: options.email,
@@ -5494,8 +7863,16 @@ const sendEmail = async (options) => {
     text: options.message,
   };
 
-  // 3) Send the email
-  await transporter.sendMail(mailOptions);
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    if (process.env.NODE_ENV === "development") {
+      console.log("Email sent:", info.response);
+    }
+    return info;
+  } catch (err) {
+    console.error("sendEmail error:", err);
+    throw err;
+  }
 };
 
 module.exports = sendEmail;
@@ -5504,7 +7881,7 @@ module.exports = sendEmail;
 
 ## utils/paginate.js
 
-*Size: 889 bytes*
+*Size: 1470 bytes*
 
 ```js
 module.exports = async function paginate(
@@ -5513,59 +7890,109 @@ module.exports = async function paginate(
   filter = {},
   options = {}
 ) {
-  const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.limit) || 10;
+  let page = Number(req.query.page);
+  let limit = Number(req.query.limit);
+
+  // Input validation and defaults
+  if (!Number.isInteger(page) || page < 1) page = 1;
+  if (!Number.isInteger(limit) || limit < 1) limit = 10;
   const skip = (page - 1) * limit;
 
   let query, countQuery;
-  if (
-    typeof queryOrModel.find === "function" &&
-    typeof queryOrModel.exec !== "function"
-  ) {
-    // It's a Model
-    query = queryOrModel.find(filter, null, options);
-    countQuery = queryOrModel.countDocuments(filter);
-  } else {
-    // It's a Query
-    query = queryOrModel.skip(skip).limit(limit);
-    // For count, use the same filter as the query
-    countQuery = query.model.countDocuments(query.getQuery());
+  try {
+    // Type checking for queryOrModel
+    if (
+      typeof queryOrModel.find === "function" &&
+      typeof queryOrModel.exec !== "function"
+    ) {
+      // It's a Model
+      query = queryOrModel.find(filter, null, options).skip(skip).limit(limit);
+      countQuery = queryOrModel.countDocuments(filter);
+    } else if (
+      typeof queryOrModel.skip === "function" &&
+      typeof queryOrModel.limit === "function"
+    ) {
+      // It's a Query
+      query = queryOrModel.skip(skip).limit(limit);
+      countQuery = query.model.countDocuments(query.getQuery());
+    } else {
+      console.warn("paginate: queryOrModel must be a Mongoose Model or Query.");
+      throw new Error("paginate: Invalid queryOrModel argument.");
+    }
+
+    const [results, totalDocs] = await Promise.all([query.exec(), countQuery]);
+    const totalPages = totalDocs > 0 ? Math.ceil(totalDocs / limit) : 1;
+
+    return {
+      results,
+      currentPage: page,
+      totalPages,
+      limit,
+      totalDocs,
+    };
+  } catch (err) {
+    console.error("paginate error:", err);
+    throw err;
   }
-
-  const [results, totalDocs] = await Promise.all([query.exec(), countQuery]);
-
-  return {
-    results,
-    currentPage: page,
-    totalPages: Math.ceil(totalDocs / limit),
-    limit,
-    totalDocs,
-  };
 };
 
 ```
 
 ## utils/twilioClient.js
 
-*Size: 447 bytes*
+*Size: 1418 bytes*
 
 ```js
 const twilio = require("twilio");
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-const whatsappFrom = process.env.TWILIO_WHATSAPP_FROM; // Use env variable!
 
-async function sendWhatsAppMessage(to, message) {
-  return twilioClient.messages.create({
-    from: whatsappFrom,
-    to: `whatsapp:${to}`,
-    body: message,
-  });
+const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM } =
+  process.env;
+
+// Environment variable validation
+if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_WHATSAPP_FROM) {
+  console.warn(
+    "Twilio config missing: Check TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM"
+  );
 }
 
-module.exports = { twilioClient, whatsappFrom, sendWhatsAppMessage };
+const twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+
+async function sendWhatsAppMessage(to, message) {
+  // Input validation
+  if (typeof to !== "string" || !to.trim()) {
+    throw new Error("sendWhatsAppMessage: 'to' must be a non-empty string.");
+  }
+  if (typeof message !== "string" || !message.trim()) {
+    throw new Error(
+      "sendWhatsAppMessage: 'message' must be a non-empty string."
+    );
+  }
+  if (!TWILIO_WHATSAPP_FROM) {
+    throw new Error("sendWhatsAppMessage: TWILIO_WHATSAPP_FROM is not set.");
+  }
+
+  try {
+    const result = await twilioClient.messages.create({
+      from: TWILIO_WHATSAPP_FROM,
+      to: `whatsapp:${to}`,
+      body: message,
+    });
+    if (process.env.NODE_ENV === "development") {
+      console.log("WhatsApp message sent:", result.sid);
+    }
+    return result;
+  } catch (err) {
+    console.error("sendWhatsAppMessage error:", err);
+    throw err;
+  }
+}
+
+// Export client, from number, and send function
+module.exports = {
+  twilioClient,
+  whatsappFrom: TWILIO_WHATSAPP_FROM,
+  sendWhatsAppMessage,
+};
 
 ```
 
@@ -5648,7 +8075,7 @@ block content
 
 ## views/browseNewEvents.pug
 
-*Size: 1389 bytes*
+*Size: 1385 bytes*
 
 ```pug
 extends base
@@ -5685,7 +8112,7 @@ block content
 											- i++;
 
 									div.form-buttons
-										- const isWaitList = event.eventBookings.length >= event.eventNumOfPlayers - 1
+										- const isWaitList = event.eventBookings.length >= event.eventNumOfPlayers
 										a.btn.btn--outline.bookEventButtons(href="#")
 											if isWaitList
 												| Join Wait List
@@ -5694,9 +8121,9 @@ block content
 										p.hiddenField.eventId=`${event._id}`
 ```
 
-## views/createEvent.pug
+## views/createEvent copy.pug
 
-*Size: 2652 bytes*
+*Size: 2642 bytes*
 
 ```pug
 extends base
@@ -5708,7 +8135,7 @@ block content
 			div(class="container")
 				div(class="crudContainer-2-cols")
 					div(class="text-box") 
-						h1(class="heading-secondary") Create a Pickleball Event
+						h1(class="heading-secondary") Create an Event
 						form(class="form-2-cols" id="createEventForm")
 							div
 								label(for="eventName") Event name
@@ -5754,6 +8181,174 @@ block content
   								onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
 								) Create
 								a(class="btn btn--form" id="cancelButton" href="/events/showall") Cancel
+```
+
+## views/createEvent.pug
+
+*Size: 5740 bytes*
+
+```pug
+extends base
+
+block content
+  main.main
+    section.section
+      style.
+        .crudContainer-2-cols {
+          display: flex;
+          flex-direction: row;
+          gap: 8rem; /* increased gap to move calculator further right */
+          align-items: flex-start;
+          justify-content: flex-start;
+        }
+        .text-box {
+          background: transparent;
+          padding: 0;
+          box-shadow: none;
+          width: 100%;
+          max-width: 600px;
+        }
+        .form-2-cols {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem 2rem;
+          align-items: start;
+        }
+        .form-2-cols .form-col-left,
+        .form-2-cols .form-col-right {
+          display: flex;
+          flex-direction: column;
+        }
+        .form-2-cols .form-col-left label,
+        .form-2-cols .form-col-right label {
+          font-size: 1.1em;
+          font-weight: 500;
+          color: #222;
+          margin-bottom: 0.5em;
+          margin-top: 0.5em;
+          letter-spacing: 0.02em;
+        }
+        .form-2-cols input,
+        .form-2-cols button,
+        .form-2-cols .result {
+          margin-bottom: 1rem;
+        }
+        .form-2-cols .form-col-right {
+          border: 2px solid #222;
+          border-radius: 12px;
+          padding: 2rem 1.5rem 1.5rem 1.5rem;
+          background: #fff8e1;
+          min-width: 340px;
+          max-width: 400px;
+          margin-left: auto; /* push calculator to the right */
+        }
+        .form-col-right h2 {
+          margin-top: 0;
+          margin-bottom: 2.5rem;
+          font-size: 1.7em;
+          font-weight: bold;
+          color: #222;
+          text-align: left;
+          min-height: 3.5rem;
+          display: flex;
+          align-items: center;
+        }
+        .form-col-right input[type="number"] {
+          width: 4em;
+          min-width: 4em;
+          max-width: 4em;
+          box-sizing: border-box;
+          font-size: 1.2em;
+          padding: 0.4em;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          background: #fff;
+        }
+        .result {
+          margin-top: 1rem;
+          padding: 1rem;
+          background: #fff8e1;
+          border-radius: 8px;
+          border: 1px solid #e0e0e0;
+        }
+        .form-buttons {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 2rem;
+        }
+        .btn--form {
+          background: #4e2e0e;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          padding: 0.8em 2em;
+          font-size: 1.2em;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .btn--form:hover {
+          background: #7c4a17;
+        }
+        @media (max-width: 900px) {
+          .crudContainer-2-cols {
+            flex-direction: column;
+            gap: 0;
+          }
+          .text-box {
+            max-width: 100%;
+          }
+          .form-2-cols {
+            grid-template-columns: 1fr;
+          }
+          .form-col-right {
+            min-width: 0;
+            max-width: 100%;
+            margin-left: 0;
+          }
+        }
+      div.container
+        div.crudContainer-2-cols
+          div.text-box
+            h1.heading-secondary Create an Event
+            form.form-2-cols#createEventForm
+              // Left column: Event details
+              div.form-col-left
+                label(for="eventName") Event name
+                input(name="eventName" type="text" id="eventName" required)
+                label(for="eventLocation") Event location
+                input(name="eventLocation" type="text" id="eventLocation" required)
+                label(for="eventType") Event Type
+                input(name="eventType" type="text" id="eventType")
+                label(for="eventDate") Event date
+                input(name="eventDate" type="date" id="eventDate" required)
+                label(for="eventStartTime") Event start time
+                input(name="eventStartTime" type="time" id="eventStartTime" required)
+                label(for="eventOrganiser") Event organiser
+                input(name="eventOrganiser" type="text" id="eventOrganiser" required)
+                label(for="eventWaitListSize") Max number of players on wait list
+                input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=systemDefaults.waitListSize required)
+                label(for="active" class="form__label active-label") Is event Active ?
+                input(type="checkbox" id="active" name="active" class="active-checkbox")
+              // Right column: Calculator fields
+              div.form-col-right
+                h2 Schedule Calculator
+                label(for="numCourts") Number of courts available for event:
+                input(type="number", id="numCourts", required=true)
+                label(for="numPairings") Number of pairings per court:
+                input(type="number", id="numPairings", required=true)
+                label(for="restsPerPlayer") Rest rounds per player (event):
+                input(type="number", id="restsPerPlayer", required=true)
+                label(for="numRounds") Number of rounds:
+                input(type="number", id="numRounds", min="1")
+                button.btn--form(type="submit") Calculate
+                div.result#result
+                script(src="/js/scheduleCalculator.js")
+        div.form-buttons
+          a.btn.btn--form#createEventButton(
+            href="#"
+            onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+          ) Create
+          a.btn.btn--form#cancelButton(href="/events/showall") Cancel
 ```
 
 ## views/createUser.pug
@@ -6374,6 +8969,61 @@ block content
         populateUsers(this.value);
       });
     });
+```
+
+## views/scheduleCalculator.pug
+
+*Size: 1243 bytes*
+
+```pug
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title Pickle Event Schedule Calculator
+    style.
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2em;
+      }
+      label {
+        display: block;
+        margin-top: 1em;
+      }
+      input[type="number"] {
+        width: 60px;
+      }
+      .result {
+        margin-top: 2em;
+        padding: 1em;
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+      }
+      .error {
+        color: red;
+      }
+      .hidden {
+        display: none;
+      }
+  body
+    h2 Pickle Event Schedule Calculator
+    form#scheduleForm
+      label
+        | Number of courts:
+        input(type="number", id="numCourts", min="1", value="3", required=true)
+      label
+        | Pairings per court:
+        input(type="number", id="numPairings", min="1", value="2", required=true)
+      label
+        | Rest rounds per player (event):
+        input(type="number", id="restsPerPlayer", min="0", value="2", required=true)
+      div#roundsInputContainer.hidden
+        label
+          | Number of rounds:
+          input(type="number", id="numRounds", min="1")
+      button(type="submit") Calculate
+    div.result#result
+    script(src="./js/scheduleCalculator.js")
 ```
 
 ## views/showAllEvents.pug

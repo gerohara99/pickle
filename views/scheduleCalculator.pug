@@ -1,0 +1,48 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    title Pickle Event Schedule Calculator
+    style.
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2em;
+      }
+      label {
+        display: block;
+        margin-top: 1em;
+      }
+      input[type="number"] {
+        width: 60px;
+      }
+      .result {
+        margin-top: 2em;
+        padding: 1em;
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+      }
+      .error {
+        color: red;
+      }
+      .hidden {
+        display: none;
+      }
+  body
+    h2 Pickle Event Schedule Calculator
+    form#scheduleForm
+      label
+        | Number of courts:
+        input(type="number", id="numCourts", min="1", value="3", required=true)
+      label
+        | Pairings per court:
+        input(type="number", id="numPairings", min="1", value="2", required=true)
+      label
+        | Rest rounds per player (event):
+        input(type="number", id="restsPerPlayer", min="0", value="2", required=true)
+      div#roundsInputContainer.hidden
+        label
+          | Number of rounds:
+          input(type="number", id="numRounds", min="1")
+      button(type="submit") Calculate
+    div.result#result
+    script(src="./js/scheduleCalculator.js")

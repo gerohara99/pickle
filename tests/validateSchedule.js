@@ -127,10 +127,19 @@ async function validateEventSchedule(event) {
     }
   });
 
-  // Output results
+  // --- SUMMARY DATA AT TOP ---
+  const avgGames =
+    Object.values(playCounts).reduce((a, b) => a + b, 0) / players.length;
+  const avgRests =
+    Object.values(restCounts).reduce((a, b) => a + b, 0) / players.length;
+
   console.log(
     `=== Schedule Validation Results for Event: ${event._id} (${event.eventName || ""}) ===`
   );
+  console.log(`Average number of games per player: ${avgGames.toFixed(2)}`);
+  console.log(`Average number of rests per player: ${avgRests.toFixed(2)}`);
+  // --- END SUMMARY DATA ---
+
   if (errors.length === 0) {
     console.log("✅ No mandatory rule violations found.");
   } else {

@@ -1,55 +1,85 @@
 extends base
 
-block content 
-
-	main.main
-		section(class="section")
-			div(class="container")
-				div(class="crudContainer-2-cols")
-					div(class="text-box") 
-						h1(class="heading-secondary") Create a Pickleball Event
-						form(class="form-2-cols" id="createEventForm")
-							div
-								label(for="eventName") Event name
-								input(name="eventName" type="text" id="eventName" required)
-							div
-								label(for="eventLocation") Event location
-								input(name="eventLocation" type="text" id="eventLocation" required)
-							div
-								label(for="eventType") Event Type
-								input(name="eventType" type="text" id="eventType")
-							div
-								label(for="eventDate") Event date
-								input(name="eventDate" type="date" id="eventDate" required)
-							div
-								label(for="eventStartTime") Event start time
-								input(name="eventStartTime" type="time" id="eventStartTime" required)
-							div
-								label(for="eventOrganiser") Event organiser
-								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
-							div
-								label(for="eventNumOfCourts") Number of available courts for event
-								input(name="eventNumOfCourts" type="number" id="eventNumOfCourts" value=systemDefaults.numOfStandOuts required)
-							div
-								label(for="numOfStandOutsPerRound") Number of players resting per round
-								input(name="numOfStandOutsPerRound" type="number" id="numOfStandOutsPerRound" value=systemDefaults.numOfStandOuts required)
-							div
-								label(for="eventNumOfRounds") Number of rounds in the event
-								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=systemDefaults.numOfRounds required)
-							div
-								label(for="eventWaitListSize") Max number of players on wait list
-								input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=systemDefaults.waitListSize required)
-							div
-								label(for="eventNumOfPairings") Number of pairings per court
-								input(name="eventNumOfPairings" type="number" id="eventNumOfPairings" value=systemDefaults.numOfPairingsPerCourt required)
-							div(class="form-row")
-								label(for="active" class="form__label active-label") Is event Active ?
-								input(type="checkbox" id="active" name="active" class="active-checkbox")
-							div(class="form-buttons")
-								a(
-  								class="btn btn--form"
-  								id="createEventButton"
-  								href="#"
-  								onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
-								) Create
-								a(class="btn btn--form" id="cancelButton" href="/events/showall") Cancel
+block content
+  main.main
+    section.section
+      style.
+        .calculator-box {
+          padding: 1.5em;
+          background: #fcf6e3;
+          border-radius: 16px;
+          border: 2px solid #3d2a13;
+          max-width: 480px;
+        }
+        .calc-row {
+          display: flex;
+          align-items: center;
+          margin-bottom: 1em;
+        }
+        .calc-row label {
+          margin-right: 0.5em;
+        }
+        #doublesToggle {
+          width: 1.2em;
+          height: 1.2em;
+          margin-right: 0.5em;
+        }
+        #numCourts {
+          margin-left: 0.5em;
+          min-width: 5em;
+        }
+        .schedule-options-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 1em;
+        }
+        .schedule-options-table th, .schedule-options-table td {
+          padding: 0.3em 0.6em;
+          border-bottom: 1px solid #e0d6b7;
+          text-align: center;
+        }
+        .schedule-radio {
+          width: 1.2em;
+          height: 1.2em;
+        }
+      div.container
+        div.crudContainer-2-cols
+          div.text-box
+            h1.heading-secondary Create an Event
+            form.form-2-cols#createEventForm
+              div.form-col-left
+                label(for="eventName") Event name
+                input(name="eventName" type="text" id="eventName" required)
+                label(for="eventLocation") Event location
+                input(name="eventLocation" type="text" id="eventLocation" required)
+                label(for="eventType") Event Type
+                input(name="eventType" type="text" id="eventType")
+                label(for="eventDate") Event date
+                input(name="eventDate" type="date" id="eventDate" required)
+                label(for="eventStartTime") Event start time
+                input(name="eventStartTime" type="time" id="eventStartTime" required)
+                label(for="eventOrganiser") Event organiser
+                input(name="eventOrganiser" type="text" id="eventOrganiser" required)
+                label(for="eventWaitListSize") Max number of players on wait list
+                input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=systemDefaults.waitListSize required)
+                label(for="active" class="form__label active-label") Is event Active ?
+                input(type="checkbox" id="active" name="active" class="active-checkbox")
+              div.form-col-right
+                .calculator-box
+                  h2 Schedule Calculator
+                  div.calc-row
+                    label(for="doublesToggle") Doubles
+                    input(type="checkbox" id="doublesToggle" checked)
+                  div.calc-row
+                    label(for="numCourts") Number of courts
+                    select#numCourts
+                      option(value="" disabled selected) Choose courts
+                  div#scheduleOptions
+                  div#schedulePreview
+                  button.btn--form(type="button" id="confirmScheduleBtn") Confirm Schedule
+        div.form-buttons
+          a.btn.btn--form#createEventButton(
+            href="#"
+            onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+          ) Create
+          a.btn.btn--form#cancelButton(href="/events/showall") Cancel

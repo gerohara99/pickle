@@ -1,0 +1,171 @@
+[
+  {
+    "courts": 3,
+    "pairings": 2,
+    "players": 12,
+    "rounds": 6,
+    "restsPerPlayer": 2,
+    "gamesPerPlayer": 4,
+    "playingPerRound": 8,
+    "restingPerRound": 4,
+    "playerRounds": [
+      { "played": [1, 3, 4, 6], "resting": [2, 5] },
+      { "played": [2, 4, 5, 1], "resting": [3, 6] },
+      { "played": [3, 5, 6, 2], "resting": [4, 1] },
+      { "played": [4, 6, 1, 3], "resting": [5, 2] },
+      { "played": [5, 1, 2, 4], "resting": [6, 3] },
+      { "played": [6, 2, 3, 5], "resting": [1, 4] },
+      { "played": [1, 3, 4, 6], "resting": [2, 5] },
+      { "played": [2, 4, 5, 1], "resting": [3, 6] },
+      { "played": [3, 5, 6, 2], "resting": [4, 1] },
+      { "played": [4, 6, 1, 3], "resting": [5, 2] },
+      { "played": [5, 1, 2, 4], "resting": [6, 3] },
+      { "played": [6, 2, 3, 5], "resting": [1, 4] }
+    ]
+  },
+  {
+    "courts": 3,
+    "pairings": 2,
+    "players": 9,
+    "rounds": 9,
+    "restsPerPlayer": 3,
+    "gamesPerPlayer": 6,
+    "playingPerRound": 6,
+    "restingPerRound": 3,
+    "playerRounds": [
+      { "played": [1, 2, 4, 5, 7, 8], "resting": [3, 6, 9] },
+      { "played": [2, 3, 5, 6, 8, 9], "resting": [1, 4, 7] },
+      { "played": [3, 4, 6, 7, 9, 1], "resting": [2, 5, 8] },
+      { "played": [4, 5, 7, 8, 1, 2], "resting": [3, 6, 9] },
+      { "played": [5, 6, 8, 9, 2, 3], "resting": [4, 7, 1] },
+      { "played": [6, 7, 9, 1, 3, 4], "resting": [5, 8, 2] },
+      { "played": [7, 8, 1, 2, 4, 5], "resting": [6, 9, 3] },
+      { "played": [8, 9, 2, 3, 5, 6], "resting": [7, 1, 4] },
+      { "played": [9, 1, 3, 4, 6, 7], "resting": [8, 2, 5] }
+    ]
+  },
+  {
+    "courts": 5,
+    "pairings": 2,
+    "players": 20,
+    "rounds": 10,
+    "restsPerPlayer": 2,
+    "gamesPerPlayer": 8,
+    "playingPerRound": 16,
+    "restingPerRound": 4,
+    "playerRounds": [
+      { "played": [1, 2, 3, 4, 6, 7, 8, 10], "resting": [5, 9] },
+      { "played": [1, 2, 4, 5, 7, 8, 9, 10], "resting": [3, 6] },
+      { "played": [1, 3, 4, 5, 6, 8, 9, 10], "resting": [2, 7] },
+      { "played": [2, 3, 5, 6, 7, 9, 10, 1], "resting": [4, 8] },
+      { "played": [3, 4, 6, 7, 8, 10, 1, 2], "resting": [5, 9] },
+      { "played": [4, 5, 7, 8, 9, 1, 2, 3], "resting": [6, 10] },
+      { "played": [5, 6, 8, 9, 10, 2, 3, 4], "resting": [1, 7] },
+      { "played": [6, 7, 9, 10, 1, 3, 4, 5], "resting": [2, 8] },
+      { "played": [7, 8, 10, 1, 2, 4, 5, 6], "resting": [3, 9] },
+      { "played": [8, 9, 1, 2, 3, 5, 6, 7], "resting": [4, 10] },
+      { "played": [9, 10, 2, 3, 4, 6, 7, 8], "resting": [1, 5] },
+      { "played": [10, 1, 3, 4, 5, 7, 8, 9], "resting": [2, 6] },
+      { "played": [1, 2, 4, 5, 6, 8, 9, 10], "resting": [3, 7] },
+      { "played": [2, 3, 5, 6, 7, 9, 10, 1], "resting": [4, 8] },
+      { "played": [3, 4, 6, 7, 8, 10, 1, 2], "resting": [5, 9] },
+      { "played": [4, 5, 7, 8, 9, 1, 2, 3], "resting": [6, 10] },
+      { "played": [5, 6, 8, 9, 10, 2, 3, 4], "resting": [1, 7] },
+      { "played": [6, 7, 9, 10, 1, 3, 4, 5], "resting": [2, 8] },
+      { "played": [7, 8, 10, 1, 2, 4, 5, 6], "resting": [3, 9] },
+      { "played": [8, 9, 1, 2, 3, 5, 6, 7], "resting": [4, 10] }
+    ]
+  },
+  {
+    "courts": 5,
+    "pairings": 2,
+    "players": 15,
+    "rounds": 15,
+    "restsPerPlayer": 5,
+    "gamesPerPlayer": 10,
+    "playingPerRound": 10,
+    "restingPerRound": 5,
+    "playerRounds": [
+      {
+        "played": [1, 3, 5, 7, 9, 11, 13, 15, 2, 4],
+        "resting": [6, 8, 10, 12, 14]
+      },
+      {
+        "played": [2, 4, 6, 8, 10, 12, 14, 1, 3, 5],
+        "resting": [7, 9, 11, 13, 15]
+      },
+      {
+        "played": [3, 5, 7, 9, 11, 13, 15, 2, 4, 6],
+        "resting": [8, 10, 12, 14, 1]
+      },
+      {
+        "played": [4, 6, 8, 10, 12, 14, 1, 3, 5, 7],
+        "resting": [9, 11, 13, 15, 2]
+      },
+      {
+        "played": [5, 7, 9, 11, 13, 15, 2, 4, 6, 8],
+        "resting": [10, 12, 14, 1, 3]
+      },
+      {
+        "played": [6, 8, 10, 12, 14, 1, 3, 5, 7, 9],
+        "resting": [11, 13, 15, 2, 4]
+      },
+      {
+        "played": [7, 9, 11, 13, 15, 2, 4, 6, 8, 10],
+        "resting": [12, 14, 1, 3, 5]
+      },
+      {
+        "played": [8, 10, 12, 14, 1, 3, 5, 7, 9, 11],
+        "resting": [13, 15, 2, 4, 6]
+      },
+      {
+        "played": [9, 11, 13, 15, 2, 4, 6, 8, 10, 12],
+        "resting": [14, 1, 3, 5, 7]
+      },
+      {
+        "played": [10, 12, 14, 1, 3, 5, 7, 9, 11, 13],
+        "resting": [15, 2, 4, 6, 8]
+      },
+      {
+        "played": [11, 13, 15, 2, 4, 6, 8, 10, 12, 14],
+        "resting": [1, 3, 5, 7, 9]
+      },
+      {
+        "played": [12, 14, 1, 3, 5, 7, 9, 11, 13, 15],
+        "resting": [2, 4, 6, 8, 10]
+      },
+      {
+        "played": [13, 15, 2, 4, 6, 8, 10, 12, 14, 1],
+        "resting": [3, 5, 7, 9, 11]
+      },
+      {
+        "played": [14, 1, 3, 5, 7, 9, 11, 13, 15, 2],
+        "resting": [4, 6, 8, 10, 12]
+      },
+      {
+        "played": [15, 2, 4, 6, 8, 10, 12, 14, 1, 3],
+        "resting": [5, 7, 9, 11, 13]
+      }
+    ]
+  },
+  {
+    "courts": 2,
+    "pairings": 2,
+    "players": 8,
+    "rounds": 4,
+    "restsPerPlayer": 1,
+    "gamesPerPlayer": 3,
+    "playingPerRound": 6,
+    "restingPerRound": 2,
+    "playerRounds": [
+      { "played": [1, 2, 4], "resting": [3] },
+      { "played": [2, 3, 1], "resting": [4] },
+      { "played": [3, 4, 2], "resting": [1] },
+      { "played": [4, 1, 3], "resting": [2] },
+      { "played": [1, 2, 4], "resting": [3] },
+      { "played": [2, 3, 1], "resting": [4] },
+      { "played": [3, 4, 2], "resting": [1] },
+      { "played": [4, 1, 3], "resting": [2] }
+    ]
+  }
+]
