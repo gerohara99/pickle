@@ -393,6 +393,42 @@ strong {
   row-gap: 2rem;
 }
 
+/* Add spacing above the schedule preview title */
+#schedulePreview h3 {
+  margin-top: 2em;
+  margin-bottom: 1em;
+}
+
+/* Add spacing above the table */
+#schedulePreview table {
+  margin-top: 1em;
+}
+
+/* Style the schedule preview table for readability */
+.modal-schedule-table {
+  border-collapse: separate;
+  border-spacing: 0.5em;
+  width: 100%;
+}
+
+.modal-schedule-table th,
+.modal-schedule-table td {
+  border: 1px solid #eee;
+  padding: 0.7em 1em;
+  text-align: left;
+  background: #fff;
+}
+
+.modal-schedule-table th {
+  background: #f7f7f7;
+  font-weight: 600;
+}
+
+/* Add gap above the confirm button */
+#confirmScheduleBtn {
+  margin-top: 2em;
+}
+
 .users-table .table-row,
 .events-table .table-row,
 .mySchedule-table .table-row,

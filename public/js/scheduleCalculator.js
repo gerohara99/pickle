@@ -74,7 +74,7 @@ function renderSchedulePreview(cfg) {
       <thead>
         <tr>
           <th>Player</th>
-          <th>Rounds Played</th>
+          <th>Rounds Playing</th>
           <th>Rounds Resting</th>
         </tr>
       </thead>
@@ -93,8 +93,6 @@ function renderSchedulePreview(cfg) {
 export function initScheduleCalculator() {
   const optionsDiv = document.getElementById("scheduleOptions");
   const previewDiv = document.getElementById("schedulePreview");
-  const confirmBtn = document.getElementById("confirmScheduleBtn");
-  confirmBtn.style.display = "none";
   const courtsSelect = document.getElementById("numCourts");
   const doublesToggle = document.getElementById("doublesToggle");
   const hiddenInput = document.getElementById("selectedScheduleConfig");
@@ -116,15 +114,7 @@ export function initScheduleCalculator() {
         pairings
       );
       previewDiv.innerHTML = "";
-      confirmBtn.disabled = true;
       filteredConfigs = filterConfigs(configs, selectedCourts, pairings);
-
-      // Show confirm button only after courts selected
-      if (selectedCourts) {
-        confirmBtn.style.display = "block";
-      } else {
-        confirmBtn.style.display = "none";
-      }
 
       // Add event listener for radio buttons
       optionsDiv
@@ -133,7 +123,7 @@ export function initScheduleCalculator() {
           radio.addEventListener("change", function () {
             selectedIdx = idx;
             previewDiv.innerHTML = renderSchedulePreview(filteredConfigs[idx]);
-            confirmBtn.disabled = false;
+            hiddenInput.value = JSON.stringify(filteredConfigs[idx]);
           });
         });
     }
@@ -145,16 +135,7 @@ export function initScheduleCalculator() {
       renderCourtsDropdown(configs, pairings);
       optionsDiv.innerHTML = "";
       previewDiv.innerHTML = "";
-      confirmBtn.disabled = true;
       hiddenInput.value = ""; // Clear hidden input when toggling
-    });
-
-    confirmBtn.addEventListener("click", function () {
-      if (selectedIdx !== null && filteredConfigs[selectedIdx]) {
-        const cfg = filteredConfigs[selectedIdx];
-        hiddenInput.value = JSON.stringify(cfg);
-        alert("Schedule option selected! It will be submitted with the event.");
-      }
     });
   });
 }
