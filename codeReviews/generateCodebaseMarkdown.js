@@ -11,6 +11,9 @@ const MAX_FILE_SIZE = 1048576; // 1 MB
 // Additional ignore patterns
 const EXTRA_IGNORES = [
   "dev-data/",
+  "dump/",
+  "data/",
+  "prototype",
   "public/img/",
   "vite.config.js",
   "vscode-setup.md",

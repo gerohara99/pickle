@@ -1,3 +1,9 @@
+import {
+  filterConfigs,
+  generateDummyPlayers,
+  findScheduleConfig,
+} from "../../utils/scheduleUtils.js";
+
 async function fetchScheduleConfigs() {
   const response = await fetch("/js/schedules.json");
   return await response.json();
@@ -5,7 +11,7 @@ async function fetchScheduleConfigs() {
 
 function renderCourtsDropdown(configs, pairings) {
   const courtsSet = new Set(
-    configs.filter((cfg) => cfg.pairings == pairings).map((cfg) => cfg.courts)
+    filterConfigs(configs, undefined, pairings).map((cfg) => cfg.courts)
   );
   const select = document.getElementById("numCourts");
   select.innerHTML =
@@ -21,9 +27,7 @@ function renderCourtsDropdown(configs, pairings) {
 }
 
 function renderScheduleOptions(configs, selectedCourts, pairings) {
-  const filtered = configs.filter(
-    (cfg) => cfg.courts == selectedCourts && cfg.pairings == pairings
-  );
+  const filtered = filterConfigs(configs, selectedCourts, pairings);
   if (filtered.length === 0)
     return "<p>No options available for this selection.</p>";
   return `
@@ -43,7 +47,7 @@ function renderScheduleOptions(configs, selectedCourts, pairings) {
             (cfg, idx) => `
           <tr>
             <td>
-              <input type="radio" class="schedule-radio" name="scheduleOption" value="${idx}">
+              <input type="radio" class="schedule-radio" name="scheduleOption" value="${idx}" style="width: 1.2em; height: 1.2em;">
             </td>
             <td>${cfg.players}</td>
             <td>${cfg.rounds}</td>
@@ -86,69 +90,84 @@ function renderSchedulePreview(cfg) {
   return html;
 }
 
-export async function initScheduleCalculator() {
+export function initScheduleCalculator() {
   const optionsDiv = document.getElementById("scheduleOptions");
   const previewDiv = document.getElementById("schedulePreview");
   const confirmBtn = document.getElementById("confirmScheduleBtn");
+  confirmBtn.style.display = "none";
   const courtsSelect = document.getElementById("numCourts");
   const doublesToggle = document.getElementById("doublesToggle");
+  const hiddenInput = document.getElementById("selectedScheduleConfig");
 
-  const configs = await fetchScheduleConfigs();
-
+  let configs = [];
   let pairings = 2; // Default to doubles
-  renderCourtsDropdown(configs, pairings);
-
   let filteredConfigs = [];
   let selectedIdx = null;
 
-  function updateOptions() {
-    const selectedCourts = courtsSelect.value;
-    optionsDiv.innerHTML = renderScheduleOptions(
-      configs,
-      selectedCourts,
-      pairings
-    );
-    previewDiv.innerHTML = "";
-    confirmBtn.disabled = true;
-    filteredConfigs = configs.filter(
-      (cfg) => cfg.courts == selectedCourts && cfg.pairings == pairings
-    );
-
-    // Add event listener for radio buttons
-    optionsDiv
-      .querySelectorAll('input[name="scheduleOption"]')
-      .forEach((radio, idx) => {
-        radio.addEventListener("change", function () {
-          selectedIdx = idx;
-          previewDiv.innerHTML = renderSchedulePreview(filteredConfigs[idx]);
-          confirmBtn.disabled = false;
-        });
-      });
-  }
-
-  courtsSelect.addEventListener("change", updateOptions);
-
-  doublesToggle.addEventListener("change", function () {
-    pairings = doublesToggle.checked ? 2 : 1;
+  fetchScheduleConfigs().then((loadedConfigs) => {
+    configs = loadedConfigs;
     renderCourtsDropdown(configs, pairings);
-    optionsDiv.innerHTML = "";
-    previewDiv.innerHTML = "";
-    confirmBtn.disabled = true;
-  });
 
-  confirmBtn.addEventListener("click", function () {
-    if (selectedIdx !== null && filteredConfigs[selectedIdx]) {
-      const cfg = filteredConfigs[selectedIdx];
-      alert(
-        `Schedule confirmed!\nCourts: ${cfg.courts}\nPairings/Court: ${cfg.pairings}\nPlayers: ${cfg.players}\nRounds: ${cfg.rounds}`
+    function updateOptions() {
+      const selectedCourts = courtsSelect.value;
+      optionsDiv.innerHTML = renderScheduleOptions(
+        configs,
+        selectedCourts,
+        pairings
       );
-      // Further logic here
-    }
-  });
+      previewDiv.innerHTML = "";
+      confirmBtn.disabled = true;
+      filteredConfigs = filterConfigs(configs, selectedCourts, pairings);
 
-  confirmBtn.disabled = true;
+      // Show confirm button only after courts selected
+      if (selectedCourts) {
+        confirmBtn.style.display = "block";
+      } else {
+        confirmBtn.style.display = "none";
+      }
+
+      // Add event listener for radio buttons
+      optionsDiv
+        .querySelectorAll('input[name="scheduleOption"]')
+        .forEach((radio, idx) => {
+          radio.addEventListener("change", function () {
+            selectedIdx = idx;
+            previewDiv.innerHTML = renderSchedulePreview(filteredConfigs[idx]);
+            confirmBtn.disabled = false;
+          });
+        });
+    }
+
+    courtsSelect.addEventListener("change", updateOptions);
+
+    doublesToggle.addEventListener("change", function () {
+      pairings = doublesToggle.checked ? 2 : 1;
+      renderCourtsDropdown(configs, pairings);
+      optionsDiv.innerHTML = "";
+      previewDiv.innerHTML = "";
+      confirmBtn.disabled = true;
+      hiddenInput.value = ""; // Clear hidden input when toggling
+    });
+
+    confirmBtn.addEventListener("click", function () {
+      if (selectedIdx !== null && filteredConfigs[selectedIdx]) {
+        const cfg = filteredConfigs[selectedIdx];
+        hiddenInput.value = JSON.stringify(cfg);
+        alert("Schedule option selected! It will be submitted with the event.");
+      }
+    });
+  });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  initScheduleCalculator();
+document.addEventListener("DOMContentLoaded", function () {
+  const eventForm = document.getElementById("createEventForm");
+  if (eventForm) {
+    eventForm.addEventListener("submit", function (e) {
+      const hiddenInput = document.getElementById("selectedScheduleConfig");
+      if (!hiddenInput || !hiddenInput.value) {
+        e.preventDefault();
+        alert("Please select a schedule before saving the event.");
+      }
+    });
+  }
 });

@@ -1078,3 +1078,43 @@ nav.main-nav {
 .tab-content.active {
   display: block !important;
 }
+
+.calculator-box {
+  padding: 1.5em;
+  background: #fcf6e3;
+  border-radius: 16px;
+  border: 2px solid #3d2a13;
+  max-width: 480px;
+}
+.calc-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1em;
+}
+.calc-row label {
+  margin-right: 0.5em;
+}
+#doublesToggle {
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 0.5em;
+}
+#numCourts {
+  margin-left: 0.5em;
+  min-width: 5em;
+}
+.schedule-options-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1em;
+}
+.schedule-options-table th,
+.schedule-options-table td {
+  padding: 0.3em 0.6em;
+  border-bottom: 1px solid #e0d6b7;
+  text-align: center;
+}
+.schedule-radio {
+  width: 1.2em;
+  height: 1.2em;
+}

@@ -1,10 +1,30 @@
-const {
-  buildUniquePartnerSchedule,
+import fs from "fs";
+import {
   generateDummyPlayers,
   findScheduleConfig,
-} = require("./generateSchedule");
+} from "../utils/scheduleUtils.js";
 
-// Improved validation function
+// Parse command line arguments
+const args = process.argv.slice(2);
+const numCourts = parseInt(args[0], 10) || 5;
+const numPairings = parseInt(args[1], 10) || 2;
+const numRounds = parseInt(args[2], 10) || 10;
+
+// Load precomputed schedules
+const configs = JSON.parse(
+  fs.readFileSync("./public/js/schedules.json", "utf8")
+);
+const config = findScheduleConfig(configs, numCourts, numPairings, numRounds);
+
+if (!config) {
+  console.error("No matching schedule config found.");
+  process.exit(1);
+}
+
+const players = generateDummyPlayers(config.players);
+const playerRounds = config.playerRounds;
+
+// Validation function
 function validateSchedule(config, players, playerRounds) {
   let valid = true;
   let errors = [];
@@ -80,10 +100,6 @@ function validateSchedule(config, players, playerRounds) {
     errors.push("Some players have zero rests");
   }
 
-  // 6. (Optional) Each player has unique partners every round
-  // This requires actual match pairings in your schedule data.
-  // If you add match data to your JSON, you can add a check for repeat partners here.
-
   // Output results
   if (valid) {
     console.log("✅ Schedule is valid!");
@@ -99,19 +115,4 @@ function validateSchedule(config, players, playerRounds) {
   });
 }
 
-// Command line input support
-const args = process.argv.slice(2);
-const numCourts = parseInt(args[0], 10) || 5;
-const numPairings = parseInt(args[1], 10) || 2;
-const numRounds = parseInt(args[2], 10) || 10;
-
-try {
-  const { config, players, playerRounds } = buildUniquePartnerSchedule(
-    numCourts,
-    numPairings,
-    numRounds
-  );
-  validateSchedule(config, players, playerRounds);
-} catch (err) {
-  console.error("Error:", err.message);
-}
+validateSchedule(config, players, playerRounds);

@@ -17,11 +17,33 @@ const roundSchema = new mongoose.Schema({
   matches: { type: [matchSchema] },
   standOuts: [
     {
-      userId: { type: String }, // Store userId directly as string
+      userId: { type: String },
       name: { type: String },
     },
   ],
 });
+
+// Schedule configuration schema
+const playerRoundSchema = new mongoose.Schema(
+  {
+    played: [{ type: Number }],
+    resting: [{ type: Number }],
+  },
+  { _id: false }
+);
+
+const scheduleConfigurationSchema = new mongoose.Schema(
+  {
+    courts: { type: Number, required: true },
+    pairings: { type: Number, required: true },
+    players: { type: Number, required: true },
+    rounds: { type: Number, required: true },
+    gamesPerPlayer: { type: Number, required: true },
+    restsPerPlayer: { type: Number, required: true },
+    playerRounds: { type: [playerRoundSchema], required: true },
+  },
+  { _id: false }
+);
 
 const eventSchema = new mongoose.Schema(
   {
@@ -48,21 +70,6 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter an organiser name for the event"],
     },
-    eventNumOfCourts: {
-      type: Number,
-      required: [
-        true,
-        "Please enter number of courts available for this event",
-      ],
-    },
-    numOfStandOutsPerRound: {
-      type: Number,
-      required: [true, "Please enter number of players resting per round"],
-    },
-    eventNumOfRounds: {
-      type: Number,
-      required: [true, "Please enter number of rounds per event"],
-    },
     eventWaitListSize: {
       type: Number,
       required: [
@@ -70,38 +77,31 @@ const eventSchema = new mongoose.Schema(
         "Please enter max number of players allowed on wait list",
       ],
     },
-    eventNumOfPairings: {
-      type: Number,
-      required: [true, "Please enter number of pairings per court"],
-    },
-    eventNumOfPlayers: {
-      type: Number,
-    },
     eventBookings: [
       {
         userId: { type: mongoose.Schema.ObjectId },
         userName: { type: String },
       },
     ],
-
     rounds: { type: [roundSchema] },
     active: {
       type: Boolean,
       default: true,
     },
+    doubles: {
+      type: Boolean,
+      default: true,
+    },
+    scheduleConfiguration: {
+      type: scheduleConfigurationSchema,
+      required: true,
+    },
   },
   {
-    // enable virtual fields
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
-
-eventSchema.pre("save", function (next) {
-  this.eventNumOfPlayers =
-    this.eventNumOfCourts * 4 + this.numOfStandOutsPerRound;
-  next();
-});
 
 const Event = mongoose.model("Event", eventSchema);
 

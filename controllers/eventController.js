@@ -3,7 +3,6 @@ const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { sendWhatsAppMessage } = require("../utils/twilioClient");
-const ScheduleService = require("../services/scheduleService");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   try {
@@ -24,7 +23,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
 
     if (
       event.eventBookings.length ===
-      event.eventNumOfPlayers + event.eventWaitListSize
+      event.scheduleConfiguration.players + event.eventWaitListSize
     ) {
       return next(new AppError("There are no spaces left for this event", 400));
     }
@@ -165,20 +164,23 @@ async function checkAndUpdateSchedule(eventId, next) {
     const event = await Event.findById(eventId);
     if (!event) return next(new AppError("No event found with that ID", 404));
 
-    let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
+    let playerslist = event.eventBookings.slice(
+      0,
+      event.scheduleConfiguration.players
+    );
 
-    if (event.eventBookings.length >= event.eventNumOfPlayers) {
+    if (event.eventBookings.length >= event.scheduleConfiguration.players) {
       const standOuts = generateStandOutsPubJs(
         playerslist,
-        event.eventNumOfRounds,
-        event.numOfStandOutsPerRound
+        event.scheduleConfiguration.rounds,
+        event.scheduleConfiguration.restsPerPlayer // or another field if needed
       );
       const availablePairings = generateAvailablePairingsPubJs(playerslist);
       const schedule = generateSchedulePubJs(
         availablePairings,
         standOuts,
-        event.eventNumOfCourts,
-        event.eventNumOfPairings
+        event.scheduleConfiguration.courts,
+        event.scheduleConfiguration.pairings
       );
       await Event.findByIdAndUpdate(
         eventId,
@@ -513,12 +515,10 @@ exports.createEvent = catchAsync(async (req, res, next) => {
       eventDate: req.body.eventDate,
       eventStartTime: req.body.eventStartTime,
       eventOrganiser: req.body.eventOrganiser,
-      eventNumOfCourts: req.body.eventNumOfCourts,
-      numOfStandOutsPerRound: req.body.numOfStandOutsPerRound,
-      eventNumOfRounds: req.body.eventNumOfRounds,
       eventWaitListSize: req.body.eventWaitListSize,
-      eventNumOfPairings: req.body.eventNumOfPairings,
       active: activeValue,
+      doubles: req.body.doubles,
+      scheduleConfiguration: req.body.scheduleConfiguration,
     });
     res.status(201).json({
       status: "success",
@@ -554,11 +554,9 @@ exports.updateEvent = catchAsync(async (req, res, next) => {
     eventDate: req.body.eventDate,
     eventStartTime: req.body.eventStartTime,
     eventOrganiser: req.body.eventOrganiser,
-    eventNumOfCourts: req.body.eventNumOfCourts,
-    numOfStandOutsPerRound: req.body.numOfStandOutsPerRound,
-    eventNumOfRounds: req.body.eventNumOfRounds,
     eventWaitListSize: req.body.eventWaitListSize,
-    eventNumOfPairings: req.body.eventNumOfPairings,
+    doubles: req.body.doubles,
+    scheduleConfiguration: req.body.scheduleConfiguration,
   };
   if (typeof activeValue !== "undefined") updateObj.active = activeValue;
 
@@ -597,11 +595,6 @@ exports.handleNoShow = catchAsync(async (req, res, next) => {
 
   event.eventBookings = event.eventBookings.filter(
     (booking) => booking.userId.toString() !== userId.toString()
-  );
-
-  event.numOfStandOutsPerRound = Math.max(
-    (event.numOfStandOutsPerRound || 1) - 1,
-    1
   );
 
   event.rounds = [];

@@ -231,14 +231,12 @@ export function initFormListeners(deps) {
         eventDate: document.getElementById("eventDate").value,
         eventStartTime: document.getElementById("eventStartTime").value,
         eventOrganiser: document.getElementById("eventOrganiser").value,
-        eventNumOfCourts: document.getElementById("eventNumOfCourts").value,
-        numOfStandOutsPerRound: document.getElementById(
-          "numOfStandOutsPerRound"
-        ).value,
-        eventNumOfRounds: document.getElementById("eventNumOfRounds").value,
         eventWaitListSize: document.getElementById("eventWaitListSize").value,
-        eventNumOfPairings: document.getElementById("eventNumOfPairings").value,
         active: document.getElementById("active").checked,
+        doubles: document.getElementById("doublesToggle").checked,
+        scheduleConfiguration: JSON.parse(
+          document.getElementById("selectedScheduleConfig").value
+        ),
       },
     ]
   );

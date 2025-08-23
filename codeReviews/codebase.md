@@ -884,7 +884,7 @@ module.exports = (err, req, res, next) => {
 
 ## controllers/eventController.js
 
-*Size: 19674 bytes*
+*Size: 19484 bytes*
 
 ```js
 const Event = require("../models/eventModel");
@@ -892,7 +892,6 @@ const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { sendWhatsAppMessage } = require("../utils/twilioClient");
-const ScheduleService = require("../services/scheduleService");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   try {
@@ -1402,12 +1401,10 @@ exports.createEvent = catchAsync(async (req, res, next) => {
       eventDate: req.body.eventDate,
       eventStartTime: req.body.eventStartTime,
       eventOrganiser: req.body.eventOrganiser,
-      eventNumOfCourts: req.body.eventNumOfCourts,
-      numOfStandOutsPerRound: req.body.numOfStandOutsPerRound,
-      eventNumOfRounds: req.body.eventNumOfRounds,
       eventWaitListSize: req.body.eventWaitListSize,
-      eventNumOfPairings: req.body.eventNumOfPairings,
       active: activeValue,
+      doubles: req.body.doubles,
+      scheduleConfiguration: req.body.scheduleConfiguration,
     });
     res.status(201).json({
       status: "success",
@@ -2850,268 +2847,6 @@ exports.showNoShowForm = [
 
 ```
 
-## data/copyDb.js
-
-*Size: 1941 bytes*
-
-```js
-const { exec } = require("child_process");
-const readline = require("readline");
-const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../config.env") });
-
-const PROD_URI = process.env.PROD_DATABASE;
-const STAGE_URI = process.env.STAGE_DATABASE;
-const DEV_URI = process.env.DEV_DATABASE;
-const PROD_DB_NAME = process.env.PROD_DATABASE_NAME.replace(/"/g, "");
-const DUMP_PATH = path.resolve(__dirname, "../dump");
-
-function run(command) {
-  return new Promise((resolve, reject) => {
-    exec(command, (err, stdout, stderr) => {
-      if (err) return reject(stderr || err);
-      resolve(stdout);
-    });
-  });
-}
-
-async function copyDb(target) {
-  let targetUri;
-  let targetName;
-  if (target === "staging") {
-    targetUri = STAGE_URI;
-    targetName = "STAGE";
-  } else if (target === "dev") {
-    targetUri = DEV_URI;
-    targetName = "DEV";
-  } else {
-    console.error("Invalid target environment.");
-    return;
-  }
-
-  try {
-    console.log(`Dumping production database (${PROD_DB_NAME})...`);
-    await run(
-      `mongodump --uri="${PROD_URI}" --db=${PROD_DB_NAME} --out=${DUMP_PATH}`
-    );
-    console.log(`Restoring to ${targetName} database...`);
-    await run(
-      `mongorestore --uri="${targetUri}" --drop ${DUMP_PATH}/${PROD_DB_NAME}`
-    );
-    console.log(
-      `Copy complete! Production data copied to ${targetName} database.`
-    );
-  } catch (err) {
-    console.error("Error copying database:", err);
-  }
-}
-
-function promptEnvironment() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  rl.question("Copy production data to (staging/dev)? ", (answer) => {
-    const env = answer.trim().toLowerCase();
-    if (env === "staging" || env === "dev") {
-      copyDb(env).finally(() => rl.close());
-    } else {
-      console.log("Invalid input. Please enter 'staging' or 'dev'.");
-      rl.close();
-    }
-  });
-}
-
-promptEnvironment();
-
-```
-
-## dump/Pickle-Database/events.bson
-
-*Size: 15902 bytes*
-
-```bson
-�5  _id h�@Z� 7x�ueventName    Tuesday at St Olaf's eventLocation 
-   St Olaf's eventType    Text Event Type 	eventDate  4�O�  eventStartTime    19:25 eventOrganiser    Ger eventNumOfCourts    numOfStandOutsPerRound    eventNumOfRounds 	   eventWaitListSize    eventNumOfPairings    eventBookings   0 B   _id h�Z� 7x��userId hD��>�5�� userName 
-   testuser2  1 B   _id h�)Z� 7x��userId hD�,>�5��¤userName 
-   testuser3  2 B   _id h�JZ� 7x��userId hD��>�5��®userName 
-   testuser4  3 B   _id h�kZ� 7x��userId hD��>�5����userName 
-   testuser5  4 B   _id h�Z� 7x��userId hD��>�5��¸userName 
-   testuser7  5 B   _id h�Z� 7x�userId hD��>�5��½userName 
-   testuser8  6 B   _id h�EZ� 7x�)userId hD��>�5����userName 
-   testuser9  7 C   _id h��Z� 7x��userId hx�fu�8T�m\�userName    testuser12  8 C   _id h��Z� 7x��userId hxގu�8T�m]userName    testuser13  9 C   _id h�(Z� 7x��userId hx޶u�8T�m]userName    testuser14  10 C   _id h�aZ� 7x��userId hx��u�8T�m]userName    testuser15  11 C   _id h��Z� 7x�'userId hx��u�8T�m]userName    testuser16  12 C   _id h�\Z:薻wuserId h{��kp�KF�userName    testuser20  13 C   _id h��^1��nuserId h7]Wf���pJ]userName    testuser76  14 C   _id h�CT�+u ���userId hD�7>�5����userName    testuser11   eventNumOfPlayers    __v     active rounds 0  0 P  _id h�CT�+u ���matches +  0 _  teamAScore     teamBScore     _id h�CT�+u ���teamA �   0 ?   _id h�CT�+u ���userId hD�7>�5����name    testuser11  1 >   _id h�CT�+u ���userId hD�,>�5��¤name 
-   testuser3   teamB �   0 ?   _id h�CT�+u ���userId h7]Wf���pJ]name    testuser76  1 >   _id h�CT�+u ���userId hD��>�5��®name 
-   testuser4   court      1 _  teamAScore     teamBScore     _id h�CT�+u ���teamA �   0 ?   _id h�CT�+u ���userId h{��kp�KF�name    testuser20  1 >   _id h�CT�+u ���userId hD��>�5����name 
-   testuser5   teamB �   0 ?   _id h�CT�+u ���userId hx��u�8T�m]name    testuser16  1 >   _id h�CT�+u ���userId hD��>�5��¸name 
-   testuser7   court     2 _  teamAScore     teamBScore     _id h�CT�+u ���teamA �   0 ?   _id h�CT�+u ���userId hx��u�8T�m]name    testuser15  1 >   _id h�CT�+u ���userId hD��>�5��½name 
-   testuser8   teamB �   0 ?   _id h�CT�+u ���userId hx޶u�8T�m]name    testuser14  1 >   _id h�CT�+u ���userId hD��>�5����name 
-   testuser9   court      standOuts �   0 O   _id h�CT�+u ���userId    684484e13efd35198cbac2a0 name 
-   testuser2  1 O   _id h�CT�+u ���userId    6844852c3efd35198cbac2a4 name 
-   testuser3  2 O   _id h�CT�+u ���userId    684485873efd35198cbac2ae name 
-   testuser4    1 Q  _id h�CT�+u ���matches ,  0 `  teamAScore     teamBScore     _id h�CT�+u ���teamA �   0 ?   _id h�CT�+u ���userId hxގu�8T�m]name    testuser13  1 ?   _id h�CT�+u �� userId hx�fu�8T�m\�name    testuser12   teamB �   0 ?   _id h�CT�+u ��userId hD�7>�5����name    testuser11  1 >   _id h�CT�+u ��userId hD��>�5�� name 
-   testuser2   court      1 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId h{��kp�KF�name    testuser20  1 >   _id h�CT�+u ��userId hD�,>�5��¤name 
-   testuser3   teamB �   0 ?   _id h�CT�+u ��userId hx��u�8T�m]name    testuser16  1 >   _id h�CT�+u ��userId hD��>�5��®name 
-   testuser4   court     2 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��	userId hx��u�8T�m]name    testuser15  1 >   _id h�CT�+u ��
-userId hD��>�5����name 
-   testuser5   teamB �   0 ?   _id h�CT�+u ��userId hx޶u�8T�m]name    testuser14  1 >   _id h�CT�+u ��userId hD��>�5��¸name 
-   testuser7   court      standOuts �   0 O   _id h�CT�+u ��userId    684486893efd35198cbac2db name 
-   testuser5  1 O   _id h�CT�+u ��userId    684485c93efd35198cbac2b8 name 
-   testuser7  2 O   _id h�CT�+u ��userId    684485e53efd35198cbac2bd name 
-   testuser8    2 S  _id h�CT�+u ��matches ,  0 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId hxގu�8T�m]name    testuser13  1 >   _id h�CT�+u ��userId hD��>�5��½name 
-   testuser8   teamB �   0 ?   _id h�CT�+u ��userId hx�fu�8T�m\�name    testuser12  1 >   _id h�CT�+u ��userId hD��>�5����name 
-   testuser9   court      1 `  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId h7]Wf���pJ]name    testuser76  1 >   _id h�CT�+u ��userId hD��>�5�� name 
-   testuser2   teamB �   0 ?   _id h�CT�+u ��userId h{��kp�KF�name    testuser20  1 ?   _id h�CT�+u ��userId hD�7>�5����name    testuser11   court     2 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId hx��u�8T�m]name    testuser15  1 >   _id h�CT�+u ��userId hD�,>�5��¤name 
-   testuser3   teamB �   0 ?   _id h�CT�+u ��userId hx޶u�8T�m]name    testuser14  1 >   _id h�CT�+u ��userId hD��>�5��®name 
-   testuser4   court      standOuts �   0 O   _id h�CT�+u �� userId    684485fd3efd35198cbac2c2 name 
-   testuser9  1 P   _id h�CT�+u ��!userId    6878de6675ce3854a16d5cfb name    testuser12  2 P   _id h�CT�+u ��"userId    6878de8e75ce3854a16d5d05 name    testuser13    3 T  _id h�CT�+u ��#matches ,  0 _  teamAScore     teamBScore     _id h�CT�+u ��$teamA �   0 ?   _id h�CT�+u ��%userId hxގu�8T�m]name    testuser13  1 >   _id h�CT�+u ��&userId hD��>�5����name 
-   testuser5   teamB �   0 ?   _id h�CT�+u ��'userId hx�fu�8T�m\�name    testuser12  1 >   _id h�CT�+u ��(userId hD��>�5��¸name 
-   testuser7   court      1 ^  teamAScore     teamBScore     _id h�CT�+u ��)teamA �   0 >   _id h�CT�+u ��*userId hD��>�5����name 
-   testuser9  1 >   _id h�CT�+u ��+userId hD��>�5��½name 
-   testuser8   teamB �   0 ?   _id h�CT�+u ��,userId h{��kp�KF�name    testuser20  1 >   _id h�CT�+u ��-userId hD��>�5�� name 
-   testuser2   court     2 a  teamAScore     teamBScore     _id h�CT�+u ��.teamA �   0 ?   _id h�CT�+u ��/userId hx��u�8T�m]name    testuser16  1 ?   _id h�CT�+u ��0userId h7]Wf���pJ]name    testuser76   teamB �   0 ?   _id h�CT�+u ��1userId hx��u�8T�m]name    testuser15  1 ?   _id h�CT�+u ��2userId hD�7>�5����name    testuser11   court      standOuts �   0 P   _id h�CT�+u ��3userId    6878deb675ce3854a16d5d0b name    testuser14  1 P   _id h�CT�+u ��4userId    6878ded475ce3854a16d5d11 name    testuser15  2 P   _id h�CT�+u ��5userId    6878deef75ce3854a16d5d17 name    testuser16    4 R  _id h�CT�+u ��6matches *  0 _  teamAScore     teamBScore     _id h�CT�+u ��7teamA �   0 ?   _id h�CT�+u ��8userId hxގu�8T�m]name    testuser13  1 >   _id h�CT�+u ��9userId hD�,>�5��¤name 
-   testuser3   teamB �   0 ?   _id h�CT�+u ��:userId hx�fu�8T�m\�name    testuser12  1 >   _id h�CT�+u ��;userId hD��>�5��®name 
-   testuser4   court      1 ]  teamAScore     teamBScore     _id h�CT�+u ��<teamA �   0 >   _id h�CT�+u ��=userId hD��>�5����name 
-   testuser9  1 >   _id h�CT�+u ��>userId hD��>�5����name 
-   testuser5   teamB �   0 >   _id h�CT�+u ��?userId hD��>�5��½name 
-   testuser8  1 >   _id h�CT�+u ��@userId hD��>�5��¸name 
-   testuser7   court     2 `  teamAScore     teamBScore     _id h�CT�+u ��AteamA �   0 ?   _id h�CT�+u ��BuserId hx��u�8T�m]name    testuser16  1 >   _id h�CT�+u ��CuserId hD��>�5�� name 
-   testuser2   teamB �   0 ?   _id h�CT�+u ��DuserId hx��u�8T�m]name    testuser15  1 ?   _id h�CT�+u ��EuserId h{��kp�KF�name    testuser20   court      standOuts �   0 P   _id h�CT�+u ��FuserId    687ba7c66b70db16084b46a2 name    testuser20  1 P   _id h�CT�+u ��GuserId    68375d5766f0f087704a5d13 name    testuser76  2 P   _id h�CT�+u ��HuserId    684486373efd35198cbac2cc name    testuser11    5 O  _id h�CT�+u ��Imatches *  0 a  teamAScore     teamBScore     _id h�CT�+u ��JteamA �   0 ?   _id h�CT�+u ��KuserId hx޶u�8T�m]name    testuser14  1 ?   _id h�CT�+u ��LuserId h7]Wf���pJ]name    testuser76   teamB �   0 ?   _id h�CT�+u ��MuserId hxގu�8T�m]name    testuser13  1 ?   _id h�CT�+u ��NuserId hD�7>�5����name    testuser11   court      1 ]  teamAScore     teamBScore     _id h�CT�+u ��OteamA �   0 >   _id h�CT�+u ��PuserId hD��>�5����name 
-   testuser9  1 >   _id h�CT�+u ��QuserId hD�,>�5��¤name 
-   testuser3   teamB �   0 >   _id h�CT�+u ��RuserId hD��>�5��½name 
-   testuser8  1 >   _id h�CT�+u ��SuserId hD��>�5��®name 
-   testuser4   court     2 ^  teamAScore     teamBScore     _id h�CT�+u ��TteamA �   0 >   _id h�CT�+u ��UuserId hD��>�5��¸name 
-   testuser7  1 >   _id h�CT�+u ��VuserId hD��>�5����name 
-   testuser5   teamB �   0 ?   _id h�CT�+u ��WuserId hx��u�8T�m]name    testuser15  1 >   _id h�CT�+u ��XuserId hD��>�5�� name 
-   testuser2   court      standOuts �   0 O   _id h�CT�+u ��YuserId    684484e13efd35198cbac2a0 name 
-   testuser2  1 O   _id h�CT�+u ��ZuserId    6844852c3efd35198cbac2a4 name 
-   testuser3  2 O   _id h�CT�+u ��[userId    684485873efd35198cbac2ae name 
-   testuser4    6 Q  _id h�CT�+u ��\matches ,  0 a  teamAScore     teamBScore     _id h�CT�+u ��]teamA �   0 ?   _id h�CT�+u ��^userId hx޶u�8T�m]name    testuser14  1 ?   _id h�CT�+u ��_userId hx��u�8T�m]name    testuser16   teamB �   0 ?   _id h�CT�+u ��`userId hxގu�8T�m]name    testuser13  1 ?   _id h�CT�+u ��auserId h{��kp�KF�name    testuser20   court      1 `  teamAScore     teamBScore     _id h�CT�+u ��bteamA �   0 ?   _id h�CT�+u ��cuserId hx�fu�8T�m\�name    testuser12  1 ?   _id h�CT�+u ��duserId h7]Wf���pJ]name    testuser76   teamB �   0 >   _id h�CT�+u ��euserId hD��>�5����name 
-   testuser9  1 ?   _id h�CT�+u ��fuserId hD�7>�5����name    testuser11   court     2 ]  teamAScore     teamBScore     _id h�CT�+u ��gteamA �   0 >   _id h�CT�+u ��huserId hD��>�5��¸name 
-   testuser7  1 >   _id h�CT�+u ��iuserId hD�,>�5��¤name 
-   testuser3   teamB �   0 >   _id h�CT�+u ��juserId hD��>�5����name 
-   testuser5  1 >   _id h�CT�+u ��kuserId hD��>�5��®name 
-   testuser4   court      standOuts �   0 O   _id h�CT�+u ��luserId    684486893efd35198cbac2db name 
-   testuser5  1 O   _id h�CT�+u ��muserId    684485c93efd35198cbac2b8 name 
-   testuser7  2 O   _id h�CT�+u ��nuserId    684485e53efd35198cbac2bd name 
-   testuser8    7 T  _id h�CT�+u ��omatches -  0 `  teamAScore     teamBScore     _id h�CT�+u ��pteamA �   0 ?   _id h�CT�+u ��quserId hx޶u�8T�m]name    testuser14  1 >   _id h�CT�+u ��ruserId hD��>�5�� name 
-   testuser2   teamB �   0 ?   _id h�CT�+u ��suserId hxގu�8T�m]name    testuser13  1 ?   _id h�CT�+u ��tuserId hx��u�8T�m]name    testuser15   court      1 `  teamAScore     teamBScore     _id h�CT�+u ��uteamA �   0 ?   _id h�CT�+u ��vuserId hx�fu�8T�m\�name    testuser12  1 ?   _id h�CT�+u ��wuserId hx��u�8T�m]name    testuser16   teamB �   0 >   _id h�CT�+u ��xuserId hD��>�5����name 
-   testuser9  1 ?   _id h�CT�+u ��yuserId h{��kp�KF�name    testuser20   court     2 _  teamAScore     teamBScore     _id h�CT�+u ��zteamA �   0 >   _id h�CT�+u ��{userId hD��>�5��½name 
-   testuser8  1 ?   _id h�CT�+u ��|userId h7]Wf���pJ]name    testuser76   teamB �   0 >   _id h�CT�+u ��}userId hD��>�5��¸name 
-   testuser7  1 ?   _id h�CT�+u ��~userId hD�7>�5����name    testuser11   court      standOuts �   0 O   _id h�CT�+u ��userId    684485fd3efd35198cbac2c2 name 
-   testuser9  1 P   _id h�CT�+u ��userId    6878de6675ce3854a16d5cfb name    testuser12  2 P   _id h�CT�+u ��userId    6878de8e75ce3854a16d5d05 name    testuser13    8 S  _id h�CT�+u ��matches +  0 ^  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 >   _id h�CT�+u ��userId hD��>�5��®name 
-   testuser4  1 >   _id h�CT�+u ��userId hD�,>�5��¤name 
-   testuser3   teamB �   0 ?   _id h�CT�+u ��userId hxގu�8T�m]name    testuser13  1 >   _id h�CT�+u ��userId hD��>�5�� name 
-   testuser2   court      1 `  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 ?   _id h�CT�+u ��userId hx�fu�8T�m\�name    testuser12  1 ?   _id h�CT�+u ��userId hx޶u�8T�m]name    testuser14   teamB �   0 >   _id h�CT�+u ��userId hD��>�5����name 
-   testuser9  1 ?   _id h�CT�+u ��userId hx��u�8T�m]name    testuser15   court     2 _  teamAScore     teamBScore     _id h�CT�+u ��teamA �   0 >   _id h�CT�+u ��userId hD��>�5��½name 
-   testuser8  1 ?   _id h�CT�+u ��userId hx��u�8T�m]name    testuser16   teamB �   0 >   _id h�CT�+u ��userId hD��>�5��¸name 
-   testuser7  1 ?   _id h�CT�+u ��userId h{��kp�KF�name    testuser20   court      standOuts �   0 P   _id h�CT�+u ��userId    6878deb675ce3854a16d5d0b name    testuser14  1 P   _id h�CT�+u ��userId    6878ded475ce3854a16d5d11 name    testuser15  2 P   _id h�CT�+u ��userId    6878deef75ce3854a16d5d17 name    testuser16      �  _id h�}Z� 7x�{eventName    Thursday at St Olaf's eventLocation 
-   St Olaf's eventType    test event type 	eventDate  �kd�  eventStartTime    19:00 eventOrganiser    Ger eventNumOfCourts    numOfStandOutsPerRound    eventNumOfRounds 	   eventWaitListSize    eventNumOfPairings    eventBookings a  0 B   _id h�0Z� 7x��userId hD�,>�5��¤userName 
-   testuser3  1 B   _id h�lZ� 7x��userId hD��>�5����userName 
-   testuser5  2 C   _id h�pZ� 7x�ZuserId hD�>�5����userName    testuser10  3 C   _id h��Z� 7x��userId hx�fu�8T�m\�userName    testuser12  4 C   _id h��Z� 7x��userId h{�*��sA{�<userName    testuser17   rounds     eventNumOfPlayers    __v     active  5  _id h��Z� 7x��eventName    Sarturday Drills eventLocation    Drill Place eventType    test event type 	eventDate   _@�  eventStartTime    10:00 eventOrganiser    Ger 22 eventNumOfCourts    numOfStandOutsPerRound    eventNumOfRounds 	   eventWaitListSize    eventNumOfPairings    eventBookings �  0 B   _id h�Z� 7x��userId hD��>�5�� userName 
-   testuser2  1 B   _id h�OZ� 7x��userId hD��>�5��®userName 
-   testuser4  2 B   _id h�!Z� 7x�userId hD��>�5��½userName 
-   testuser8  3 B   _id h�OZ� 7x�9userId hD��>�5����userName 
-   testuser9  4 C   _id h��Z� 7x��userId hxގu�8T�m]userName    testuser13  5 C   _id h�,Z� 7x��userId hx޶u�8T�m]userName    testuser14  6 C   _id h�eZ� 7x�userId hx��u�8T�m]userName    testuser15  7 C   _id h��Z� 7x��userId hx��u�8T�m]userName    testuser16  8 C   _id h��Z� 7x�KuserId h{��kp�KF�userName    testuser18  9 C   _id h��S��FV���;userId hD�7>�5����userName    testuser11   rounds     eventNumOfPlayers    __v     active  �  _id h�y���<lr��active  eventName %   Tuesday at St Olaf's - Not active mm eventLocation    Dublin eventType    Social 	eventDate  �y��  eventStartTime    20:04 eventOrganiser    Ger eventNumOfCourts    numOfStandOutsPerRound    eventNumOfRounds 	   eventWaitListSize    eventNumOfPairings    eventBookings     rounds     eventNumOfPlayers    __v      
-```
-
-## dump/Pickle-Database/events.metadata.json
-
-*Size: 266 bytes*
-
-```json
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"slug":{"$numberInt":"1"}},"name":"slug_1","background":true}],"uuid":"c8c5797ba0d7437f8cc6150158483192","collectionName":"events","type":"collection"}
-```
-
-## dump/Pickle-Database/prelude.json
-
-*Size: 51 bytes*
-
-```json
-{"ServerVersion":"8.0.12","ToolVersion":"100.12.1"}
-```
-
-## dump/Pickle-Database/sessions.bson
-
-*Size: 1872 bytes*
-
-```bson
-�  _id !   nwEb5JwsVGSrEfu6WqDDZo3p3QoIlG-o 	expires 4���  session �  cookie r   originalMaxAge  �$
-partitioned 
-priority 	expires 4���  
-secure httpOnly 
-domain path    / 
-sameSite  user j   userId    684486373efd35198cbac2cc userName    testuser11 userRole    user userMobile  ��q�TB systemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore     �  _id !   F9GKoSQ4an8X1ZNuglpOXgvgOez9jerT 	expires ���  session �  cookie r   originalMaxAge  �$
-partitioned 
-priority 	expires ���  
-secure httpOnly 
-domain path    / 
-sameSite  user j   userId    684486373efd35198cbac2cc userName    testuser11 userRole    user userMobile  ��q�TB systemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore     �  _id !   LF65mqjbK-LlB_iLwbSCw3fNuDhJq9vz 	expires ��*�  session �  cookie r   originalMaxAge  �$
-partitioned 
-priority 	expires ��*�  
-secure httpOnly 
-domain path    / 
-sameSite  user r   userId    682f180f32ccbd78850a8bb7 userName    Club Admin 99 userRole 
-   clubAdmin userMobile   ��:0B systemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore     �  _id !   UJFZGSjp-nO_DPnBNKIyvvSXugdeZ8D2 	expires ���  session �  cookie r   originalMaxAge  �$
-partitioned 
-priority 	expires ���  
-secure httpOnly 
-domain path    / 
-sameSite  user j   userId    684486373efd35198cbac2cc userName    testuser11 userRole    user userMobile  ��q�TB systemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore     
-```
-
-## dump/Pickle-Database/sessions.metadata.json
-
-*Size: 296 bytes*
-
-```json
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"expires":{"$numberInt":"1"}},"name":"expires_1","expireAfterSeconds":{"$numberInt":"0"}}],"uuid":"7679231002214e978ad3b5122fc8ede9","collectionName":"sessions","type":"collection"}
-```
-
-## dump/Pickle-Database/settings.bson
-
-*Size: 176 bytes*
-
-```bson
-�   _id h���O Vf|wۭsystemDefaults h   numOfStandOuts    numOfRounds 	   numOfCourts 	   numOfPairingsPerCourt    waitListSize     features    teamCanEditScore    
-```
-
-## dump/Pickle-Database/settings.metadata.json
-
-*Size: 175 bytes*
-
-```json
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"6028de3724694ac38479cfbb38d73fea","collectionName":"settings","type":"collection"}
-```
-
-## dump/Pickle-Database/users.bson
-
-*Size: 5310 bytes*
-
-```bson
-G  _id h/2̽x�
-��role 
-   clubAdmin active name    Club Admin 99 email    clubadmin99@gmail.com mobile   ��:0Bpassword =   $2a$12$CUyq3garlwUuIoES627.Muxl7D3.CZVa8cOGLJabmRp5Kuu/Ca7mm __v     	passwordResetExpires .�J�  passwordResetToken A   9fad9b7675255ef7c6c6596f8bbe29c80ecc451ddcfed47e216b7c3479ad4ecb  �   _id h7]Wf���pJ]role    user active  name    testuser76 email    testuser76@gmail.com mobile 8VLpassword =   $2a$12$ZbIOd8fhwXGqPZ/Xg4sabOfW.NiEPuwyPcLn45nBT4ikZamOw9t1m __v      �   _id hD��>�5��role    user active name 
-   testuser1 email    testuser1@gmail.com mobile    password =   $2a$12$IPPk9YGC5/BKhuYhmIjCreAwZZ.i7543t9MUtkELdJayd44GwY/Nm __v      �   _id hD��>�5�� role    user active name 
-   testuser2 email    testuser2@gmail.com mobile    password =   $2a$12$CGOhWpq9LXZti7/1AyNMT.20m/I9hz2kS9ZJ8CwV/loa5C/RtHCuq __v      �   _id hD�,>�5��¤role    user active name 
-   testuser3 email    testuser3@gmail.com mobile    password =   $2a$12$As.Uo9loofsLJ61LHuyptO6jKeCDpGJj2O42Ow6LTpW0a9gigPLiC __v      �   _id hD��>�5��®role    user active name 
-   testuser4 email    testuser4@gmail.com mobile    password =   $2a$12$oDGSuNgDkjY6opFu8HFlB.F238xV4eAORLHDvZQdRDuEHaoi4FH96 __v      �   _id hD��>�5��³role    user active name 
-   testuser6 email    testuser6@gmail.com mobile    password =   $2a$12$MSVYVdkEGOYd5xpEyhO0Her8Y411c5DjGxw2IvoD1UVPqKSXmH.VS __v      �   _id hD��>�5��¸role    user active name 
-   testuser7 email    testuser7@gmail.com mobile    password =   $2a$12$UCxdeO4E7xJz6O/Z/ek98.YkOoqzayQCLBPyExfIyh7Ocpw5UtHNy __v      �   _id hD��>�5��½role    user active name 
-   testuser8 email    testuser8@gmail.com mobile    password =   $2a$12$f9vPOJDHlxkhVDYMICtpX.md5HrcAk56M6aHGN5S3Pr6aA10eUOU6 __v      �   _id hD��>�5����role    user active name 
-   testuser9 email    testuser9@gmail.com mobile 	   password =   $2a$12$Pf4TQcsB7u5yWCAShNwUTuIIL6Gxt7J4ko/UZCVYx5FhfPyNye.WC __v      �   _id hD�>�5����role    user active name    testuser10 email    testuser10@gmail.com mobile 
-   password =   $2a$12$eEl1ZXKrM4enWPIgvC7Ze.yZpcQ60JgFkuhF7mHA5qOY5aeOM925m __v      �   _id hD�7>�5����role    user active name    testuser11 email    testuser11@gmail.com mobile  ��q�TBpassword =   $2a$12$6XSMu.Ng9SPtsKCFiroAs.VvwiZsttRXPVSyaONGG4quqMnFmIvgi __v      �   _id hD��>�5����role    user active name 
-   testuser5 email    testuser5@gmail.com mobile    password =   $2a$12$.rxZ3XhbW8UNoP8gNBOrIOA840Zgo8qv5ZZdMRzQZYZ.CADKVnfqK __v      �   _id hx�fu�8T�m\�role    user active name    testuser12 email    testuser12@gmail.com mobile ��3password =   $2a$12$9rxvmpT3.l9iPJkkS8bPLOjwAZG9Tg1hjgd.4E5NuDADDnO9pMOKy __v      �   _id hxގu�8T�m]role    user active name    testuser13 email    testuser13@gmail.com mobile    password =   $2a$12$OwMIjxnzr5E4BvQRyxEG1.9oP4E23.W6.lpNZlDcrDnBQMMRFM4cq __v      �   _id hx޶u�8T�m]role    user active name    testuser14 email    testuser14@gmail.com mobile    password =   $2a$12$p2vawh3jSeZIlZgnfzaLeeuWCA28SqZ4IeGj/AgdZ8N6itZuwGEiW __v      �   _id hx��u�8T�m]role    user active name    testuser15 email    testuser15@gmail.com mobile    password =   $2a$12$6sxrFeA/FnA3sfBVobUuBejqw13TtDZJ2LTyqtk55tg/vepU2YT3a __v      �   _id hx��u�8T�m]role    user active name    testuser16 email    testuser16@gmail.com mobile    password =   $2a$12$afVbHqktnTeth47dFrMLoeHYYNvjD7cLthNX7nZCCYIo/BQyomZ8. __v      �   _id h{�*��sA{�<role    user active name    testuser17 email    testuser17@gmail.com mobile    password =   $2a$12$QEROcku7TATpNHU0O3q0/eULd/GsjAgOOzq8OUk3ly/.DUCTk2Jnq __v      �   _id h{��kp�KF�role    user active name    testuser18 email    testuser18@gmail.com mobile    password =   $2a$12$tNLuc.ZSJ28wB/Twv.8LMult.JcBKx0mfCC8sYbh8TgMMOQuuUcoO __v      �   _id h{��kp�KF�role    user active name    testuser19 email    testuser19@gmail.com mobile    password =   $2a$12$nHgsoOvppcrbKOXlJMpuzuSDkG1.ZtwIbBclqdRUF37oxIZR57YNe __v      �   _id h{��kp�KF�role    user active name    testuser20 email    testuser20@gmail.com mobile    password =   $2a$12$Q5Kq7PbuYgUHgR5QkEcFQOoSwmQ9rPkdMcePLTaEfh1dblSI7JAWy __v      �   _id h{��kp�KF�role    user active name    testuser21 email    testuser21@gmail.com mobile    password =   $2a$12$yJJImFwFZctxQt22kNcMSud11JyortfXPk0Ghm504IEeWl3tWfy3O __v      =  _id h}:��,�9��&role    user active  name    Gerard O'Hara email    gerohara99@gmail.com mobile N   password =   $2a$12$1xJavp/QWyCh57zvm7BdPOcii34AqvQedsXKnqvPNVlUg6yJJcTMy __v     	passwordResetExpires ���  passwordResetToken A   54c9ec7a8efeb914443490abe6e28af69d86408a8eee354a8bc12ebc05c261bb  �   _id h�<�.ٲ���role    user active name    testuser30 email    testuser30@gmail.com mobile    password =   $2a$12$v5rg8qDWm9.Vi88DiBZqFODAYtsTKQczHrFLhE9YedF9NfYNI5.Aq __v      �   _id h���d��Q��)role    user active name    testuser31 email    testuser31@gmail.com mobile    password =   $2a$12$gDxIdwAmpnow0cNkuQRvc.R.2EoKWkzd5K9HgOuzmU2UACak9XUay __v      
-```
-
-## dump/Pickle-Database/users.metadata.json
-
-*Size: 392 bytes*
-
-```json
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"email":{"$numberInt":"1"}},"name":"email_1","background":true,"unique":true},{"v":{"$numberInt":"2"},"key":{"mobile":{"$numberInt":"1"}},"name":"mobile_1","background":true,"unique":true}],"uuid":"754d86c70ad64b99986659b17900ba11","collectionName":"users","type":"collection"}
-```
-
 ## manifest.webmanifest
 
 *Size: 222 bytes*
@@ -3136,7 +2871,7 @@ G  _id h/2̽x�
 
 ## models/eventModel.js
 
-*Size: 2560 bytes*
+*Size: 2552 bytes*
 
 ```js
 const mongoose = require("mongoose");
@@ -3158,11 +2893,33 @@ const roundSchema = new mongoose.Schema({
   matches: { type: [matchSchema] },
   standOuts: [
     {
-      userId: { type: String }, // Store userId directly as string
+      userId: { type: String },
       name: { type: String },
     },
   ],
 });
+
+// Schedule configuration schema
+const playerRoundSchema = new mongoose.Schema(
+  {
+    played: [{ type: Number }],
+    resting: [{ type: Number }],
+  },
+  { _id: false }
+);
+
+const scheduleConfigurationSchema = new mongoose.Schema(
+  {
+    courts: { type: Number, required: true },
+    pairings: { type: Number, required: true },
+    players: { type: Number, required: true },
+    rounds: { type: Number, required: true },
+    gamesPerPlayer: { type: Number, required: true },
+    restsPerPlayer: { type: Number, required: true },
+    playerRounds: { type: [playerRoundSchema], required: true },
+  },
+  { _id: false }
+);
 
 const eventSchema = new mongoose.Schema(
   {
@@ -3189,21 +2946,6 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter an organiser name for the event"],
     },
-    eventNumOfCourts: {
-      type: Number,
-      required: [
-        true,
-        "Please enter number of courts available for this event",
-      ],
-    },
-    numOfStandOutsPerRound: {
-      type: Number,
-      required: [true, "Please enter number of players resting per round"],
-    },
-    eventNumOfRounds: {
-      type: Number,
-      required: [true, "Please enter number of rounds per event"],
-    },
     eventWaitListSize: {
       type: Number,
       required: [
@@ -3211,38 +2953,31 @@ const eventSchema = new mongoose.Schema(
         "Please enter max number of players allowed on wait list",
       ],
     },
-    eventNumOfPairings: {
-      type: Number,
-      required: [true, "Please enter number of pairings per court"],
-    },
-    eventNumOfPlayers: {
-      type: Number,
-    },
     eventBookings: [
       {
         userId: { type: mongoose.Schema.ObjectId },
         userName: { type: String },
       },
     ],
-
     rounds: { type: [roundSchema] },
     active: {
       type: Boolean,
       default: true,
     },
+    doubles: {
+      type: Boolean,
+      default: true,
+    },
+    scheduleConfiguration: {
+      type: scheduleConfigurationSchema,
+      required: true,
+    },
   },
   {
-    // enable virtual fields
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
-
-eventSchema.pre("save", function (next) {
-  this.eventNumOfPlayers =
-    this.eventNumOfCourts * 4 + this.numOfStandOutsPerRound;
-  next();
-});
 
 const Event = mongoose.model("Event", eventSchema);
 
@@ -3421,468 +3156,6 @@ userSchema.methods.createPasswordResetToken = function () {
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
-
-```
-
-## prototype/generateSchedule.js
-
-*Size: 7859 bytes*
-
-```js
-/**
- * Generate a perfect schedule given only:
- *   - number of courts
- *   - number of rests per player
- * The code calculates the ideal number of players and rounds to guarantee:
- *   - unique partners every round
- *   - each player rests the same number of times
- *   - rests are evenly distributed
- */
-
-function factorial(n) {
-  return n <= 1 ? 1 : n * factorial(n - 1);
-}
-
-// Helper: Calculate max rounds for unique partners
-function maxRoundsForUniquePartners(numPlayers, numCourts) {
-  const uniquePairs = (numPlayers * (numPlayers - 1)) / 2;
-  const matchesPerRound = numCourts;
-  const pairsPerRound = matchesPerRound * 2; // 2 pairs per match
-  return Math.floor(uniquePairs / pairsPerRound);
-}
-
-// Helper: Find ideal number of players and rounds for perfect schedule
-function findIdealConfig(numCourts, restsPerPlayer) {
-  // Try increasing player count until all requirements are met
-  for (let numPlayers = numCourts * 2 + 2; numPlayers < 100; numPlayers++) {
-    // Each round: numCourts matches × 4 players = numCourts * 4 players playing
-    // Resting per round: numPlayers - numCourts * 4
-    const playingPerRound = numCourts * 4;
-    const restingPerRound = numPlayers - playingPerRound;
-    if (restingPerRound <= 0) continue;
-
-    // Total rests needed: numPlayers * restsPerPlayer
-    // Total rounds needed: totalRests / restingPerRound
-    const totalRests = numPlayers * restsPerPlayer;
-    if (totalRests % restingPerRound !== 0) continue;
-    const numRounds = totalRests / restingPerRound;
-
-    // Check if unique partners possible
-    const maxRounds = maxRoundsForUniquePartners(numPlayers, numCourts);
-    if (numRounds <= maxRounds) {
-      return { numPlayers, numRounds, restingPerRound, playingPerRound };
-    }
-  }
-  throw new Error("No ideal configuration found for these inputs.");
-}
-
-// Generate dummy players
-function generateDummyPlayers(num) {
-  return Array.from({ length: num }, (_, i) => ({
-    userId: `user${i + 1}`,
-    userName: `Player${i + 1}`,
-  }));
-}
-
-// Assign rests evenly and spread out
-function assignRests(players, numRounds, restingPerRound) {
-  const totalRests = numRounds * restingPerRound;
-  const baseRests = Math.floor(totalRests / players.length);
-  const extraRests = totalRests % players.length;
-  const restCounts = Array(players.length).fill(baseRests);
-  for (let i = 0; i < extraRests; i++) restCounts[i]++;
-
-  const playerRestRounds = Array(players.length)
-    .fill(0)
-    .map(() => []);
-  const restSchedule = Array(numRounds)
-    .fill(0)
-    .map(() => []);
-
-  for (let round = 0; round < numRounds; round++) {
-    let candidates = [];
-    for (let pIdx = 0; pIdx < players.length; pIdx++) {
-      if (
-        restCounts[pIdx] > 0 &&
-        (playerRestRounds[pIdx].length === 0 ||
-          playerRestRounds[pIdx][playerRestRounds[pIdx].length - 1] !==
-            round - 1)
-      ) {
-        candidates.push({ idx: pIdx, remaining: restCounts[pIdx] });
-      }
-    }
-    candidates.sort((a, b) => b.remaining - a.remaining);
-    for (let i = 0; i < restingPerRound && i < candidates.length; i++) {
-      const pIdx = candidates[i].idx;
-      restSchedule[round].push(players[pIdx]);
-      restCounts[pIdx]--;
-      playerRestRounds[pIdx].push(round);
-    }
-  }
-
-  // Fallback for any unassigned rests
-  for (let pIdx = 0; pIdx < players.length; pIdx++) {
-    while (restCounts[pIdx] > 0) {
-      let found = false;
-      for (let round = 0; round < numRounds; round++) {
-        if (
-          !restSchedule[round].some((p) => p.userId === players[pIdx].userId) &&
-          (playerRestRounds[pIdx].length === 0 ||
-            !playerRestRounds[pIdx].includes(round - 1))
-        ) {
-          restSchedule[round].push(players[pIdx]);
-          restCounts[pIdx]--;
-          playerRestRounds[pIdx].push(round);
-          found = true;
-          break;
-        }
-      }
-      if (!found) break;
-    }
-  }
-
-  // Ensure each round has at most restingPerRound
-  for (let round = 0; round < numRounds; round++) {
-    while (restSchedule[round].length > restingPerRound) {
-      restSchedule[round].pop();
-    }
-  }
-
-  return restSchedule;
-}
-
-// Unique partner assignment for each round
-function buildUniquePartnerSchedule(
-  players,
-  numRounds,
-  restingPerRound,
-  numCourts
-) {
-  const restSchedule = assignRests(players, numRounds, restingPerRound);
-  const schedule = [];
-  const playerIds = players.map((p) => p.userId);
-
-  // Track previous partners for each player
-  const partnersHistory = {};
-  playerIds.forEach((pid) => (partnersHistory[pid] = new Set()));
-
-  for (let round = 0; round < numRounds; round++) {
-    const restingIds = new Set(restSchedule[round].map((p) => p.userId));
-    const playingPlayers = players.filter((p) => !restingIds.has(p.userId));
-    const available = [...playingPlayers.map((p) => p.userId)];
-    const matches = [];
-
-    // Greedy pairing for unique partners
-    while (available.length >= 4) {
-      available.sort(
-        (a, b) => partnersHistory[a].size - partnersHistory[b].size
-      );
-      const p1 = available[0];
-      let p2 = null;
-      for (let i = 1; i < available.length; i++) {
-        if (!partnersHistory[p1].has(available[i])) {
-          p2 = available[i];
-          break;
-        }
-      }
-      if (!p2) p2 = available[1];
-      available.splice(available.indexOf(p1), 1);
-      available.splice(available.indexOf(p2), 1);
-
-      available.sort(
-        (a, b) => partnersHistory[a].size - partnersHistory[b].size
-      );
-      const p3 = available[0];
-      let p4 = null;
-      for (let i = 1; i < available.length; i++) {
-        if (!partnersHistory[p3].has(available[i])) {
-          p4 = available[i];
-          break;
-        }
-      }
-      if (!p4) p4 = available[1];
-      available.splice(available.indexOf(p3), 1);
-      available.splice(available.indexOf(p4), 1);
-
-      partnersHistory[p1].add(p2);
-      partnersHistory[p2].add(p1);
-      partnersHistory[p3].add(p4);
-      partnersHistory[p4].add(p3);
-
-      matches.push({
-        teamA: [p1, p2],
-        teamB: [p3, p4],
-      });
-    }
-
-    schedule.push({
-      round: round + 1,
-      standOuts: restSchedule[round].map((p) => p.userName),
-      matches: matches.map((m, idx) => ({
-        court: idx % numCourts,
-        teamA: m.teamA.map(
-          (pid) => players.find((p) => p.userId === pid).userName
-        ),
-        teamB: m.teamB.map(
-          (pid) => players.find((p) => p.userId === pid).userName
-        ),
-      })),
-    });
-  }
-  return schedule;
-}
-
-// Main runner: accepts only number of courts and rests per player
-function main(numCourts, restsPerPlayer) {
-  try {
-    const config = findIdealConfig(numCourts, restsPerPlayer);
-    const { numPlayers, numRounds, restingPerRound, playingPerRound } = config;
-
-    console.log("\n=== Perfect Schedule Configuration ===");
-    console.log(`Courts: ${numCourts}`);
-    console.log(`Rests per player: ${restsPerPlayer}`);
-    console.log(`Total players: ${numPlayers}`);
-    console.log(`Rounds: ${numRounds}`);
-    console.log(`Players resting per round: ${restingPerRound}`);
-    console.log(`Players playing per round: ${playingPerRound}`);
-
-    const dummyPlayers = generateDummyPlayers(numPlayers);
-
-    const schedule = buildUniquePartnerSchedule(
-      dummyPlayers,
-      numRounds,
-      restingPerRound,
-      numCourts
-    );
-
-    schedule.forEach((round) => {
-      console.log(`\nRound ${round.round}:`);
-      console.log(`  Resting: ${round.standOuts.join(", ")}`);
-      round.matches.forEach((match, idx) => {
-        console.log(
-          `  Court ${match.court}: TeamA [${match.teamA.join(", ")}] vs TeamB [${match.teamB.join(", ")}]`
-        );
-      });
-    });
-  } catch (err) {
-    console.error("Error:", err.message);
-  }
-}
-
-// Example usage: change these values to test different configurations
-main(3, 2); // 3 courts, 2 rests per player
-
-```
-
-## prototype/scheduleCalculator.html
-
-*Size: 6980 bytes*
-
-```html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Pickle Event Schedule Calculator</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 2em;
-      }
-      label {
-        display: block;
-        margin-top: 1em;
-      }
-      input[type="number"] {
-        width: 60px;
-      }
-      .result {
-        margin-top: 2em;
-        padding: 1em;
-        border: 1px solid #ccc;
-        background: #f9f9f9;
-      }
-      .error {
-        color: red;
-      }
-      .hidden {
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Pickle Event Schedule Calculator</h2>
-    <form id="scheduleForm">
-      <label>
-        Number of courts:
-        <input type="number" id="numCourts" min="1" value="3" required />
-      </label>
-      <label>
-        Pairings per court:
-        <input type="number" id="numPairings" min="1" value="2" required />
-      </label>
-      <label>
-        Rest rounds per player (event):
-        <input type="number" id="restsPerPlayer" min="0" value="2" required />
-      </label>
-      <div id="roundsInputContainer" class="hidden">
-        <label>
-          Number of rounds:
-          <input type="number" id="numRounds" min="1" />
-        </label>
-      </div>
-      <button type="submit">Calculate</button>
-    </form>
-
-    <div class="result" id="result"></div>
-
-    <script>
-      let roundsEditable = false;
-
-      function maxUniquePartnerRounds(numPlayers) {
-        return numPlayers - 1;
-      }
-
-      function minRounds(numPlayers, numCourts, numPairings, restsPerPlayer) {
-        const playingPerRound = numCourts * numPairings * 2;
-        const restingPerRound = numPlayers - playingPerRound;
-        if (restingPerRound <= 0) return null;
-        const totalRests = numPlayers * restsPerPlayer;
-        if (totalRests % restingPerRound !== 0) return null;
-        return totalRests / restingPerRound;
-      }
-
-      function findTotalPlayers(numCourts, numPairings, restsPerPlayer) {
-        for (
-          let numPlayers = numCourts * numPairings * 2 + 2;
-          numPlayers < 100;
-          numPlayers++
-        ) {
-          const playingPerRound = numCourts * numPairings * 2;
-          const restingPerRound = numPlayers - playingPerRound;
-          if (restingPerRound <= 0) continue;
-          const totalRests = numPlayers * restsPerPlayer;
-          if (totalRests % restingPerRound !== 0) continue;
-          const minRoundsVal = totalRests / restingPerRound;
-          const maxRoundsVal = maxUniquePartnerRounds(numPlayers);
-          if (minRoundsVal <= maxRoundsVal) {
-            return numPlayers;
-          }
-        }
-        return null;
-      }
-
-      function restPlayUniformity(
-        numPlayers,
-        numRounds,
-        numCourts,
-        numPairings
-      ) {
-        const playingPerRound = numCourts * numPairings * 2;
-        const restingPerRound = numPlayers - playingPerRound;
-        if (restingPerRound < 0)
-          return {
-            restsPerPlayer: 0,
-            playsPerPlayer: 0,
-          };
-        const totalRests = numRounds * restingPerRound;
-        const restsPerPlayer = totalRests / numPlayers;
-        const playsPerPlayer = numRounds - restsPerPlayer;
-        return {
-          restsPerPlayer,
-          playsPerPlayer,
-        };
-      }
-
-      document
-        .getElementById("scheduleForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const numCourts = parseInt(
-            document.getElementById("numCourts").value,
-            10
-          );
-          const numPairings = parseInt(
-            document.getElementById("numPairings").value,
-            10
-          );
-          const restsPerPlayer = parseInt(
-            document.getElementById("restsPerPlayer").value,
-            10
-          );
-          const roundsInputContainer = document.getElementById(
-            "roundsInputContainer"
-          );
-          const numRoundsInput = document.getElementById("numRounds");
-          const resultDiv = document.getElementById("result");
-
-          // Find total players needed for perfect schedule
-          const totalPlayersNeeded = findTotalPlayers(
-            numCourts,
-            numPairings,
-            restsPerPlayer
-          );
-
-          // Calculate min/max rounds for unique partners
-          let minRoundsVal = null;
-          let maxRoundsVal = null;
-          if (totalPlayersNeeded) {
-            minRoundsVal = minRounds(
-              totalPlayersNeeded,
-              numCourts,
-              numPairings,
-              restsPerPlayer
-            );
-            maxRoundsVal = maxUniquePartnerRounds(totalPlayersNeeded);
-          }
-
-          let numRounds = minRoundsVal;
-          let warningMsg = "";
-
-          // If user has already edited rounds, use their value
-          if (roundsEditable && numRoundsInput.value) {
-            numRounds = parseInt(numRoundsInput.value, 10);
-            if (numRounds > maxRoundsVal) {
-              warningMsg = `<span class="error">Warning: With ${numRounds} rounds, some players will have to repeat partners. Maximum rounds for unique partners is ${maxRoundsVal}.</span><br>`;
-            }
-            if (minRoundsVal && numRounds < minRoundsVal) {
-              warningMsg += `<span class="error">Warning: With ${numRounds} rounds, not all players will have equal rest time. Minimum rounds for equal rest is ${minRoundsVal}.</span><br>`;
-            }
-            if (totalPlayersNeeded - numCourts * numPairings * 2 < 0) {
-              warningMsg += `<span class="error">Error: Too many players assigned to play per round. Increase number of players or reduce courts/pairings.</span><br>`;
-            }
-          }
-
-          // Calculate rest/play values for current rounds
-          const dist = restPlayUniformity(
-            totalPlayersNeeded || 0,
-            numRounds,
-            numCourts,
-            numPairings
-          );
-
-          resultDiv.innerHTML = `
-          ${warningMsg}
-          <strong>Schedule Summary:</strong><br>
-          <ul>
-            <li><strong>Number of rounds:</strong> ${numRounds !== null ? numRounds : "N/A"}</li>
-            <li><strong>Total players needed:</strong> ${totalPlayersNeeded !== null ? totalPlayersNeeded : "N/A"}</li>
-            <li><strong>Rests per player:</strong> ${dist.restsPerPlayer.toFixed(2)}</li>
-            <li><strong>Playing rounds per player:</strong> ${dist.playsPerPlayer.toFixed(2)}</li>
-          </ul>
-          <em>Adjust the values above and click "Calculate" to see the implications for your event configuration.</em>
-        `;
-
-          // After first calculation, show and enable rounds input for editing
-          if (!roundsEditable && minRoundsVal !== null) {
-            roundsEditable = true;
-            roundsInputContainer.classList.remove("hidden");
-            numRoundsInput.value = minRoundsVal;
-          }
-        });
-    </script>
-  </body>
-</html>
 
 ```
 
@@ -4190,7 +3463,7 @@ main(3, 2); // 3 courts, 2 rests per player
 
 ## public/css/styles.css
 
-*Size: 19544 bytes*
+*Size: 20212 bytes*
 
 ```css
 /*********************************/
@@ -5274,6 +4547,46 @@ nav.main-nav {
   display: block !important;
 }
 
+.calculator-box {
+  padding: 1.5em;
+  background: #fcf6e3;
+  border-radius: 16px;
+  border: 2px solid #3d2a13;
+  max-width: 480px;
+}
+.calc-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1em;
+}
+.calc-row label {
+  margin-right: 0.5em;
+}
+#doublesToggle {
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 0.5em;
+}
+#numCourts {
+  margin-left: 0.5em;
+  min-width: 5em;
+}
+.schedule-options-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1em;
+}
+.schedule-options-table th,
+.schedule-options-table td {
+  padding: 0.3em 0.6em;
+  border-bottom: 1px solid #e0d6b7;
+  text-align: center;
+}
+.schedule-radio {
+  width: 1.2em;
+  height: 1.2em;
+}
+
 ```
 
 ## public/css/typoGraphySystem.css
@@ -5850,7 +5163,7 @@ if (settingsToggle && settingsDropdown) {
 
 ## public/js/formListeners.js
 
-*Size: 9700 bytes*
+*Size: 9543 bytes*
 
 ```js
 export function initFormListeners(deps) {
@@ -6086,14 +5399,12 @@ export function initFormListeners(deps) {
         eventDate: document.getElementById("eventDate").value,
         eventStartTime: document.getElementById("eventStartTime").value,
         eventOrganiser: document.getElementById("eventOrganiser").value,
-        eventNumOfCourts: document.getElementById("eventNumOfCourts").value,
-        numOfStandOutsPerRound: document.getElementById(
-          "numOfStandOutsPerRound"
-        ).value,
-        eventNumOfRounds: document.getElementById("eventNumOfRounds").value,
         eventWaitListSize: document.getElementById("eventWaitListSize").value,
-        eventNumOfPairings: document.getElementById("eventNumOfPairings").value,
         active: document.getElementById("active").checked,
+        doubles: document.getElementById("doublesToggle").checked,
+        scheduleConfiguration: JSON.parse(
+          document.getElementById("selectedScheduleConfig").value
+        ),
       },
     ]
   );
@@ -6422,154 +5733,361 @@ export function initMobileNavToggle() {
 
 ## public/js/scheduleCalculator.js
 
-*Size: 4969 bytes*
+*Size: 5536 bytes*
 
 ```js
-let roundsEditable = false;
+import {
+  filterConfigs,
+  generateDummyPlayers,
+  findScheduleConfig,
+} from "../../utils/scheduleUtils.js";
 
-// Calculation helpers
-export function maxUniquePartnerRounds(numPlayers) {
-  return numPlayers - 1;
+async function fetchScheduleConfigs() {
+  const response = await fetch("/js/schedules.json");
+  return await response.json();
 }
 
-export function minRounds(numPlayers, numCourts, numPairings, restsPerPlayer) {
-  const playingPerRound = numCourts * numPairings * 2;
-  const restingPerRound = numPlayers - playingPerRound;
-  if (restingPerRound <= 0) return null;
-  const totalRests = numPlayers * restsPerPlayer;
-  if (totalRests % restingPerRound !== 0) return null;
-  return totalRests / restingPerRound;
+function renderCourtsDropdown(configs, pairings) {
+  const courtsSet = new Set(
+    filterConfigs(configs, undefined, pairings).map((cfg) => cfg.courts)
+  );
+  const select = document.getElementById("numCourts");
+  select.innerHTML =
+    '<option value="" disabled selected>Choose courts</option>';
+  Array.from(courtsSet)
+    .sort((a, b) => a - b)
+    .forEach((court) => {
+      const opt = document.createElement("option");
+      opt.value = court;
+      opt.textContent = court;
+      select.appendChild(opt);
+    });
 }
 
-export function findTotalPlayers(numCourts, numPairings, restsPerPlayer) {
-  for (
-    let numPlayers = numCourts * numPairings * 2 + 2;
-    numPlayers < 100;
-    numPlayers++
-  ) {
-    const playingPerRound = numCourts * numPairings * 2;
-    const restingPerRound = numPlayers - playingPerRound;
-    if (restingPerRound <= 0) continue;
-    const totalRests = numPlayers * restsPerPlayer;
-    if (totalRests % restingPerRound !== 0) continue;
-    const minRoundsVal = totalRests / restingPerRound;
-    const maxRoundsVal = maxUniquePartnerRounds(numPlayers);
-    if (minRoundsVal <= maxRoundsVal) {
-      return numPlayers;
-    }
+function renderScheduleOptions(configs, selectedCourts, pairings) {
+  const filtered = filterConfigs(configs, selectedCourts, pairings);
+  if (filtered.length === 0)
+    return "<p>No options available for this selection.</p>";
+  return `
+    <table class="schedule-options-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Players</th>
+          <th>Rounds</th>
+          <th>Games</th>
+          <th>Rests</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filtered
+          .map(
+            (cfg, idx) => `
+          <tr>
+            <td>
+              <input type="radio" class="schedule-radio" name="scheduleOption" value="${idx}" style="width: 1.2em; height: 1.2em;">
+            </td>
+            <td>${cfg.players}</td>
+            <td>${cfg.rounds}</td>
+            <td>${cfg.gamesPerPlayer}</td>
+            <td>${cfg.restsPerPlayer}</td>
+          </tr>
+        `
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderSchedulePreview(cfg) {
+  let html = `<h3>Schedule Preview</h3>
+    <p><strong>Courts:</strong> ${cfg.courts} &nbsp; 
+       <strong>Pairings/Court:</strong> ${cfg.pairings} &nbsp; 
+       <strong>Players:</strong> ${cfg.players} &nbsp; 
+       <strong>Rounds:</strong> ${cfg.rounds} &nbsp; 
+       <strong>Games/Player:</strong> ${cfg.gamesPerPlayer} &nbsp; 
+       <strong>Rests/Player:</strong> ${cfg.restsPerPlayer}</p>
+    <table class="modal-schedule-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Rounds Played</th>
+          <th>Rounds Resting</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  for (let i = 0; i < cfg.players; i++) {
+    html += `<tr>
+      <td class="player-name">Player ${i + 1}</td>
+      <td class="games-played">${cfg.playerRounds[i].played.join(", ") || "-"}</td>
+      <td class="rests">${cfg.playerRounds[i].resting.join(", ") || "-"}</td>
+    </tr>`;
   }
-  return null;
+  html += `</tbody></table>`;
+  return html;
 }
 
-export function restPlayUniformity(
-  numPlayers,
-  numRounds,
-  numCourts,
-  numPairings
-) {
-  const playingPerRound = numCourts * numPairings * 2;
-  const restingPerRound = numPlayers - playingPerRound;
-  if (restingPerRound < 0)
-    return {
-      restsPerPlayer: 0,
-      playsPerPlayer: 0,
-    };
-  const totalRests = numRounds * restingPerRound;
-  const restsPerPlayer = totalRests / numPlayers;
-  const playsPerPlayer = numRounds - restsPerPlayer;
-  return {
-    restsPerPlayer,
-    playsPerPlayer,
-  };
-}
-
-// Main initialization function
 export function initScheduleCalculator() {
-  const scheduleForm = document.getElementById("scheduleForm");
-  if (!scheduleForm) return;
+  const optionsDiv = document.getElementById("scheduleOptions");
+  const previewDiv = document.getElementById("schedulePreview");
+  const confirmBtn = document.getElementById("confirmScheduleBtn");
+  confirmBtn.style.display = "none";
+  const courtsSelect = document.getElementById("numCourts");
+  const doublesToggle = document.getElementById("doublesToggle");
+  const hiddenInput = document.getElementById("selectedScheduleConfig");
 
-  scheduleForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const numCourts = parseInt(document.getElementById("numCourts").value, 10);
-    const numPairings = parseInt(
-      document.getElementById("numPairings").value,
-      10
-    );
-    const restsPerPlayer = parseInt(
-      document.getElementById("restsPerPlayer").value,
-      10
-    );
-    const roundsInputContainer = document.getElementById(
-      "roundsInputContainer"
-    );
-    const numRoundsInput = document.getElementById("numRounds");
-    const resultDiv = document.getElementById("result");
+  let configs = [];
+  let pairings = 2; // Default to doubles
+  let filteredConfigs = [];
+  let selectedIdx = null;
 
-    // Find total players needed for perfect schedule
-    const totalPlayersNeeded = findTotalPlayers(
-      numCourts,
-      numPairings,
-      restsPerPlayer
-    );
+  fetchScheduleConfigs().then((loadedConfigs) => {
+    configs = loadedConfigs;
+    renderCourtsDropdown(configs, pairings);
 
-    // Calculate min/max rounds for unique partners
-    let minRoundsVal = null;
-    let maxRoundsVal = null;
-    if (totalPlayersNeeded) {
-      minRoundsVal = minRounds(
-        totalPlayersNeeded,
-        numCourts,
-        numPairings,
-        restsPerPlayer
+    function updateOptions() {
+      const selectedCourts = courtsSelect.value;
+      optionsDiv.innerHTML = renderScheduleOptions(
+        configs,
+        selectedCourts,
+        pairings
       );
-      maxRoundsVal = maxUniquePartnerRounds(totalPlayersNeeded);
+      previewDiv.innerHTML = "";
+      confirmBtn.disabled = true;
+      filteredConfigs = filterConfigs(configs, selectedCourts, pairings);
+
+      // Show confirm button only after courts selected
+      if (selectedCourts) {
+        confirmBtn.style.display = "block";
+      } else {
+        confirmBtn.style.display = "none";
+      }
+
+      // Add event listener for radio buttons
+      optionsDiv
+        .querySelectorAll('input[name="scheduleOption"]')
+        .forEach((radio, idx) => {
+          radio.addEventListener("change", function () {
+            selectedIdx = idx;
+            previewDiv.innerHTML = renderSchedulePreview(filteredConfigs[idx]);
+            confirmBtn.disabled = false;
+          });
+        });
     }
 
-    let numRounds = minRoundsVal;
-    let warningMsg = "";
+    courtsSelect.addEventListener("change", updateOptions);
 
-    // If user has already edited rounds, use their value
-    if (roundsEditable && numRoundsInput.value) {
-      numRounds = parseInt(numRoundsInput.value, 10);
-      if (numRounds > maxRoundsVal) {
-        warningMsg = `<span class="error">Warning: With ${numRounds} rounds, some players will have to repeat partners. Maximum rounds for unique partners is ${maxRoundsVal}.</span><br>`;
+    doublesToggle.addEventListener("change", function () {
+      pairings = doublesToggle.checked ? 2 : 1;
+      renderCourtsDropdown(configs, pairings);
+      optionsDiv.innerHTML = "";
+      previewDiv.innerHTML = "";
+      confirmBtn.disabled = true;
+      hiddenInput.value = ""; // Clear hidden input when toggling
+    });
+
+    confirmBtn.addEventListener("click", function () {
+      if (selectedIdx !== null && filteredConfigs[selectedIdx]) {
+        const cfg = filteredConfigs[selectedIdx];
+        hiddenInput.value = JSON.stringify(cfg);
+        alert("Schedule option selected! It will be submitted with the event.");
       }
-      if (minRoundsVal && numRounds < minRoundsVal) {
-        warningMsg += `<span class="error">Warning: With ${numRounds} rounds, not all players will have equal rest time. Minimum rounds for equal rest is ${minRoundsVal}.</span><br>`;
-      }
-      if (totalPlayersNeeded - numCourts * numPairings * 2 < 0) {
-        warningMsg += `<span class="error">Error: Too many players assigned to play per round. Increase number of players or reduce courts/pairings.</span><br>`;
-      }
-    }
-
-    // Calculate rest/play values for current rounds
-    const dist = restPlayUniformity(
-      totalPlayersNeeded || 0,
-      numRounds,
-      numCourts,
-      numPairings
-    );
-
-    resultDiv.innerHTML = `
-      ${warningMsg}
-      <strong>Schedule Summary:</strong><br>
-      <ul>
-        <li><strong>Number of rounds:</strong> ${numRounds !== null ? numRounds : "N/A"}</li>
-        <li><strong>Total players needed:</strong> ${totalPlayersNeeded !== null ? totalPlayersNeeded : "N/A"}</li>
-        <li><strong>Rests per player:</strong> ${dist.restsPerPlayer.toFixed(2)}</li>
-        <li><strong>Playing rounds per player:</strong> ${dist.playsPerPlayer.toFixed(2)}</li>
-      </ul>
-      <em>Adjust the values above and click "Calculate" to see the implications for your event configuration.</em>
-    `;
-
-    // After first calculation, show and enable rounds input for editing
-    if (!roundsEditable && minRoundsVal !== null) {
-      roundsEditable = true;
-      roundsInputContainer.classList.remove("hidden");
-      numRoundsInput.value = minRoundsVal;
-    }
+    });
   });
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  const eventForm = document.getElementById("createEventForm");
+  if (eventForm) {
+    eventForm.addEventListener("submit", function (e) {
+      const hiddenInput = document.getElementById("selectedScheduleConfig");
+      if (!hiddenInput || !hiddenInput.value) {
+        e.preventDefault();
+        alert("Please select a schedule before saving the event.");
+      }
+    });
+  }
+});
+
+```
+
+## public/js/schedules.json
+
+*Size: 5566 bytes*
+
+```json
+[
+  {
+    "courts": 3,
+    "pairings": 2,
+    "players": 12,
+    "rounds": 6,
+    "restsPerPlayer": 2,
+    "gamesPerPlayer": 4,
+    "playingPerRound": 8,
+    "restingPerRound": 4,
+    "playerRounds": [
+      { "played": [1, 3, 4, 6], "resting": [2, 5] },
+      { "played": [2, 4, 5, 1], "resting": [3, 6] },
+      { "played": [3, 5, 6, 2], "resting": [4, 1] },
+      { "played": [4, 6, 1, 3], "resting": [5, 2] },
+      { "played": [5, 1, 2, 4], "resting": [6, 3] },
+      { "played": [6, 2, 3, 5], "resting": [1, 4] },
+      { "played": [1, 3, 4, 6], "resting": [2, 5] },
+      { "played": [2, 4, 5, 1], "resting": [3, 6] },
+      { "played": [3, 5, 6, 2], "resting": [4, 1] },
+      { "played": [4, 6, 1, 3], "resting": [5, 2] },
+      { "played": [5, 1, 2, 4], "resting": [6, 3] },
+      { "played": [6, 2, 3, 5], "resting": [1, 4] }
+    ]
+  },
+  {
+    "courts": 3,
+    "pairings": 2,
+    "players": 9,
+    "rounds": 9,
+    "restsPerPlayer": 3,
+    "gamesPerPlayer": 6,
+    "playingPerRound": 6,
+    "restingPerRound": 3,
+    "playerRounds": [
+      { "played": [1, 2, 4, 5, 7, 8], "resting": [3, 6, 9] },
+      { "played": [2, 3, 5, 6, 8, 9], "resting": [1, 4, 7] },
+      { "played": [3, 4, 6, 7, 9, 1], "resting": [2, 5, 8] },
+      { "played": [4, 5, 7, 8, 1, 2], "resting": [3, 6, 9] },
+      { "played": [5, 6, 8, 9, 2, 3], "resting": [4, 7, 1] },
+      { "played": [6, 7, 9, 1, 3, 4], "resting": [5, 8, 2] },
+      { "played": [7, 8, 1, 2, 4, 5], "resting": [6, 9, 3] },
+      { "played": [8, 9, 2, 3, 5, 6], "resting": [7, 1, 4] },
+      { "played": [9, 1, 3, 4, 6, 7], "resting": [8, 2, 5] }
+    ]
+  },
+  {
+    "courts": 5,
+    "pairings": 2,
+    "players": 20,
+    "rounds": 10,
+    "restsPerPlayer": 2,
+    "gamesPerPlayer": 8,
+    "playingPerRound": 16,
+    "restingPerRound": 4,
+    "playerRounds": [
+      { "played": [1, 2, 3, 4, 6, 7, 8, 10], "resting": [5, 9] },
+      { "played": [1, 2, 4, 5, 7, 8, 9, 10], "resting": [3, 6] },
+      { "played": [1, 3, 4, 5, 6, 8, 9, 10], "resting": [2, 7] },
+      { "played": [2, 3, 5, 6, 7, 9, 10, 1], "resting": [4, 8] },
+      { "played": [3, 4, 6, 7, 8, 10, 1, 2], "resting": [5, 9] },
+      { "played": [4, 5, 7, 8, 9, 1, 2, 3], "resting": [6, 10] },
+      { "played": [5, 6, 8, 9, 10, 2, 3, 4], "resting": [1, 7] },
+      { "played": [6, 7, 9, 10, 1, 3, 4, 5], "resting": [2, 8] },
+      { "played": [7, 8, 10, 1, 2, 4, 5, 6], "resting": [3, 9] },
+      { "played": [8, 9, 1, 2, 3, 5, 6, 7], "resting": [4, 10] },
+      { "played": [9, 10, 2, 3, 4, 6, 7, 8], "resting": [1, 5] },
+      { "played": [10, 1, 3, 4, 5, 7, 8, 9], "resting": [2, 6] },
+      { "played": [1, 2, 4, 5, 6, 8, 9, 10], "resting": [3, 7] },
+      { "played": [2, 3, 5, 6, 7, 9, 10, 1], "resting": [4, 8] },
+      { "played": [3, 4, 6, 7, 8, 10, 1, 2], "resting": [5, 9] },
+      { "played": [4, 5, 7, 8, 9, 1, 2, 3], "resting": [6, 10] },
+      { "played": [5, 6, 8, 9, 10, 2, 3, 4], "resting": [1, 7] },
+      { "played": [6, 7, 9, 10, 1, 3, 4, 5], "resting": [2, 8] },
+      { "played": [7, 8, 10, 1, 2, 4, 5, 6], "resting": [3, 9] },
+      { "played": [8, 9, 1, 2, 3, 5, 6, 7], "resting": [4, 10] }
+    ]
+  },
+  {
+    "courts": 5,
+    "pairings": 2,
+    "players": 15,
+    "rounds": 15,
+    "restsPerPlayer": 5,
+    "gamesPerPlayer": 10,
+    "playingPerRound": 10,
+    "restingPerRound": 5,
+    "playerRounds": [
+      {
+        "played": [1, 3, 5, 7, 9, 11, 13, 15, 2, 4],
+        "resting": [6, 8, 10, 12, 14]
+      },
+      {
+        "played": [2, 4, 6, 8, 10, 12, 14, 1, 3, 5],
+        "resting": [7, 9, 11, 13, 15]
+      },
+      {
+        "played": [3, 5, 7, 9, 11, 13, 15, 2, 4, 6],
+        "resting": [8, 10, 12, 14, 1]
+      },
+      {
+        "played": [4, 6, 8, 10, 12, 14, 1, 3, 5, 7],
+        "resting": [9, 11, 13, 15, 2]
+      },
+      {
+        "played": [5, 7, 9, 11, 13, 15, 2, 4, 6, 8],
+        "resting": [10, 12, 14, 1, 3]
+      },
+      {
+        "played": [6, 8, 10, 12, 14, 1, 3, 5, 7, 9],
+        "resting": [11, 13, 15, 2, 4]
+      },
+      {
+        "played": [7, 9, 11, 13, 15, 2, 4, 6, 8, 10],
+        "resting": [12, 14, 1, 3, 5]
+      },
+      {
+        "played": [8, 10, 12, 14, 1, 3, 5, 7, 9, 11],
+        "resting": [13, 15, 2, 4, 6]
+      },
+      {
+        "played": [9, 11, 13, 15, 2, 4, 6, 8, 10, 12],
+        "resting": [14, 1, 3, 5, 7]
+      },
+      {
+        "played": [10, 12, 14, 1, 3, 5, 7, 9, 11, 13],
+        "resting": [15, 2, 4, 6, 8]
+      },
+      {
+        "played": [11, 13, 15, 2, 4, 6, 8, 10, 12, 14],
+        "resting": [1, 3, 5, 7, 9]
+      },
+      {
+        "played": [12, 14, 1, 3, 5, 7, 9, 11, 13, 15],
+        "resting": [2, 4, 6, 8, 10]
+      },
+      {
+        "played": [13, 15, 2, 4, 6, 8, 10, 12, 14, 1],
+        "resting": [3, 5, 7, 9, 11]
+      },
+      {
+        "played": [14, 1, 3, 5, 7, 9, 11, 13, 15, 2],
+        "resting": [4, 6, 8, 10, 12]
+      },
+      {
+        "played": [15, 2, 4, 6, 8, 10, 12, 14, 1, 3],
+        "resting": [5, 7, 9, 11, 13]
+      }
+    ]
+  },
+  {
+    "courts": 2,
+    "pairings": 2,
+    "players": 8,
+    "rounds": 4,
+    "restsPerPlayer": 1,
+    "gamesPerPlayer": 3,
+    "playingPerRound": 6,
+    "restingPerRound": 2,
+    "playerRounds": [
+      { "played": [1, 2, 4], "resting": [3] },
+      { "played": [2, 3, 1], "resting": [4] },
+      { "played": [3, 4, 2], "resting": [1] },
+      { "played": [4, 1, 3], "resting": [2] },
+      { "played": [1, 2, 4], "resting": [3] },
+      { "played": [2, 3, 1], "resting": [4] },
+      { "played": [3, 4, 2], "resting": [1] },
+      { "played": [4, 1, 3], "resting": [2] }
+    ]
+  }
+]
 
 ```
 
@@ -7014,426 +6532,6 @@ process.on("unhandledRejection", (err) => {
 ["SIGTERM", "SIGINT"].forEach((signal) => {
   process.on(signal, () => gracefulShutdown(signal));
 });
-
-```
-
-## services/scheduleService.js
-
-*Size: 13526 bytes*
-
-```js
-const AppError = require("../utils/appError");
-
-/**
- * Helper to distribute rest periods as evenly and spread out as possible
- */
-function distributeRests(players, numRounds, numResting) {
-  const restSchedule = {};
-  const totalRests = numRounds * numResting;
-  const baseRests = Math.floor(totalRests / players.length);
-  const extraRests = totalRests % players.length;
-
-  players.forEach((p, i) => {
-    restSchedule[p.userId] = [];
-    const numPlayerRests = baseRests + (i < extraRests ? 1 : 0);
-    for (let r = 0; r < numPlayerRests; r++) {
-      const roundIdx =
-        Math.round(((r + 1) * numRounds) / (numPlayerRests + 1)) - 1;
-      restSchedule[p.userId].push(roundIdx);
-    }
-  });
-  return restSchedule;
-}
-
-/**
- * Backtracking pairing algorithm to avoid repeat partnerships
- */
-function generateRoundMatchesBT(activePlayers, numCourts, usedPairs) {
-  const matches = [];
-  const n = activePlayers.length;
-  const maxMatches = Math.min(numCourts, Math.floor(n / 4));
-
-  function backtrack(startIdx, currMatches, currUsedPlayers, currUsedPairs) {
-    if (currMatches.length === maxMatches) {
-      return currMatches;
-    }
-    for (let i = 0; i < n - 3; i++) {
-      if (currUsedPlayers.has(i)) continue;
-      for (let j = i + 1; j < n - 2; j++) {
-        if (currUsedPlayers.has(j)) continue;
-        for (let k = j + 1; k < n - 1; k++) {
-          if (currUsedPlayers.has(k)) continue;
-          for (let l = k + 1; l < n; l++) {
-            if (currUsedPlayers.has(l)) continue;
-            const combos = [
-              [
-                [i, j],
-                [k, l],
-              ],
-              [
-                [i, k],
-                [j, l],
-              ],
-              [
-                [i, l],
-                [j, k],
-              ],
-            ];
-            for (const [teamAIdx, teamBIdx] of combos) {
-              const teamA = [
-                activePlayers[teamAIdx[0]],
-                activePlayers[teamAIdx[1]],
-              ];
-              const teamB = [
-                activePlayers[teamBIdx[0]],
-                activePlayers[teamBIdx[1]],
-              ];
-              const pairA = [teamA[0].userId, teamA[1].userId].sort().join("-");
-              const pairB = [teamB[0].userId, teamB[1].userId].sort().join("-");
-              if (currUsedPairs.has(pairA) || currUsedPairs.has(pairB))
-                continue;
-              currUsedPlayers.add(teamAIdx[0]);
-              currUsedPlayers.add(teamAIdx[1]);
-              currUsedPlayers.add(teamBIdx[0]);
-              currUsedPlayers.add(teamBIdx[1]);
-              currUsedPairs.add(pairA);
-              currUsedPairs.add(pairB);
-              currMatches.push({
-                teamA: teamA.map((p) => ({
-                  userId: String(p.userId),
-                  name: p.userName,
-                })),
-                teamB: teamB.map((p) => ({
-                  userId: String(p.userId),
-                  name: p.userName,
-                })),
-                court: currMatches.length,
-              });
-              const result = backtrack(
-                i + 1,
-                currMatches,
-                currUsedPlayers,
-                currUsedPairs
-              );
-              if (result) return result;
-              currMatches.pop();
-              currUsedPlayers.delete(teamAIdx[0]);
-              currUsedPlayers.delete(teamAIdx[1]);
-              currUsedPlayers.delete(teamBIdx[0]);
-              currUsedPlayers.delete(teamBIdx[1]);
-              currUsedPairs.delete(pairA);
-              currUsedPairs.delete(pairB);
-            }
-          }
-        }
-      }
-    }
-    return currMatches.length === maxMatches ? currMatches : null;
-  }
-
-  const result = backtrack(0, [], new Set(), new Set(usedPairs));
-  return result || [];
-}
-
-class ScheduleService {
-  /**
-   * Main function to generate complete schedule for an event
-   */
-  generateCompleteSchedule(playersList, numOfRounds, numOfCourts, numResting) {
-    if (
-      !playersList ||
-      playersList.length < 4 ||
-      numOfRounds < 1 ||
-      numOfCourts < 1
-    ) {
-      throw new AppError("Invalid schedule parameters", 400);
-    }
-
-    // Distribute rest periods
-    const restSchedule = distributeRests(playersList, numOfRounds, numResting);
-
-    // Track all partnerships used so far
-    const usedPairs = new Set();
-    const rounds = [];
-
-    for (let round = 0; round < numOfRounds; round++) {
-      // Find players resting this round
-      const standOuts = playersList.filter((p) =>
-        restSchedule[String(p.userId)].includes(round)
-      );
-
-      // Active players for this round
-      const activePlayers = playersList.filter(
-        (p) => !restSchedule[String(p.userId)].includes(round)
-      );
-
-      // Generate matches for this round using backtracking
-      const matches = generateRoundMatchesBT(
-        activePlayers,
-        numOfCourts,
-        usedPairs
-      );
-
-      // Add new partnerships to usedPairs
-      matches.forEach((m) => {
-        const pairA = [m.teamA[0].userId, m.teamA[1].userId].sort().join("-");
-        const pairB = [m.teamB[0].userId, m.teamB[1].userId].sort().join("-");
-        usedPairs.add(pairA);
-        usedPairs.add(pairB);
-      });
-
-      // Ensure all players are accounted for: if not in matches, must be in standOuts
-      const accountedIds = new Set([
-        ...standOuts.map((p) => String(p.userId)),
-        ...matches.flatMap((m) => [
-          String(m.teamA[0].userId),
-          String(m.teamA[1].userId),
-          String(m.teamB[0].userId),
-          String(m.teamB[1].userId),
-        ]),
-      ]);
-      // If any player is missing, add them to standOuts for this round
-      playersList.forEach((p) => {
-        if (!accountedIds.has(String(p.userId))) {
-          standOuts.push({
-            userId: String(p.userId),
-            name: p.userName,
-          });
-        }
-      });
-
-      rounds.push({
-        matches,
-        standOuts: standOuts.map((p) => ({
-          userId: String(p.userId),
-          name: p.userName,
-        })),
-      });
-    }
-
-    // Validate and summarize
-    const validationResults = this.validateScheduleEnhanced(
-      rounds,
-      playersList
-    );
-
-    // Summary logging only
-    if (validationResults.isValid) {
-      console.log(`✅ Schedule validation passed`);
-    } else {
-      console.error(`❌ Schedule validation failed`);
-      const partnershipViolations = validationResults.errors.filter((e) =>
-        e.startsWith("Partnership violation")
-      );
-      console.error(
-        `Total partnership violations: ${partnershipViolations.length}`
-      );
-      if (partnershipViolations.length > 0) {
-        console.error(`First violation: ${partnershipViolations[0]}`);
-      }
-    }
-
-    if (validationResults.warnings.length > 0) {
-      console.warn(
-        `⚠️ Warnings: ${validationResults.warnings.length} (e.g. ${validationResults.warnings[0]})`
-      );
-    }
-
-    if (validationResults.stats) {
-      console.log(
-        `Rest distribution: min=${validationResults.stats.minRests}, max=${validationResults.stats.maxRests}, avg=${validationResults.stats.averageRests.toFixed(1)}`
-      );
-      console.log(
-        `Play distribution: min=${validationResults.stats.minPlays}, max=${validationResults.stats.maxPlays}, avg=${validationResults.stats.averagePlays.toFixed(1)}`
-      );
-    }
-
-    if (!validationResults.isValid) {
-      throw new AppError(
-        `Schedule validation failed: ${validationResults.errors.join(", ")}`,
-        500
-      );
-    }
-
-    return rounds;
-  }
-
-  /**
-   * Enhanced validation with summary reporting
-   */
-  validateScheduleEnhanced(schedule, playersList) {
-    const validationResults = {
-      isValid: true,
-      errors: [],
-      warnings: [],
-      stats: {},
-    };
-
-    try {
-      const partnershipCheck = new Map();
-      const restCount = new Map();
-      const playCount = new Map();
-
-      // Initialize tracking
-      playersList.forEach((player) => {
-        partnershipCheck.set(player.userId, new Set());
-        restCount.set(player.userId, 0);
-        playCount.set(player.userId, 0);
-      });
-
-      // Validate each round
-      for (let roundIndex = 0; roundIndex < schedule.length; roundIndex++) {
-        const round = schedule[roundIndex];
-        const playingPlayers = new Set();
-        const restingPlayers = new Set();
-
-        // Track resting players
-        round.standOuts.forEach((player) => {
-          restingPlayers.add(player.userId);
-          restCount.set(player.userId, (restCount.get(player.userId) || 0) + 1);
-        });
-
-        // Validate matches
-        for (const match of round.matches) {
-          const allMatchPlayers = [
-            ...match.teamA.map((p) => p.userId),
-            ...match.teamB.map((p) => p.userId),
-          ];
-
-          // Check for duplicate players in same match
-          if (new Set(allMatchPlayers).size !== allMatchPlayers.length) {
-            validationResults.errors.push(
-              `Duplicate player in match in round ${roundIndex + 1}`
-            );
-            validationResults.isValid = false;
-          }
-
-          // Check no player is both playing and resting
-          for (const playerId of allMatchPlayers) {
-            if (restingPlayers.has(playerId)) {
-              validationResults.errors.push(
-                `Player ${playerId} is both playing and resting in round ${roundIndex + 1}`
-              );
-              validationResults.isValid = false;
-            }
-            if (playingPlayers.has(playerId)) {
-              validationResults.errors.push(
-                `Player ${playerId} appears in multiple matches in round ${roundIndex + 1}`
-              );
-              validationResults.isValid = false;
-            }
-            playingPlayers.add(playerId);
-            playCount.set(playerId, (playCount.get(playerId) || 0) + 1);
-          }
-
-          // Check team composition (exactly 2 players per team)
-          if (match.teamA.length !== 2 || match.teamB.length !== 2) {
-            validationResults.errors.push(
-              `Invalid team size in round ${roundIndex + 1}, court ${match.court}`
-            );
-            validationResults.isValid = false;
-          }
-
-          // Check partnerships
-          const teamAPair = [match.teamA[0].userId, match.teamA[1].userId];
-          const teamBPair = [match.teamB[0].userId, match.teamB[1].userId];
-
-          for (const pair of [teamAPair, teamBPair]) {
-            const [player1, player2] = pair;
-            if (partnershipCheck.get(player1)?.has(player2)) {
-              validationResults.errors.push(
-                `Partnership violation: ${player1} and ${player2} play together again in round ${roundIndex + 1}`
-              );
-              validationResults.isValid = false;
-            }
-            partnershipCheck.get(player1)?.add(player2);
-            partnershipCheck.get(player2)?.add(player1);
-          }
-        }
-
-        // Check all eligible players are accounted for
-        const totalAccountedPlayers = playingPlayers.size + restingPlayers.size;
-        if (totalAccountedPlayers !== playersList.length) {
-          validationResults.warnings.push(
-            `Round ${roundIndex + 1}: ${totalAccountedPlayers} players accounted for, expected ${playersList.length}`
-          );
-        }
-      }
-
-      // Check rest distribution fairness
-      const restCounts = Array.from(restCount.values());
-      const minRests = Math.min(...restCounts);
-      const maxRests = Math.max(...restCounts);
-
-      if (maxRests - minRests > 1) {
-        validationResults.warnings.push(
-          `Uneven rest distribution: min=${minRests}, max=${maxRests}`
-        );
-      }
-
-      // Check minimum play requirements
-      const playCounts = Array.from(playCount.values());
-      const minPlays = Math.min(...playCounts);
-
-      if (minPlays === 0) {
-        validationResults.warnings.push(
-          `Some players never play during the event`
-        );
-      }
-
-      // Compile statistics
-      validationResults.stats = {
-        totalRounds: schedule.length,
-        totalPlayers: playersList.length,
-        restDistribution: Object.fromEntries(restCount),
-        playDistribution: Object.fromEntries(playCount),
-        restVariance: maxRests - minRests,
-        averageRests: restCounts.reduce((a, b) => a + b, 0) / restCounts.length,
-        averagePlays: playCounts.reduce((a, b) => a + b, 0) / playCounts.length,
-        minRests,
-        maxRests,
-        minPlays,
-        maxPlays: Math.max(...playCounts),
-      };
-
-      return validationResults;
-    } catch (err) {
-      console.error("Error in validateScheduleEnhanced:", err);
-      return {
-        isValid: false,
-        errors: [`Validation error: ${err.message}`],
-        warnings: [],
-        stats: {},
-      };
-    }
-  }
-
-  validateSchedule(schedule, playersList) {
-    const results = this.validateScheduleEnhanced(schedule, playersList);
-    return results.isValid;
-  }
-
-  analyzeSchedule(schedule, playersList) {
-    const validationResults = this.validateScheduleEnhanced(
-      schedule,
-      playersList
-    );
-    return {
-      isValid: validationResults.isValid,
-      summary: validationResults.stats,
-      issues: {
-        errors: validationResults.errors,
-        warnings: validationResults.warnings,
-      },
-      detailed: {
-        restDistribution: validationResults.stats.restDistribution,
-        playDistribution: validationResults.stats.playDistribution,
-      },
-    };
-  }
-}
-
-module.exports = ScheduleService;
 
 ```
 
@@ -7938,6 +7036,44 @@ module.exports = async function paginate(
 
 ```
 
+## utils/scheduleUtils.js
+
+*Size: 800 bytes*
+
+```js
+/**
+ * Filter schedule configs by courts and pairings.
+ * If courts is undefined, returns all configs for the given pairings.
+ */
+export function filterConfigs(configs, courts, pairings) {
+  return configs.filter(
+    (cfg) =>
+      (courts === undefined || cfg.courts == courts) && cfg.pairings == pairings
+  );
+}
+
+/**
+ * Generate dummy players for display/validation.
+ */
+export function generateDummyPlayers(numPlayers) {
+  return Array.from({ length: numPlayers }, (_, i) => ({
+    userName: `Player${i + 1}`,
+    id: i + 1,
+  }));
+}
+
+/**
+ * Find a schedule config by courts, pairings, and rounds.
+ */
+export function findScheduleConfig(configs, courts, pairings, rounds) {
+  return configs.find(
+    (cfg) =>
+      cfg.courts == courts && cfg.pairings == pairings && cfg.rounds == rounds
+  );
+}
+
+```
+
 ## utils/twilioClient.js
 
 *Size: 1418 bytes*
@@ -8121,234 +7257,63 @@ block content
 										p.hiddenField.eventId=`${event._id}`
 ```
 
-## views/createEvent copy.pug
-
-*Size: 2642 bytes*
-
-```pug
-extends base
-
-block content 
-
-	main.main
-		section(class="section")
-			div(class="container")
-				div(class="crudContainer-2-cols")
-					div(class="text-box") 
-						h1(class="heading-secondary") Create an Event
-						form(class="form-2-cols" id="createEventForm")
-							div
-								label(for="eventName") Event name
-								input(name="eventName" type="text" id="eventName" required)
-							div
-								label(for="eventLocation") Event location
-								input(name="eventLocation" type="text" id="eventLocation" required)
-							div
-								label(for="eventType") Event Type
-								input(name="eventType" type="text" id="eventType")
-							div
-								label(for="eventDate") Event date
-								input(name="eventDate" type="date" id="eventDate" required)
-							div
-								label(for="eventStartTime") Event start time
-								input(name="eventStartTime" type="time" id="eventStartTime" required)
-							div
-								label(for="eventOrganiser") Event organiser
-								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
-							div
-								label(for="eventNumOfCourts") Number of available courts for event
-								input(name="eventNumOfCourts" type="number" id="eventNumOfCourts" value=systemDefaults.numOfStandOuts required)
-							div
-								label(for="numOfStandOutsPerRound") Number of players resting per round
-								input(name="numOfStandOutsPerRound" type="number" id="numOfStandOutsPerRound" value=systemDefaults.numOfStandOuts required)
-							div
-								label(for="eventNumOfRounds") Number of rounds in the event
-								input(name="eventNumOfRounds" type="number" id="eventNumOfRounds" value=systemDefaults.numOfRounds required)
-							div
-								label(for="eventWaitListSize") Max number of players on wait list
-								input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=systemDefaults.waitListSize required)
-							div
-								label(for="eventNumOfPairings") Number of pairings per court
-								input(name="eventNumOfPairings" type="number" id="eventNumOfPairings" value=systemDefaults.numOfPairingsPerCourt required)
-							div(class="form-row")
-								label(for="active" class="form__label active-label") Is event Active ?
-								input(type="checkbox" id="active" name="active" class="active-checkbox")
-							div(class="form-buttons")
-								a(
-  								class="btn btn--form"
-  								id="createEventButton"
-  								href="#"
-  								onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
-								) Create
-								a(class="btn btn--form" id="cancelButton" href="/events/showall") Cancel
-```
-
 ## views/createEvent.pug
 
-*Size: 5740 bytes*
+*Size: 2829 bytes*
 
 ```pug
 extends base
 
 block content
-  main.main
-    section.section
-      style.
-        .crudContainer-2-cols {
-          display: flex;
-          flex-direction: row;
-          gap: 8rem; /* increased gap to move calculator further right */
-          align-items: flex-start;
-          justify-content: flex-start;
-        }
-        .text-box {
-          background: transparent;
-          padding: 0;
-          box-shadow: none;
-          width: 100%;
-          max-width: 600px;
-        }
-        .form-2-cols {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1.5rem 2rem;
-          align-items: start;
-        }
-        .form-2-cols .form-col-left,
-        .form-2-cols .form-col-right {
-          display: flex;
-          flex-direction: column;
-        }
-        .form-2-cols .form-col-left label,
-        .form-2-cols .form-col-right label {
-          font-size: 1.1em;
-          font-weight: 500;
-          color: #222;
-          margin-bottom: 0.5em;
-          margin-top: 0.5em;
-          letter-spacing: 0.02em;
-        }
-        .form-2-cols input,
-        .form-2-cols button,
-        .form-2-cols .result {
-          margin-bottom: 1rem;
-        }
-        .form-2-cols .form-col-right {
-          border: 2px solid #222;
-          border-radius: 12px;
-          padding: 2rem 1.5rem 1.5rem 1.5rem;
-          background: #fff8e1;
-          min-width: 340px;
-          max-width: 400px;
-          margin-left: auto; /* push calculator to the right */
-        }
-        .form-col-right h2 {
-          margin-top: 0;
-          margin-bottom: 2.5rem;
-          font-size: 1.7em;
-          font-weight: bold;
-          color: #222;
-          text-align: left;
-          min-height: 3.5rem;
-          display: flex;
-          align-items: center;
-        }
-        .form-col-right input[type="number"] {
-          width: 4em;
-          min-width: 4em;
-          max-width: 4em;
-          box-sizing: border-box;
-          font-size: 1.2em;
-          padding: 0.4em;
-          border-radius: 6px;
-          border: 1px solid #ccc;
-          background: #fff;
-        }
-        .result {
-          margin-top: 1rem;
-          padding: 1rem;
-          background: #fff8e1;
-          border-radius: 8px;
-          border: 1px solid #e0e0e0;
-        }
-        .form-buttons {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 2rem;
-        }
-        .btn--form {
-          background: #4e2e0e;
-          color: #fff;
-          border: none;
-          border-radius: 8px;
-          padding: 0.8em 2em;
-          font-size: 1.2em;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-        .btn--form:hover {
-          background: #7c4a17;
-        }
-        @media (max-width: 900px) {
-          .crudContainer-2-cols {
-            flex-direction: column;
-            gap: 0;
-          }
-          .text-box {
-            max-width: 100%;
-          }
-          .form-2-cols {
-            grid-template-columns: 1fr;
-          }
-          .form-col-right {
-            min-width: 0;
-            max-width: 100%;
-            margin-left: 0;
-          }
-        }
-      div.container
-        div.crudContainer-2-cols
-          div.text-box
-            h1.heading-secondary Create an Event
-            form.form-2-cols#createEventForm
-              // Left column: Event details
-              div.form-col-left
-                label(for="eventName") Event name
-                input(name="eventName" type="text" id="eventName" required)
-                label(for="eventLocation") Event location
-                input(name="eventLocation" type="text" id="eventLocation" required)
-                label(for="eventType") Event Type
-                input(name="eventType" type="text" id="eventType")
-                label(for="eventDate") Event date
-                input(name="eventDate" type="date" id="eventDate" required)
-                label(for="eventStartTime") Event start time
-                input(name="eventStartTime" type="time" id="eventStartTime" required)
-                label(for="eventOrganiser") Event organiser
-                input(name="eventOrganiser" type="text" id="eventOrganiser" required)
-                label(for="eventWaitListSize") Max number of players on wait list
-                input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=systemDefaults.waitListSize required)
-                label(for="active" class="form__label active-label") Is event Active ?
-                input(type="checkbox" id="active" name="active" class="active-checkbox")
-              // Right column: Calculator fields
-              div.form-col-right
-                h2 Schedule Calculator
-                label(for="numCourts") Number of courts available for event:
-                input(type="number", id="numCourts", required=true)
-                label(for="numPairings") Number of pairings per court:
-                input(type="number", id="numPairings", required=true)
-                label(for="restsPerPlayer") Rest rounds per player (event):
-                input(type="number", id="restsPerPlayer", required=true)
-                label(for="numRounds") Number of rounds:
-                input(type="number", id="numRounds", min="1")
-                button.btn--form(type="submit") Calculate
-                div.result#result
-                script(src="/js/scheduleCalculator.js")
-        div.form-buttons
-          a.btn.btn--form#createEventButton(
-            href="#"
-            onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
-          ) Create
-          a.btn.btn--form#cancelButton(href="/events/showall") Cancel
+	main.main
+		section.section
+			div.container
+				div.crudContainer-2-cols
+					div.text-box
+						h1.heading-secondary Create an Event
+						form.form-2-cols#createEventForm
+							div.form-col-left
+								label(for="eventName") Event name
+								input(name="eventName" type="text" id="eventName" required)
+								label(for="eventLocation") Event location
+								input(name="eventLocation" type="text" id="eventLocation" required)
+								label(for="eventType") Event Type
+								input(name="eventType" type="text" id="eventType")
+								label(for="eventDate") Event date
+								input(name="eventDate" type="date" id="eventDate" required)
+								label(for="eventStartTime") Event start time
+								input(name="eventStartTime" type="time" id="eventStartTime" required)
+								label(for="eventOrganiser") Event organiser
+								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
+								label(for="eventWaitListSize") Max number of players on wait list
+								input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=systemDefaults.waitListSize required)
+								.form-row
+									label(for="active" class="form__label active-label") Is event Active ?
+									input(type="checkbox" id="active" name="active" class="active-checkbox")
+							div.form-col-right
+								.calculator-box
+									.calc-header-row(style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2em;")
+										h2(style="font-size: 2.8rem; margin: 0; font-weight: 700;") Schedule Calculator
+										span(style="margin-left: 1em;")
+											i(class="fa fa-calculator" aria-hidden="true" style="font-size: 2.8rem; color: #cf711f;")
+									.form-row
+										label(for="doublesToggle" class="form__label active-label") Doubles
+										input(type="checkbox" id="doublesToggle" name="doublesToggle" class="active-checkbox" checked)
+									.calc-row
+										label(for="numCourts" style="font-size: 1.6rem; font-weight: 500; margin-bottom: 0; margin-right: 1em;") Number of courts
+										select#numCourts(style="margin-left: 0.5em; min-width: 5em;")
+											option(value="" disabled selected) Choose courts
+									div#scheduleOptions
+									div#schedulePreview
+									input(type="hidden" id="selectedScheduleConfig" name="selectedScheduleConfig")
+									button.btn--form(type="button" id="confirmScheduleBtn") Confirm Schedule
+							// Move the form-buttons inside the form so they are inside the orange box
+							div.form-buttons
+								a.btn.btn--form#createEventButton(
+									href="#"
+									onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+								) Create
+								a.btn.btn--form#cancelButton(href="/events/showall") Cancel
 ```
 
 ## views/createUser.pug
