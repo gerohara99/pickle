@@ -48,9 +48,9 @@ block content
                   div#scheduleOptions
                   div#schedulePreview
                   input(type="hidden" id="selectedScheduleConfig" name="selectedScheduleConfig")
-                div.form-buttons
-                  a.btn.btn--form#createEventButton(
-                    href="#"
-                    onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
-                  ) Create
-                  a.btn.btn--form#cancelButton(href="/events/showall") Cancel
+          div.form-buttons
+            a.btn.btn--form#createEventButton(
+              href="#"
+              onclick="document.getElementById('createEventForm').dispatchEvent(new Event ('submit', {cancelable: true, bubbles: true})); return false;"
+            ) Create
+            a.btn.btn--form#cancelButton(href="/events/showall") Cancel

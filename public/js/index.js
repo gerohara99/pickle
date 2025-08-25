@@ -3,7 +3,6 @@ import { initButtonDelegates } from "./buttonDelegates";
 import { initScoreModal } from "./modal";
 import { initMobileNavToggle } from "./navToggle";
 import { initTabs } from "./tabs";
-import { initScheduleCalculator } from "./scheduleCalculator.js";
 import {
   createUserApiAction,
   editUserApiAction,
@@ -123,7 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "initButtonDelegates"
     );
     initButtonDelegates(buttonDeps);
-    initScheduleCalculator();
 
     console.log("App initialized successfully.");
   } catch (err) {
