@@ -884,7 +884,7 @@ module.exports = (err, req, res, next) => {
 
 ## controllers/eventController.js
 
-*Size: 19484 bytes*
+*Size: 11563 bytes*
 
 ```js
 const Event = require("../models/eventModel");
@@ -892,6 +892,7 @@ const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { sendWhatsAppMessage } = require("../utils/twilioClient");
+const generateDynamicSchedule = require("../utils/generateDynamicSchedule");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   try {
@@ -912,7 +913,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
 
     if (
       event.eventBookings.length ===
-      event.eventNumOfPlayers + event.eventWaitListSize
+      event.scheduleConfiguration.players + event.eventWaitListSize
     ) {
       return next(new AppError("There are no spaces left for this event", 400));
     }
@@ -1053,280 +1054,44 @@ async function checkAndUpdateSchedule(eventId, next) {
     const event = await Event.findById(eventId);
     if (!event) return next(new AppError("No event found with that ID", 404));
 
-    let playerslist = event.eventBookings.slice(0, event.eventNumOfPlayers);
-
-    if (event.eventBookings.length >= event.eventNumOfPlayers) {
-      const standOuts = generateStandOutsPubJs(
-        playerslist,
-        event.eventNumOfRounds,
-        event.numOfStandOutsPerRound
-      );
-      const availablePairings = generateAvailablePairingsPubJs(playerslist);
-      const schedule = generateSchedulePubJs(
-        availablePairings,
-        standOuts,
-        event.eventNumOfCourts,
-        event.eventNumOfPairings
-      );
-      await Event.findByIdAndUpdate(
-        eventId,
-        { $set: { rounds: schedule } },
-        { new: true, runValidators: false }
-      );
+    // Only generate schedule if enough bookings
+    const numPlayers = event.scheduleConfiguration.players;
+    if (event.eventBookings.length < numPlayers) {
+      return;
     }
+
+    // Select only the first N players for the schedule (ignore waitlist/extra bookings)
+    // You can sort by any deterministic property, e.g. signup time, userName, userId
+    // Here, we use signup order (assumes eventBookings are ordered by signup time)
+    const selectedBookings = event.eventBookings.slice(0, numPlayers);
+
+    // Assign player numbers based on selectedBookings order
+    event.playerNumberMap = selectedBookings.map((booking, idx) => ({
+      number: idx + 1,
+      userId: booking.userId,
+      userName: booking.userName,
+    }));
+    await event.save();
+
+    // Dynamically generate the rounds for these players
+    // This replaces the static scheduleConfig.roundsConfig logic
+    // Pass in selectedBookings and event.scheduleConfiguration (courts, pairings, etc.)
+    const rounds = generateDynamicSchedule(
+      selectedBookings,
+      event.scheduleConfiguration
+    );
+
+    await Event.findByIdAndUpdate(
+      eventId,
+      { $set: { rounds } },
+      { new: true, runValidators: false }
+    );
   } catch (err) {
     console.error("Error in checkAndUpdateSchedule:", err);
     next(err);
   }
 }
 
-function generateStandOutsPubJs(playersList, numOfRounds, numStandOuts) {
-  // Calculate total rests needed
-  const totalRests = numOfRounds * numStandOuts;
-  const baseRests = Math.floor(totalRests / playersList.length);
-  const extraRests = totalRests % playersList.length;
-
-  // Assign rest counts per player
-  const restCounts = Array(playersList.length).fill(baseRests);
-  for (let i = 0; i < extraRests; i++) {
-    restCounts[i]++;
-  }
-
-  // Track which rounds each player rests in
-  const playerRestRounds = Array(playersList.length)
-    .fill(0)
-    .map(() => []);
-
-  // For each round, pick the numStandOuts players who have the most remaining rests to assign,
-  // and who did NOT rest in the previous round
-  const restSchedule = Array(numOfRounds)
-    .fill(0)
-    .map(() => []);
-  for (let round = 0; round < numOfRounds; round++) {
-    // Build candidate list: players who still need rests, and didn't rest last round
-    let candidates = [];
-    for (let pIdx = 0; pIdx < playersList.length; pIdx++) {
-      if (
-        restCounts[pIdx] > 0 &&
-        (playerRestRounds[pIdx].length === 0 ||
-          playerRestRounds[pIdx][playerRestRounds[pIdx].length - 1] !==
-            round - 1)
-      ) {
-        candidates.push({ idx: pIdx, remaining: restCounts[pIdx] });
-      }
-    }
-    // Sort candidates by most remaining rests, then by least recent rest
-    candidates.sort((a, b) => b.remaining - a.remaining);
-
-    // Pick up to numStandOuts
-    for (let i = 0; i < numStandOuts && i < candidates.length; i++) {
-      const pIdx = candidates[i].idx;
-      restSchedule[round].push(playersList[pIdx]);
-      restCounts[pIdx]--;
-      playerRestRounds[pIdx].push(round);
-    }
-  }
-
-  // If any rests remain unassigned, fill them in remaining rounds (fallback)
-  for (let pIdx = 0; pIdx < playersList.length; pIdx++) {
-    while (restCounts[pIdx] > 0) {
-      // Find a round where this player is not already resting and not consecutive
-      let found = false;
-      for (let round = 0; round < numOfRounds; round++) {
-        if (
-          !restSchedule[round].some(
-            (p) => p.userId === playersList[pIdx].userId
-          ) &&
-          (playerRestRounds[pIdx].length === 0 ||
-            !playerRestRounds[pIdx].includes(round - 1))
-        ) {
-          restSchedule[round].push(playersList[pIdx]);
-          restCounts[pIdx]--;
-          playerRestRounds[pIdx].push(round);
-          found = true;
-          break;
-        }
-      }
-      if (!found) break; // Can't assign without consecutive rests
-    }
-  }
-
-  // Ensure each round has at most numStandOuts
-  for (let round = 0; round < numOfRounds; round++) {
-    while (restSchedule[round].length > numStandOuts) {
-      restSchedule[round].pop();
-    }
-  }
-
-  return restSchedule;
-}
-function generateAvailablePairingsPubJs(playersList) {
-  try {
-    const DUMMY = -1;
-    let availablePairings = [];
-
-    if (!playersList) throw new AppError("Players list missing", 400);
-
-    if (playersList.length % 2 === 1) {
-      playersList.push({ userName: "DUMMY" });
-    }
-
-    for (let j = 0; j < playersList.length - 1; j += 1) {
-      for (let i = 0; i < playersList.length / 2; i += 1) {
-        const o = playersList.length - 1 - i;
-        if (
-          playersList[i].userName !== "DUMMY" &&
-          playersList[o].userName !== "DUMMY" &&
-          playersList[o].userId !== playersList[i].userId
-        ) {
-          availablePairings.push({
-            playerA: playersList[o],
-            playerB: playersList[i],
-            pairingUsed: false,
-          });
-        }
-      }
-      playersList.splice(1, 0, playersList.pop());
-    }
-    return availablePairings;
-  } catch (err) {
-    console.error("Error in generateAvailablePairingsPubJs:", err);
-    throw err;
-  }
-}
-
-function generateSchedulePubJs(
-  availablePairings,
-  standOuts,
-  numOfCourts,
-  numOfPairings
-) {
-  try {
-    let schedule = [];
-
-    // Initialize schedule rounds and standOuts
-    for (let round = 0; round < standOuts.length; round++) {
-      schedule[round] = { matches: [], standOuts: [] };
-      schedule[round].standOuts = standOuts[round].map((player) => ({
-        userId: String(player.userId),
-        name: player.userName,
-      }));
-    }
-
-    // For each round, only assign matches to players NOT in standOuts for that round
-    for (let i = 0; i < standOuts.length; i++) {
-      const restingIds = new Set(standOuts[i].map((p) => String(p.userId)));
-      let assignedPlayers = new Set();
-      let roundPairings = availablePairings.filter(
-        (pair) =>
-          !restingIds.has(String(pair.playerA.userId)) &&
-          !restingIds.has(String(pair.playerB.userId)) &&
-          pair.pairingUsed === false
-      );
-
-      let courtsAssigned = 0;
-
-      // For each court, find two pairings with four unique, unassigned players
-      for (let k = 0; k < numOfCourts; k++) {
-        let found = false;
-        for (let idxA = 0; idxA < roundPairings.length; idxA++) {
-          const pA1 = String(roundPairings[idxA].playerA.userId);
-          const pB1 = String(roundPairings[idxA].playerB.userId);
-          if (assignedPlayers.has(pA1) || assignedPlayers.has(pB1)) continue;
-          for (let idxB = idxA + 1; idxB < roundPairings.length; idxB++) {
-            const pA2 = String(roundPairings[idxB].playerA.userId);
-            const pB2 = String(roundPairings[idxB].playerB.userId);
-            if (
-              assignedPlayers.has(pA2) ||
-              assignedPlayers.has(pB2) ||
-              [pA1, pB1].includes(pA2) ||
-              [pA1, pB1].includes(pB2)
-            )
-              continue;
-
-            // Found two valid pairings for this court
-            roundPairings[idxA].pairingUsed = true;
-            roundPairings[idxB].pairingUsed = true;
-            assignedPlayers.add(pA1);
-            assignedPlayers.add(pB1);
-            assignedPlayers.add(pA2);
-            assignedPlayers.add(pB2);
-
-            let teamA = {
-              playerA: roundPairings[idxA].playerA,
-              playerB: roundPairings[idxA].playerB,
-            };
-            let teamB = {
-              playerA: roundPairings[idxB].playerA,
-              playerB: roundPairings[idxB].playerB,
-            };
-
-            let newMatch = {
-              teamA: [
-                { userId: teamA.playerA.userId, name: teamA.playerA.userName },
-                { userId: teamA.playerB.userId, name: teamA.playerB.userName },
-              ],
-              teamB: [
-                { userId: teamB.playerA.userId, name: teamB.playerA.userName },
-                { userId: teamB.playerB.userId, name: teamB.playerB.userName },
-              ],
-              court: k,
-            };
-            schedule[i].matches.push(newMatch);
-            found = true;
-            break;
-          }
-          if (found) break;
-        }
-      }
-
-      // --- FIX: Ensure all players are accounted for in this round ---
-      // Gather all assigned player IDs (playing or resting)
-      const allAssigned = new Set([
-        ...schedule[i].standOuts.map((p) => String(p.userId)),
-        ...schedule[i].matches.flatMap((m) => [
-          String(m.teamA[0].userId),
-          String(m.teamA[1].userId),
-          String(m.teamB[0].userId),
-          String(m.teamB[1].userId),
-        ]),
-      ]);
-
-      // Get all player IDs from availablePairings
-      const allPlayerIds = new Set(
-        availablePairings.flatMap((pair) => [
-          String(pair.playerA.userId),
-          String(pair.playerB.userId),
-        ])
-      );
-
-      // Add any missing players to standOuts for this round
-      for (const pid of allPlayerIds) {
-        if (!allAssigned.has(pid)) {
-          // Find player object from pairings
-          const playerObj =
-            availablePairings.find(
-              (pair) => String(pair.playerA.userId) === pid
-            )?.playerA ||
-            availablePairings.find(
-              (pair) => String(pair.playerB.userId) === pid
-            )?.playerB;
-          if (playerObj) {
-            schedule[i].standOuts.push({
-              userId: String(playerObj.userId),
-              name: playerObj.userName,
-            });
-          }
-        }
-      }
-      // --- END FIX ---
-    }
-    return schedule;
-  } catch (err) {
-    console.error("Error in generateSchedulePubJs:", err);
-    throw err;
-  }
-}
 exports.updateMatchScore = catchAsync(async (req, res, next) => {
   try {
     if (!req.body.eventId) throw new AppError("Event ID is required", 400);
@@ -1440,11 +1205,9 @@ exports.updateEvent = catchAsync(async (req, res, next) => {
     eventDate: req.body.eventDate,
     eventStartTime: req.body.eventStartTime,
     eventOrganiser: req.body.eventOrganiser,
-    eventNumOfCourts: req.body.eventNumOfCourts,
-    numOfStandOutsPerRound: req.body.numOfStandOutsPerRound,
-    eventNumOfRounds: req.body.eventNumOfRounds,
     eventWaitListSize: req.body.eventWaitListSize,
-    eventNumOfPairings: req.body.eventNumOfPairings,
+    doubles: req.body.doubles,
+    scheduleConfiguration: req.body.scheduleConfiguration,
   };
   if (typeof activeValue !== "undefined") updateObj.active = activeValue;
 
@@ -1483,11 +1246,6 @@ exports.handleNoShow = catchAsync(async (req, res, next) => {
 
   event.eventBookings = event.eventBookings.filter(
     (booking) => booking.userId.toString() !== userId.toString()
-  );
-
-  event.numOfStandOutsPerRound = Math.max(
-    (event.numOfStandOutsPerRound || 1) - 1,
-    1
   );
 
   event.rounds = [];
@@ -2871,7 +2629,7 @@ exports.showNoShowForm = [
 
 ## models/eventModel.js
 
-*Size: 2552 bytes*
+*Size: 2853 bytes*
 
 ```js
 const mongoose = require("mongoose");
@@ -2899,7 +2657,20 @@ const roundSchema = new mongoose.Schema({
   ],
 });
 
-// Schedule configuration schema
+// New roundConfig schema for explicit pairings
+const roundConfigSchema = new mongoose.Schema(
+  {
+    resting: [{ type: Number }],
+    matches: [
+      {
+        teamA: [{ type: Number }],
+        teamB: [{ type: Number }],
+      },
+    ],
+  },
+  { _id: false }
+);
+
 const playerRoundSchema = new mongoose.Schema(
   {
     played: [{ type: Number }],
@@ -2916,7 +2687,8 @@ const scheduleConfigurationSchema = new mongoose.Schema(
     rounds: { type: Number, required: true },
     gamesPerPlayer: { type: Number, required: true },
     restsPerPlayer: { type: Number, required: true },
-    playerRounds: { type: [playerRoundSchema], required: true },
+    playerRounds: { type: [playerRoundSchema], required: false },
+    roundsConfig: { type: [roundConfigSchema], required: false },
   },
   { _id: false }
 );
@@ -3463,7 +3235,7 @@ module.exports = User;
 
 ## public/css/styles.css
 
-*Size: 20212 bytes*
+*Size: 20861 bytes*
 
 ```css
 /*********************************/
@@ -3859,6 +3631,42 @@ strong {
   grid-template-columns: 1fr 1fr 4fr 4fr 3fr 2fr;
   column-gap: 2rem;
   row-gap: 2rem;
+}
+
+/* Add spacing above the schedule preview title */
+#schedulePreview h3 {
+  margin-top: 2em;
+  margin-bottom: 1em;
+}
+
+/* Add spacing above the table */
+#schedulePreview table {
+  margin-top: 1em;
+}
+
+/* Style the schedule preview table for readability */
+.modal-schedule-table {
+  border-collapse: separate;
+  border-spacing: 0.5em;
+  width: 100%;
+}
+
+.modal-schedule-table th,
+.modal-schedule-table td {
+  border: 1px solid #eee;
+  padding: 0.7em 1em;
+  text-align: left;
+  background: #fff;
+}
+
+.modal-schedule-table th {
+  background: #f7f7f7;
+  font-weight: 600;
+}
+
+/* Add gap above the confirm button */
+#confirmScheduleBtn {
+  margin-top: 2em;
 }
 
 .users-table .table-row,
@@ -5733,24 +5541,23 @@ export function initMobileNavToggle() {
 
 ## public/js/scheduleCalculator.js
 
-*Size: 5536 bytes*
+*Size: 6868 bytes*
 
 ```js
-import {
-  filterConfigs,
-  generateDummyPlayers,
-  findScheduleConfig,
-} from "../../utils/scheduleUtils.js";
-
+// Fetch schedule configs from schedules.json
 async function fetchScheduleConfigs() {
   const response = await fetch("/js/schedules.json");
   return await response.json();
 }
 
-function renderCourtsDropdown(configs, pairings) {
-  const courtsSet = new Set(
-    filterConfigs(configs, undefined, pairings).map((cfg) => cfg.courts)
-  );
+// Utility: filter configs by courts
+function filterConfigs(configs, selectedCourts) {
+  return configs.filter((cfg) => cfg.courts == selectedCourts);
+}
+
+// Render courts dropdown
+function renderCourtsDropdown(configs) {
+  const courtsSet = new Set(configs.map((cfg) => cfg.courts));
   const select = document.getElementById("numCourts");
   select.innerHTML =
     '<option value="" disabled selected>Choose courts</option>';
@@ -5764,9 +5571,9 @@ function renderCourtsDropdown(configs, pairings) {
     });
 }
 
-function renderScheduleOptions(configs, selectedCourts, pairings) {
-  const filtered = filterConfigs(configs, selectedCourts, pairings);
-  if (filtered.length === 0)
+// Render schedule options table
+function renderScheduleOptions(configs) {
+  if (configs.length === 0)
     return "<p>No options available for this selection.</p>";
   return `
     <table class="schedule-options-table">
@@ -5777,10 +5584,11 @@ function renderScheduleOptions(configs, selectedCourts, pairings) {
           <th>Rounds</th>
           <th>Games</th>
           <th>Rests</th>
+          <th>Rest %</th>
         </tr>
       </thead>
       <tbody>
-        ${filtered
+        ${configs
           .map(
             (cfg, idx) => `
           <tr>
@@ -5789,8 +5597,9 @@ function renderScheduleOptions(configs, selectedCourts, pairings) {
             </td>
             <td>${cfg.players}</td>
             <td>${cfg.rounds}</td>
-            <td>${cfg.gamesPerPlayer}</td>
+            <td>${cfg.gamesPerPlayer ?? "?"}</td>
             <td>${cfg.restsPerPlayer}</td>
+            <td>${(cfg.actualRestPercent * 100).toFixed(1)}%</td>
           </tr>
         `
           )
@@ -5800,69 +5609,107 @@ function renderScheduleOptions(configs, selectedCourts, pairings) {
   `;
 }
 
-function renderSchedulePreview(cfg) {
+// Render schedule preview using explicit roundsConfig
+function renderSchedulePreview(cfg, players = []) {
   let html = `<h3>Schedule Preview</h3>
     <p><strong>Courts:</strong> ${cfg.courts} &nbsp; 
        <strong>Pairings/Court:</strong> ${cfg.pairings} &nbsp; 
        <strong>Players:</strong> ${cfg.players} &nbsp; 
        <strong>Rounds:</strong> ${cfg.rounds} &nbsp; 
-       <strong>Games/Player:</strong> ${cfg.gamesPerPlayer} &nbsp; 
-       <strong>Rests/Player:</strong> ${cfg.restsPerPlayer}</p>
+       <strong>Games/Player:</strong> ${cfg.gamesPerPlayer ?? "?"} &nbsp; 
+       <strong>Rests/Player:</strong> ${cfg.restsPerPlayer} &nbsp; 
+       <strong>Rest %:</strong> ${(cfg.actualRestPercent * 100).toFixed(1)}%</p>
     <table class="modal-schedule-table">
       <thead>
         <tr>
-          <th>Player</th>
-          <th>Rounds Played</th>
-          <th>Rounds Resting</th>
+          <th>Round</th>
+          <th>Resting</th>
+          <th>Matches</th>
         </tr>
       </thead>
       <tbody>`;
-  for (let i = 0; i < cfg.players; i++) {
+
+  cfg.roundsConfig.forEach((round, idx) => {
+    const restingNames = round.resting
+      .map((num) =>
+        players[num - 1]
+          ? players[num - 1].userName || players[num - 1]
+          : `Player ${num}`
+      )
+      .join(", ");
+
+    let matchesHtml = "";
+    round.matches.forEach((match, mIdx) => {
+      const teamA = match.teamA
+        .map((num) =>
+          players[num - 1]
+            ? players[num - 1].userName || players[num - 1]
+            : `Player ${num}`
+        )
+        .join(", ");
+      const teamB = match.teamB
+        .map((num) =>
+          players[num - 1]
+            ? players[num - 1].userName || players[num - 1]
+            : `Player ${num}`
+        )
+        .join(", ");
+      matchesHtml += `Court ${mIdx + 1}: Team A (${teamA}) vs Team B (${teamB})<br>`;
+    });
+
     html += `<tr>
-      <td class="player-name">Player ${i + 1}</td>
-      <td class="games-played">${cfg.playerRounds[i].played.join(", ") || "-"}</td>
-      <td class="rests">${cfg.playerRounds[i].resting.join(", ") || "-"}</td>
+      <td>${idx + 1}</td>
+      <td>${restingNames}</td>
+      <td>${matchesHtml}</td>
     </tr>`;
-  }
+  });
+
   html += `</tbody></table>`;
   return html;
 }
 
-export function initScheduleCalculator() {
+// Main initialization function
+function initScheduleCalculator() {
+  // Create UI container if not present
+  let calculatorBox = document.querySelector(".calculator-box");
+  if (!calculatorBox) {
+    calculatorBox = document.createElement("div");
+    calculatorBox.className = "calculator-box";
+    document.body.prepend(calculatorBox);
+  }
+
+  // Add controls (only courts dropdown)
+  calculatorBox.innerHTML = `
+    <h2 style="font-family:inherit;font-size:2rem;margin-bottom:0.5em;">Schedule Calculator</h2>
+    <div class="calc-row" style="margin-bottom:1em;">
+      <label for="doublesToggle" class="form__label active-label">Doubles</label>
+      <input type="checkbox" id="doublesToggle" name="doublesToggle" class="active-checkbox" checked style="margin-right:2em;" disabled>
+      <label for="numCourts" style="font-size:1.1rem;font-weight:500;margin-right:1em;">Number of courts</label>
+      <select id="numCourts" style="width:6em;"></select>
+    </div>
+    <div id="scheduleOptions"></div>
+    <div id="schedulePreview" style="margin-top:2em;"></div>
+    <input type="hidden" id="selectedScheduleConfig" name="selectedScheduleConfig">
+  `;
+
   const optionsDiv = document.getElementById("scheduleOptions");
   const previewDiv = document.getElementById("schedulePreview");
-  const confirmBtn = document.getElementById("confirmScheduleBtn");
-  confirmBtn.style.display = "none";
   const courtsSelect = document.getElementById("numCourts");
-  const doublesToggle = document.getElementById("doublesToggle");
   const hiddenInput = document.getElementById("selectedScheduleConfig");
 
   let configs = [];
-  let pairings = 2; // Default to doubles
   let filteredConfigs = [];
   let selectedIdx = null;
 
   fetchScheduleConfigs().then((loadedConfigs) => {
     configs = loadedConfigs;
-    renderCourtsDropdown(configs, pairings);
+    renderCourtsDropdown(configs);
 
     function updateOptions() {
       const selectedCourts = courtsSelect.value;
-      optionsDiv.innerHTML = renderScheduleOptions(
-        configs,
-        selectedCourts,
-        pairings
-      );
+      filteredConfigs = filterConfigs(configs, selectedCourts);
+      optionsDiv.innerHTML = renderScheduleOptions(filteredConfigs);
       previewDiv.innerHTML = "";
-      confirmBtn.disabled = true;
-      filteredConfigs = filterConfigs(configs, selectedCourts, pairings);
-
-      // Show confirm button only after courts selected
-      if (selectedCourts) {
-        confirmBtn.style.display = "block";
-      } else {
-        confirmBtn.style.display = "none";
-      }
 
       // Add event listener for radio buttons
       optionsDiv
@@ -5870,34 +5717,29 @@ export function initScheduleCalculator() {
         .forEach((radio, idx) => {
           radio.addEventListener("change", function () {
             selectedIdx = idx;
-            previewDiv.innerHTML = renderSchedulePreview(filteredConfigs[idx]);
-            confirmBtn.disabled = false;
+            // For preview, use dummy player names if not available
+            const players = Array.from(
+              { length: filteredConfigs[idx].players },
+              (_, i) => `Player ${i + 1}`
+            );
+            previewDiv.innerHTML = renderSchedulePreview(
+              filteredConfigs[idx],
+              players
+            );
+            hiddenInput.value = JSON.stringify(filteredConfigs[idx]);
           });
         });
     }
 
     courtsSelect.addEventListener("change", updateOptions);
-
-    doublesToggle.addEventListener("change", function () {
-      pairings = doublesToggle.checked ? 2 : 1;
-      renderCourtsDropdown(configs, pairings);
-      optionsDiv.innerHTML = "";
-      previewDiv.innerHTML = "";
-      confirmBtn.disabled = true;
-      hiddenInput.value = ""; // Clear hidden input when toggling
-    });
-
-    confirmBtn.addEventListener("click", function () {
-      if (selectedIdx !== null && filteredConfigs[selectedIdx]) {
-        const cfg = filteredConfigs[selectedIdx];
-        hiddenInput.value = JSON.stringify(cfg);
-        alert("Schedule option selected! It will be submitted with the event.");
-      }
-    });
   });
 }
 
+// Auto-init on DOMContentLoaded
 document.addEventListener("DOMContentLoaded", function () {
+  initScheduleCalculator();
+
+  // Optional: Prevent form submission if no schedule selected
   const eventForm = document.getElementById("createEventForm");
   if (eventForm) {
     eventForm.addEventListener("submit", function (e) {
@@ -5910,185 +5752,3251 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+// Export for module usage
+export { initScheduleCalculator };
+
 ```
 
 ## public/js/schedules.json
 
-*Size: 5566 bytes*
+*Size: 52260 bytes*
 
 ```json
 [
   {
     "courts": 3,
     "pairings": 2,
-    "players": 12,
-    "rounds": 6,
-    "restsPerPlayer": 2,
-    "gamesPerPlayer": 4,
-    "playingPerRound": 8,
-    "restingPerRound": 4,
-    "playerRounds": [
-      { "played": [1, 3, 4, 6], "resting": [2, 5] },
-      { "played": [2, 4, 5, 1], "resting": [3, 6] },
-      { "played": [3, 5, 6, 2], "resting": [4, 1] },
-      { "played": [4, 6, 1, 3], "resting": [5, 2] },
-      { "played": [5, 1, 2, 4], "resting": [6, 3] },
-      { "played": [6, 2, 3, 5], "resting": [1, 4] },
-      { "played": [1, 3, 4, 6], "resting": [2, 5] },
-      { "played": [2, 4, 5, 1], "resting": [3, 6] },
-      { "played": [3, 5, 6, 2], "resting": [4, 1] },
-      { "played": [4, 6, 1, 3], "resting": [5, 2] },
-      { "played": [5, 1, 2, 4], "resting": [6, 3] },
-      { "played": [6, 2, 3, 5], "resting": [1, 4] }
+    "players": 14,
+    "rounds": 7,
+    "restsPerPlayer": 1,
+    "actualRestPercent": 0.14285714285714285,
+    "gamesPerPlayer": 6,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2
+        ],
+        "matches": [
+          {
+            "teamA": [
+              3,
+              4
+            ],
+            "teamB": [
+              5,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              8
+            ],
+            "teamB": [
+              9,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              12
+            ],
+            "teamB": [
+              13,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              5,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              6,
+              8
+            ],
+            "teamB": [
+              9,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              13
+            ],
+            "teamB": [
+              12,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              9
+            ],
+            "teamB": [
+              8,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              14
+            ],
+            "teamB": [
+              12,
+              13
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              14
+            ],
+            "teamB": [
+              11,
+              13
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              11
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              13
+            ],
+            "teamB": [
+              8,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              13
+            ],
+            "teamB": [
+              9,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              12
+            ],
+            "teamB": [
+              10,
+              11
+            ]
+          }
+        ]
+      }
     ]
   },
   {
     "courts": 3,
     "pairings": 2,
-    "players": 9,
-    "rounds": 9,
-    "restsPerPlayer": 3,
-    "gamesPerPlayer": 6,
-    "playingPerRound": 6,
-    "restingPerRound": 3,
-    "playerRounds": [
-      { "played": [1, 2, 4, 5, 7, 8], "resting": [3, 6, 9] },
-      { "played": [2, 3, 5, 6, 8, 9], "resting": [1, 4, 7] },
-      { "played": [3, 4, 6, 7, 9, 1], "resting": [2, 5, 8] },
-      { "played": [4, 5, 7, 8, 1, 2], "resting": [3, 6, 9] },
-      { "played": [5, 6, 8, 9, 2, 3], "resting": [4, 7, 1] },
-      { "played": [6, 7, 9, 1, 3, 4], "resting": [5, 8, 2] },
-      { "played": [7, 8, 1, 2, 4, 5], "resting": [6, 9, 3] },
-      { "played": [8, 9, 2, 3, 5, 6], "resting": [7, 1, 4] },
-      { "played": [9, 1, 3, 4, 6, 7], "resting": [8, 2, 5] }
-    ]
-  },
-  {
-    "courts": 5,
-    "pairings": 2,
-    "players": 20,
+    "players": 15,
     "rounds": 10,
     "restsPerPlayer": 2,
+    "actualRestPercent": 0.2,
     "gamesPerPlayer": 8,
-    "playingPerRound": 16,
-    "restingPerRound": 4,
-    "playerRounds": [
-      { "played": [1, 2, 3, 4, 6, 7, 8, 10], "resting": [5, 9] },
-      { "played": [1, 2, 4, 5, 7, 8, 9, 10], "resting": [3, 6] },
-      { "played": [1, 3, 4, 5, 6, 8, 9, 10], "resting": [2, 7] },
-      { "played": [2, 3, 5, 6, 7, 9, 10, 1], "resting": [4, 8] },
-      { "played": [3, 4, 6, 7, 8, 10, 1, 2], "resting": [5, 9] },
-      { "played": [4, 5, 7, 8, 9, 1, 2, 3], "resting": [6, 10] },
-      { "played": [5, 6, 8, 9, 10, 2, 3, 4], "resting": [1, 7] },
-      { "played": [6, 7, 9, 10, 1, 3, 4, 5], "resting": [2, 8] },
-      { "played": [7, 8, 10, 1, 2, 4, 5, 6], "resting": [3, 9] },
-      { "played": [8, 9, 1, 2, 3, 5, 6, 7], "resting": [4, 10] },
-      { "played": [9, 10, 2, 3, 4, 6, 7, 8], "resting": [1, 5] },
-      { "played": [10, 1, 3, 4, 5, 7, 8, 9], "resting": [2, 6] },
-      { "played": [1, 2, 4, 5, 6, 8, 9, 10], "resting": [3, 7] },
-      { "played": [2, 3, 5, 6, 7, 9, 10, 1], "resting": [4, 8] },
-      { "played": [3, 4, 6, 7, 8, 10, 1, 2], "resting": [5, 9] },
-      { "played": [4, 5, 7, 8, 9, 1, 2, 3], "resting": [6, 10] },
-      { "played": [5, 6, 8, 9, 10, 2, 3, 4], "resting": [1, 7] },
-      { "played": [6, 7, 9, 10, 1, 3, 4, 5], "resting": [2, 8] },
-      { "played": [7, 8, 10, 1, 2, 4, 5, 6], "resting": [3, 9] },
-      { "played": [8, 9, 1, 2, 3, 5, 6, 7], "resting": [4, 10] }
-    ]
-  },
-  {
-    "courts": 5,
-    "pairings": 2,
-    "players": 15,
-    "rounds": 15,
-    "restsPerPlayer": 5,
-    "gamesPerPlayer": 10,
-    "playingPerRound": 10,
-    "restingPerRound": 5,
-    "playerRounds": [
+    "roundsConfig": [
       {
-        "played": [1, 3, 5, 7, 9, 11, 13, 15, 2, 4],
-        "resting": [6, 8, 10, 12, 14]
+        "resting": [
+          1,
+          2,
+          3
+        ],
+        "matches": [
+          {
+            "teamA": [
+              4,
+              5
+            ],
+            "teamB": [
+              6,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              9
+            ],
+            "teamB": [
+              10,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              12,
+              13
+            ],
+            "teamB": [
+              14,
+              15
+            ]
+          }
+        ]
       },
       {
-        "played": [2, 4, 6, 8, 10, 12, 14, 1, 3, 5],
-        "resting": [7, 9, 11, 13, 15]
+        "resting": [
+          4,
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              3,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              10
+            ],
+            "teamB": [
+              9,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              12,
+              14
+            ],
+            "teamB": [
+              13,
+              15
+            ]
+          }
+        ]
       },
       {
-        "played": [3, 5, 7, 9, 11, 13, 15, 2, 4, 6],
-        "resting": [8, 10, 12, 14, 1]
+        "resting": [
+          7,
+          8,
+          9
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              6
+            ],
+            "teamB": [
+              10,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              13,
+              14
+            ]
+          }
+        ]
       },
       {
-        "played": [4, 6, 8, 10, 12, 14, 1, 3, 5, 7],
-        "resting": [9, 11, 13, 15, 2]
+        "resting": [
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              7
+            ],
+            "teamB": [
+              6,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              14
+            ],
+            "teamB": [
+              9,
+              15
+            ]
+          }
+        ]
       },
       {
-        "played": [5, 7, 9, 11, 13, 15, 2, 4, 6, 8],
-        "resting": [10, 12, 14, 1, 3]
+        "resting": [
+          13,
+          14,
+          15
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              4
+            ],
+            "teamB": [
+              7,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              10
+            ],
+            "teamB": [
+              11,
+              12
+            ]
+          }
+        ]
       },
       {
-        "played": [6, 8, 10, 12, 14, 1, 3, 5, 7, 9],
-        "resting": [11, 13, 15, 2, 4]
+        "resting": [
+          1,
+          2,
+          3
+        ],
+        "matches": [
+          {
+            "teamA": [
+              4,
+              6
+            ],
+            "teamB": [
+              5,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              9
+            ],
+            "teamB": [
+              10,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              14
+            ],
+            "teamB": [
+              12,
+              15
+            ]
+          }
+        ]
       },
       {
-        "played": [7, 9, 11, 13, 15, 2, 4, 6, 8, 10],
-        "resting": [12, 14, 1, 3, 5]
+        "resting": [
+          4,
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              12
+            ],
+            "teamB": [
+              9,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              15
+            ],
+            "teamB": [
+              11,
+              13
+            ]
+          }
+        ]
       },
       {
-        "played": [8, 10, 12, 14, 1, 3, 5, 7, 9, 11],
-        "resting": [13, 15, 2, 4, 6]
+        "resting": [
+          7,
+          8,
+          9
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              13
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              15
+            ],
+            "teamB": [
+              10,
+              14
+            ]
+          }
+        ]
       },
       {
-        "played": [9, 11, 13, 15, 2, 4, 6, 8, 10, 12],
-        "resting": [14, 1, 3, 5, 7]
+        "resting": [
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              15
+            ],
+            "teamB": [
+              9,
+              13
+            ]
+          }
+        ]
       },
       {
-        "played": [10, 12, 14, 1, 3, 5, 7, 9, 11, 13],
-        "resting": [15, 2, 4, 6, 8]
-      },
-      {
-        "played": [11, 13, 15, 2, 4, 6, 8, 10, 12, 14],
-        "resting": [1, 3, 5, 7, 9]
-      },
-      {
-        "played": [12, 14, 1, 3, 5, 7, 9, 11, 13, 15],
-        "resting": [2, 4, 6, 8, 10]
-      },
-      {
-        "played": [13, 15, 2, 4, 6, 8, 10, 12, 14, 1],
-        "resting": [3, 5, 7, 9, 11]
-      },
-      {
-        "played": [14, 1, 3, 5, 7, 9, 11, 13, 15, 2],
-        "resting": [4, 6, 8, 10, 12]
-      },
-      {
-        "played": [15, 2, 4, 6, 8, 10, 12, 14, 1, 3],
-        "resting": [5, 7, 9, 11, 13]
+        "resting": [
+          13,
+          14,
+          15
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              6,
+              11
+            ],
+            "teamB": [
+              8,
+              12
+            ]
+          }
+        ]
       }
     ]
   },
   {
-    "courts": 2,
+    "courts": 3,
     "pairings": 2,
-    "players": 8,
-    "rounds": 4,
+    "players": 16,
+    "rounds": 8,
+    "restsPerPlayer": 2,
+    "actualRestPercent": 0.25,
+    "gamesPerPlayer": 6,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              5,
+              6
+            ],
+            "teamB": [
+              7,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              10
+            ],
+            "teamB": [
+              11,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              14
+            ],
+            "teamB": [
+              15,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              3,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              11
+            ],
+            "teamB": [
+              10,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              15
+            ],
+            "teamB": [
+              14,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              7
+            ],
+            "teamB": [
+              6,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              16
+            ],
+            "teamB": [
+              14,
+              15
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14,
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              8
+            ],
+            "teamB": [
+              6,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              12
+            ],
+            "teamB": [
+              10,
+              11
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              13
+            ],
+            "teamB": [
+              8,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              12,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              13
+            ],
+            "teamB": [
+              4,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              16
+            ],
+            "teamB": [
+              12,
+              15
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              14
+            ],
+            "teamB": [
+              4,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              15
+            ],
+            "teamB": [
+              8,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14,
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              9
+            ],
+            "teamB": [
+              4,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              11
+            ],
+            "teamB": [
+              8,
+              12
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "courts": 4,
+    "pairings": 2,
+    "players": 18,
+    "rounds": 9,
     "restsPerPlayer": 1,
-    "gamesPerPlayer": 3,
-    "playingPerRound": 6,
-    "restingPerRound": 2,
-    "playerRounds": [
-      { "played": [1, 2, 4], "resting": [3] },
-      { "played": [2, 3, 1], "resting": [4] },
-      { "played": [3, 4, 2], "resting": [1] },
-      { "played": [4, 1, 3], "resting": [2] },
-      { "played": [1, 2, 4], "resting": [3] },
-      { "played": [2, 3, 1], "resting": [4] },
-      { "played": [3, 4, 2], "resting": [1] },
-      { "played": [4, 1, 3], "resting": [2] }
+    "actualRestPercent": 0.1111111111111111,
+    "gamesPerPlayer": 8,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2
+        ],
+        "matches": [
+          {
+            "teamA": [
+              3,
+              4
+            ],
+            "teamB": [
+              5,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              8
+            ],
+            "teamB": [
+              9,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              12
+            ],
+            "teamB": [
+              13,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              16
+            ],
+            "teamB": [
+              17,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              5,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              6,
+              8
+            ],
+            "teamB": [
+              9,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              12
+            ],
+            "teamB": [
+              13,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              17
+            ],
+            "teamB": [
+              16,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              9
+            ],
+            "teamB": [
+              8,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              13
+            ],
+            "teamB": [
+              12,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              18
+            ],
+            "teamB": [
+              16,
+              17
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              14
+            ],
+            "teamB": [
+              12,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              18
+            ],
+            "teamB": [
+              15,
+              17
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              12,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              16
+            ],
+            "teamB": [
+              14,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              8
+            ],
+            "teamB": [
+              4,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              15
+            ],
+            "teamB": [
+              10,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              17
+            ],
+            "teamB": [
+              14,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              16
+            ],
+            "teamB": [
+              10,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              17
+            ],
+            "teamB": [
+              12,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              14
+            ],
+            "teamB": [
+              10,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              18
+            ],
+            "teamB": [
+              12,
+              13
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          17,
+          18
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              11
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              8
+            ],
+            "teamB": [
+              6,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              16
+            ],
+            "teamB": [
+              14,
+              15
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "courts": 4,
+    "pairings": 2,
+    "players": 20,
+    "rounds": 10,
+    "restsPerPlayer": 2,
+    "actualRestPercent": 0.2,
+    "gamesPerPlayer": 8,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              5,
+              6
+            ],
+            "teamB": [
+              7,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              10
+            ],
+            "teamB": [
+              11,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              14
+            ],
+            "teamB": [
+              15,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              18
+            ],
+            "teamB": [
+              19,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              3,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              11
+            ],
+            "teamB": [
+              10,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              15
+            ],
+            "teamB": [
+              14,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              19
+            ],
+            "teamB": [
+              18,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              7
+            ],
+            "teamB": [
+              6,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              16
+            ],
+            "teamB": [
+              14,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              20
+            ],
+            "teamB": [
+              18,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14,
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              8
+            ],
+            "teamB": [
+              6,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              17
+            ],
+            "teamB": [
+              10,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              19
+            ],
+            "teamB": [
+              12,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          17,
+          18,
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              13
+            ],
+            "teamB": [
+              10,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              12,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              11
+            ],
+            "teamB": [
+              8,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              17
+            ],
+            "teamB": [
+              14,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              19
+            ],
+            "teamB": [
+              16,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              11
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              18
+            ],
+            "teamB": [
+              14,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              20
+            ],
+            "teamB": [
+              16,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              8
+            ],
+            "teamB": [
+              4,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              19
+            ],
+            "teamB": [
+              14,
+              20
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              17
+            ],
+            "teamB": [
+              16,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14,
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              18
+            ],
+            "teamB": [
+              10,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              20
+            ],
+            "teamB": [
+              12,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          17,
+          18,
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              14
+            ],
+            "teamB": [
+              10,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              16
+            ],
+            "teamB": [
+              12,
+              15
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "courts": 5,
+    "pairings": 2,
+    "players": 22,
+    "rounds": 11,
+    "restsPerPlayer": 1,
+    "actualRestPercent": 0.09090909090909091,
+    "gamesPerPlayer": 10,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2
+        ],
+        "matches": [
+          {
+            "teamA": [
+              3,
+              4
+            ],
+            "teamB": [
+              5,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              8
+            ],
+            "teamB": [
+              9,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              12
+            ],
+            "teamB": [
+              13,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              16
+            ],
+            "teamB": [
+              17,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              19,
+              20
+            ],
+            "teamB": [
+              21,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              5,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              6,
+              8
+            ],
+            "teamB": [
+              9,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              12
+            ],
+            "teamB": [
+              13,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              16
+            ],
+            "teamB": [
+              17,
+              19
+            ]
+          },
+          {
+            "teamA": [
+              18,
+              21
+            ],
+            "teamB": [
+              20,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              9
+            ],
+            "teamB": [
+              8,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              13
+            ],
+            "teamB": [
+              12,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              17
+            ],
+            "teamB": [
+              16,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              19,
+              22
+            ],
+            "teamB": [
+              20,
+              21
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              14
+            ],
+            "teamB": [
+              12,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              18
+            ],
+            "teamB": [
+              16,
+              20
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              22
+            ],
+            "teamB": [
+              19,
+              21
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              12,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              19
+            ],
+            "teamB": [
+              14,
+              20
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              21
+            ],
+            "teamB": [
+              18,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              8
+            ],
+            "teamB": [
+              4,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              13
+            ],
+            "teamB": [
+              10,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              21
+            ],
+            "teamB": [
+              16,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              20
+            ],
+            "teamB": [
+              18,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              12
+            ],
+            "teamB": [
+              10,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              19
+            ],
+            "teamB": [
+              15,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              16,
+              21
+            ],
+            "teamB": [
+              18,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              17
+            ],
+            "teamB": [
+              10,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              20
+            ],
+            "teamB": [
+              12,
+              19
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              21
+            ],
+            "teamB": [
+              14,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          17,
+          18
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              11
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              8
+            ],
+            "teamB": [
+              6,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              22
+            ],
+            "teamB": [
+              14,
+              21
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              20
+            ],
+            "teamB": [
+              16,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              10
+            ],
+            "teamB": [
+              2,
+              9
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              12
+            ],
+            "teamB": [
+              4,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              13
+            ],
+            "teamB": [
+              6,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              21
+            ],
+            "teamB": [
+              8,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              18
+            ],
+            "teamB": [
+              16,
+              17
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          21,
+          22
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              11
+            ],
+            "teamB": [
+              2,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              9
+            ],
+            "teamB": [
+              4,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              14
+            ],
+            "teamB": [
+              6,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              17
+            ],
+            "teamB": [
+              8,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              20
+            ],
+            "teamB": [
+              15,
+              19
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "courts": 5,
+    "pairings": 2,
+    "players": 25,
+    "rounds": 10,
+    "restsPerPlayer": 2,
+    "actualRestPercent": 0.2,
+    "gamesPerPlayer": 8,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "matches": [
+          {
+            "teamA": [
+              6,
+              7
+            ],
+            "teamB": [
+              8,
+              9
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              11
+            ],
+            "teamB": [
+              12,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              15
+            ],
+            "teamB": [
+              16,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              18,
+              19
+            ],
+            "teamB": [
+              20,
+              21
+            ]
+          },
+          {
+            "teamA": [
+              22,
+              23
+            ],
+            "teamB": [
+              24,
+              25
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              3,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              11
+            ],
+            "teamB": [
+              12,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              15
+            ],
+            "teamB": [
+              16,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              19
+            ],
+            "teamB": [
+              20,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              21,
+              24
+            ],
+            "teamB": [
+              23,
+              25
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              6
+            ],
+            "teamB": [
+              7,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              10
+            ],
+            "teamB": [
+              16,
+              19
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              18
+            ],
+            "teamB": [
+              20,
+              23
+            ]
+          },
+          {
+            "teamA": [
+              21,
+              25
+            ],
+            "teamB": [
+              22,
+              24
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              7
+            ],
+            "teamB": [
+              6,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              11
+            ],
+            "teamB": [
+              10,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              14
+            ],
+            "teamB": [
+              15,
+              21
+            ]
+          },
+          {
+            "teamA": [
+              22,
+              25
+            ],
+            "teamB": [
+              23,
+              24
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          21,
+          22,
+          23,
+          24,
+          25
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              12
+            ],
+            "teamB": [
+              10,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              16
+            ],
+            "teamB": [
+              14,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              18
+            ],
+            "teamB": [
+              19,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "matches": [
+          {
+            "teamA": [
+              6,
+              9
+            ],
+            "teamB": [
+              7,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              11
+            ],
+            "teamB": [
+              12,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              16
+            ],
+            "teamB": [
+              14,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              22
+            ],
+            "teamB": [
+              19,
+              24
+            ]
+          },
+          {
+            "teamA": [
+              20,
+              25
+            ],
+            "teamB": [
+              21,
+              23
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              11
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              12
+            ],
+            "teamB": [
+              4,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              16
+            ],
+            "teamB": [
+              15,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              18,
+              23
+            ],
+            "teamB": [
+              19,
+              25
+            ]
+          },
+          {
+            "teamA": [
+              20,
+              24
+            ],
+            "teamB": [
+              21,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              9
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              20
+            ],
+            "teamB": [
+              10,
+              21
+            ]
+          },
+          {
+            "teamA": [
+              16,
+              22
+            ],
+            "teamB": [
+              17,
+              24
+            ]
+          },
+          {
+            "teamA": [
+              18,
+              25
+            ],
+            "teamB": [
+              19,
+              23
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              13
+            ],
+            "teamB": [
+              10,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              21
+            ],
+            "teamB": [
+              12,
+              23
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              24
+            ],
+            "teamB": [
+              15,
+              25
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          21,
+          22,
+          23,
+          24,
+          25
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              9
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              10
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              12
+            ],
+            "teamB": [
+              7,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              17
+            ],
+            "teamB": [
+              14,
+              19
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              16
+            ],
+            "teamB": [
+              18,
+              20
+            ]
+          }
+        ]
+      }
     ]
   }
 ]
-
 ```
 
 ## public/js/tabs.js
@@ -6469,6 +9377,198 @@ module.exports = router;
 
 ```
 
+## scripts/generateSchedulesJson.js
+
+*Size: 5669 bytes*
+
+```js
+const fs = require("fs");
+const path = require("path");
+const validateScheduleConfig = require("../tests/validateScheduleConfig");
+
+// CONFIGURATION
+const COURT_OPTIONS = [3, 4, 5];
+const PAIRINGS = 2; // Doubles
+const TARGET_ROUNDS = 9;
+const REST_PERCENT_OPTIONS = [0.25, 0.3, 0.33, 0.35];
+const PLAYER_COUNTS_PER_COURT = 5; // Try 5 player counts per court for simplicity
+
+function getPlayerNumbers(n) {
+  return Array.from({ length: n }, (_, i) => i + 1);
+}
+
+// Helper: Evenly spread rests for all players
+function getRestingPlayers(playerNumbers, restCounts, restingPerRound) {
+  return [...playerNumbers]
+    .sort((a, b) => restCounts[a] - restCounts[b])
+    .slice(0, restingPerRound);
+}
+
+// Helper: Backtracking unique pairing for a round
+function backtrackPairs(
+  playing,
+  partnershipTracker,
+  pairs = [],
+  used = new Set()
+) {
+  if (pairs.length === playing.length / 2) return pairs;
+  for (let i = 0; i < playing.length; i++) {
+    if (used.has(playing[i])) continue;
+    for (let j = i + 1; j < playing.length; j++) {
+      if (used.has(playing[j])) continue;
+      if (!partnershipTracker[playing[i]].has(playing[j])) {
+        used.add(playing[i]);
+        used.add(playing[j]);
+        pairs.push([playing[i], playing[j]]);
+        const result = backtrackPairs(playing, partnershipTracker, pairs, used);
+        if (result) return result;
+        pairs.pop();
+        used.delete(playing[i]);
+        used.delete(playing[j]);
+      }
+    }
+    break; // Only try first available i to reduce branching
+  }
+  return null;
+}
+
+// MAIN SCHEDULE GENERATOR
+function generateScheduleConfig(courts, players, rounds, restPercent) {
+  const playersPerCourt = PAIRINGS * 2;
+  const playingPerRound = courts * playersPerCourt;
+  const restingPerRound = players - playingPerRound;
+  if (restingPerRound < 0 || playingPerRound <= 0) return null;
+
+  const playerNumbers = getPlayerNumbers(players);
+  let restCounts = {};
+  playerNumbers.forEach((p) => (restCounts[p] = 0));
+  let partnershipTracker = {};
+  playerNumbers.forEach((p) => (partnershipTracker[p] = new Set()));
+
+  let roundsConfig = [];
+  let valid = true;
+
+  for (let roundIdx = 0; roundIdx < rounds; roundIdx++) {
+    // Spread rests as evenly as possible
+    const resting = getRestingPlayers(
+      playerNumbers,
+      restCounts,
+      restingPerRound
+    );
+    resting.forEach((p) => restCounts[p]++);
+
+    const playing = playerNumbers.filter((p) => !resting.includes(p));
+
+    // Backtracking for unique pairs
+    let pairs = backtrackPairs(playing, partnershipTracker);
+    if (!pairs || pairs.length !== courts * 2) {
+      valid = false;
+      break;
+    }
+
+    // Assign pairs to courts (2 pairs per court)
+    let matches = [];
+    for (let c = 0; c < courts; c++) {
+      let idx = c * 2;
+      matches.push({
+        teamA: pairs[idx],
+        teamB: pairs[idx + 1],
+      });
+      // Track partnerships for uniqueness
+      partnershipTracker[pairs[idx][0]].add(pairs[idx][1]);
+      partnershipTracker[pairs[idx][1]].add(pairs[idx][0]);
+      partnershipTracker[pairs[idx + 1][0]].add(pairs[idx + 1][1]);
+      partnershipTracker[pairs[idx + 1][1]].add(pairs[idx + 1][0]);
+    }
+
+    roundsConfig.push({ resting, matches });
+  }
+
+  if (!valid) return null;
+
+  // Calculate actual rest percent and games per player
+  const restsPerPlayer = Math.max(...playerNumbers.map((p) => restCounts[p]));
+  const gamesPerPlayer = rounds - restsPerPlayer;
+  const actualRestPercent = restsPerPlayer / rounds;
+
+  // BASIC VALIDATION
+  if (gamesPerPlayer <= 0 || restsPerPlayer <= 0) return null;
+
+  // Check all players have same number of rests/games
+  const minRests = Math.min(...playerNumbers.map((p) => restCounts[p]));
+  const maxRests = Math.max(...playerNumbers.map((p) => restCounts[p]));
+  if (minRests !== maxRests) return null;
+
+  return {
+    courts,
+    pairings: PAIRINGS,
+    players,
+    rounds,
+    restsPerPlayer,
+    actualRestPercent,
+    gamesPerPlayer,
+    roundsConfig,
+  };
+}
+
+// GENERATE CONFIGS
+const configs = [];
+for (const courts of COURT_OPTIONS) {
+  const minPlayers = courts * 4 + 1;
+  const maxPlayers = minPlayers + PLAYER_COUNTS_PER_COURT - 1;
+  for (let players = minPlayers; players <= maxPlayers; players++) {
+    for (const restPercent of REST_PERCENT_OPTIONS) {
+      for (
+        let rounds = TARGET_ROUNDS - 2;
+        rounds <= TARGET_ROUNDS + 2;
+        rounds++
+      ) {
+        const config = generateScheduleConfig(
+          courts,
+          players,
+          rounds,
+          restPercent
+        );
+        if (config) configs.push(config);
+      }
+    }
+  }
+}
+
+// POST-PROCESSING: Filter only valid configs
+const validConfigs = configs.filter((cfg) => {
+  const playerNumbers = Array.from({ length: cfg.players }, (_, i) => i + 1);
+  const validation = validateScheduleConfig(cfg.roundsConfig, playerNumbers);
+  return validation.valid;
+});
+
+// Remove duplicate configs (by courts, players, rounds, restsPerPlayer, and matches hash)
+function configKey(cfg) {
+  return `${cfg.courts}-${cfg.players}-${cfg.rounds}-${cfg.restsPerPlayer}-${JSON.stringify(cfg.roundsConfig)}`;
+}
+
+const uniqueConfigs = [];
+const seenKeys = new Set();
+
+for (const cfg of validConfigs) {
+  const key = configKey(cfg);
+  if (!seenKeys.has(key)) {
+    uniqueConfigs.push(cfg);
+    seenKeys.add(key);
+  }
+}
+
+// WRITE OUTPUT
+const outputPath = path.join(__dirname, "../public/js/schedules.json");
+fs.mkdirSync(path.dirname(outputPath), { recursive: true }); // Ensure directory exists
+fs.writeFileSync(outputPath, JSON.stringify(uniqueConfigs, null, 2), "utf-8");
+
+console.log(
+  `✅ schedules.json generated with ${uniqueConfigs.length} unique valid configs.`
+);
+
+```
+
 ## server.js
 
 *Size: 1628 bytes*
@@ -6532,6 +9632,110 @@ process.on("unhandledRejection", (err) => {
 ["SIGTERM", "SIGINT"].forEach((signal) => {
   process.on(signal, () => gracefulShutdown(signal));
 });
+
+```
+
+## tests/testScheduleCreation.js
+
+*Size: 1346 bytes*
+
+```js
+require("dotenv").config({
+  path: require("path").resolve(__dirname, "../config.env"),
+});
+
+const mongoose = require("mongoose");
+const User = require("../models/userModel");
+const Event = require("../models/eventModel");
+const { createBooking } = require("../controllers/eventController");
+
+const MONGO_URI = process.env.DEV_DATABASE;
+const EVENT_ID = "68ab277190736277baa6e48d";
+
+async function assignUsersToEvent() {
+  await mongoose.connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  // Get first 8 users with userType "user"
+  const users = await User.find({ role: "user" }).limit(8);
+
+  if (users.length < 8) {
+    console.error("Not enough users found.");
+    process.exit(1);
+  }
+
+  for (const user of users) {
+    // Simulate a booking request object
+    const req = {
+      body: {
+        eventId: EVENT_ID,
+        userId: user._id,
+        userName: user.userName || user.name,
+      },
+    };
+    const res = {
+      status: () => ({
+        json: (data) => console.log("Booking response:", data),
+      }),
+    };
+    await new Promise((resolve) => {
+      createBooking(req, res, (err) => {
+        if (err) console.error("Booking error:", err);
+        resolve();
+      });
+    });
+  }
+
+  console.log("Assigned 8 users to event:", EVENT_ID);
+  mongoose.disconnect();
+}
+
+assignUsersToEvent();
+
+```
+
+## tests/testSchedulesJSON.js
+
+*Size: 1128 bytes*
+
+```js
+const fs = require("fs");
+const path = require("path");
+const validateScheduleConfig = require("./validateScheduleConfig");
+
+// Load schedules.json
+const schedulesPath = path.join(__dirname, "../public/js/schedules.json");
+const schedules = JSON.parse(fs.readFileSync(schedulesPath, "utf-8"));
+
+let allValid = true;
+
+schedules.forEach((config, idx) => {
+  // Assume player numbers are 1...N
+  const playerNumbers = Array.from({ length: config.players }, (_, i) => i + 1);
+  const result = validateScheduleConfig(config.roundsConfig, playerNumbers);
+
+  if (!result.valid) {
+    allValid = false;
+    console.log(
+      `❌ Schedule #${idx + 1} (Players: ${config.players}, Courts: ${config.courts}) is INVALID:`
+    );
+    result.errors.forEach((e) => console.log("  - " + e));
+  } else {
+    console.log(
+      `✅ Schedule #${idx + 1} (Players: ${config.players}, Courts: ${config.courts}) is valid.`
+    );
+  }
+});
+
+if (allValid) {
+  console.log("\n🎉 All schedules in schedules.json are valid!");
+} else {
+  console.log(
+    "\n⚠️ Some schedules in schedules.json are invalid. Please review the errors above."
+  );
+}
 
 ```
 
@@ -6741,6 +9945,139 @@ async function main() {
 }
 
 main();
+
+```
+
+## tests/validateScheduleConfig.js
+
+*Size: 4033 bytes*
+
+```js
+/**
+ * Validates a schedule configuration for:
+ * - No repeat partnerships
+ * - Balanced rests
+ * - Balanced games
+ * - Each player is either resting or playing in every round (no duplicates/missing)
+ * - Rests are as evenly spread as possible
+ * - Each player plays more than zero games and has more than zero rests
+ * Returns { valid: true } if OK, or { valid: false, errors: [...] }
+ */
+function validateScheduleConfig(roundsConfig, playerNumbers) {
+  const partnershipSet = new Set();
+  const restCounts = {};
+  const gameCounts = {};
+  const restRounds = {};
+
+  playerNumbers.forEach((p) => {
+    restCounts[p] = 0;
+    gameCounts[p] = 0;
+    restRounds[p] = [];
+  });
+
+  let errors = [];
+
+  roundsConfig.forEach((round, roundIdx) => {
+    // Track rests
+    round.resting.forEach((p) => {
+      restCounts[p]++;
+      restRounds[p].push(roundIdx + 1);
+    });
+
+    // Track games and partnerships
+    round.matches.forEach((match) => {
+      match.teamA.forEach((a) => gameCounts[a]++);
+      match.teamB.forEach((b) => gameCounts[b]++);
+
+      // Check partnerships in teamA
+      for (let i = 0; i < match.teamA.length; i++) {
+        for (let j = i + 1; j < match.teamA.length; j++) {
+          const key = [match.teamA[i], match.teamA[j]].sort().join("-");
+          if (partnershipSet.has(key)) {
+            errors.push(
+              `Players ${match.teamA[i]} and ${match.teamA[j]} are partners more than once (repeat partnership)`
+            );
+          }
+          partnershipSet.add(key);
+        }
+      }
+      // Check partnerships in teamB
+      for (let i = 0; i < match.teamB.length; i++) {
+        for (let j = i + 1; j < match.teamB.length; j++) {
+          const key = [match.teamB[i], match.teamB[j]].sort().join("-");
+          if (partnershipSet.has(key)) {
+            errors.push(
+              `Players ${match.teamB[i]} and ${match.teamB[j]} are partners more than once (repeat partnership)`
+            );
+          }
+          partnershipSet.add(key);
+        }
+      }
+    });
+
+    // Check that every player appears exactly once per round
+    const allPlayersThisRound = new Set();
+    round.resting.forEach((p) => allPlayersThisRound.add(p));
+    round.matches.forEach((match) => {
+      match.teamA.forEach((p) => allPlayersThisRound.add(p));
+      match.teamB.forEach((p) => allPlayersThisRound.add(p));
+    });
+    if (allPlayersThisRound.size !== playerNumbers.length) {
+      errors.push(
+        `Round ${roundIdx + 1} does not include all players exactly once.`
+      );
+    }
+  });
+
+  // Check balanced rests/games
+  const restVals = Object.values(restCounts);
+  const gameVals = Object.values(gameCounts);
+  const minRest = Math.min(...restVals);
+  const maxRest = Math.max(...restVals);
+  const minGame = Math.min(...gameVals);
+  const maxGame = Math.max(...gameVals);
+
+  if (minRest !== maxRest) {
+    errors.push(
+      `Players do not have balanced rests: ${JSON.stringify(restCounts)}`
+    );
+  }
+  if (minGame !== maxGame) {
+    errors.push(
+      `Players do not have balanced games: ${JSON.stringify(gameCounts)}`
+    );
+  }
+
+  // Check that each player plays >0 games and has >0 rests
+  playerNumbers.forEach((p) => {
+    if (gameCounts[p] === 0) {
+      errors.push(`Player ${p} does not play any games.`);
+    }
+    if (restCounts[p] === 0) {
+      errors.push(`Player ${p} does not have any rests.`);
+    }
+  });
+
+  // Check even spread of rests (difference between consecutive rest rounds should be as small as possible)
+  playerNumbers.forEach((p) => {
+    const rounds = restRounds[p];
+    if (rounds.length > 1) {
+      for (let i = 1; i < rounds.length; i++) {
+        const diff = rounds[i] - rounds[i - 1];
+        if (diff < 1 || diff > Math.ceil(roundsConfig.length / restCounts[p])) {
+          errors.push(
+            `Player ${p} has rests that are not evenly spread: ${rounds}`
+          );
+          break;
+        }
+      }
+    }
+  });
+
+  return errors.length === 0 ? { valid: true } : { valid: false, errors };
+}
+
+module.exports = validateScheduleConfig;
 
 ```
 
@@ -6974,6 +10311,145 @@ const sendEmail = async (options) => {
 };
 
 module.exports = sendEmail;
+
+```
+
+## utils/generateDynamicSchedule.js
+
+*Size: 4247 bytes*
+
+```js
+function generateDynamicSchedule(selectedBookings, config) {
+  const numPlayers = selectedBookings.length;
+  const courts = config.courts;
+  const pairings = 2;
+  const playersPerCourt = pairings * 2;
+  const playersPerRound = courts * playersPerCourt;
+  const totalRounds = numPlayers; // Each player rests once
+
+  const playerIds = selectedBookings.map((p) => p.userId);
+
+  // Helper to get player object by userId
+  const getPlayer = (userId) =>
+    selectedBookings.find((p) => p.userId === userId);
+
+  // Partnership tracker
+  const partnershipTracker = {};
+
+  // Backtracking function
+  function backtrack(roundIdx, rounds, partnershipTracker, restsCount) {
+    if (roundIdx === totalRounds) return rounds;
+
+    // Generate possible resting combinations (spread rests)
+    const numResting = numPlayers - playersPerRound;
+    const allRestCombos = getRestCombos(playerIds, numResting, restsCount);
+
+    for (const resting of allRestCombos) {
+      const playing = playerIds.filter((id) => !resting.includes(id));
+      const matches = getValidMatches(playing, courts, partnershipTracker);
+
+      if (!matches) continue; // No valid matches for this rest combo
+
+      // Update partnershipTracker and restsCount
+      const newPartnershipTracker = { ...partnershipTracker };
+      matches.forEach((match) => {
+        const keyA = [match.teamA[0], match.teamA[1]].sort().join("-");
+        const keyB = [match.teamB[0], match.teamB[1]].sort().join("-");
+        newPartnershipTracker[keyA] = true;
+        newPartnershipTracker[keyB] = true;
+      });
+      const newRestsCount = { ...restsCount };
+      resting.forEach(
+        (id) => (newRestsCount[id] = (newRestsCount[id] || 0) + 1)
+      );
+
+      const nextRounds = [
+        ...rounds,
+        {
+          matches: matches.map((m, court) => ({
+            teamA: m.teamA.map(getPlayer),
+            teamB: m.teamB.map(getPlayer),
+            court,
+          })),
+          standOuts: resting.map(getPlayer),
+        },
+      ];
+
+      const result = backtrack(
+        roundIdx + 1,
+        nextRounds,
+        newPartnershipTracker,
+        newRestsCount
+      );
+      if (result) return result;
+    }
+    return null; // No valid schedule found
+  }
+
+  // Start backtracking
+  const initialRestsCount = {};
+  playerIds.forEach((id) => (initialRestsCount[id] = 0));
+  const result = backtrack(0, [], {}, initialRestsCount);
+
+  if (!result) throw new Error("No valid schedule found for these parameters.");
+  return result;
+}
+
+// Helper: Generate all possible rest combinations (spread evenly)
+function getRestCombos(playerIds, numResting, restsCount) {
+  // For simplicity, just rotate rests for now (can be improved for even spread)
+  const combos = [];
+  for (let i = 0; i < playerIds.length; i++) {
+    combos.push(playerIds.slice(i, i + numResting));
+    if (combos.length >= playerIds.length) break;
+  }
+  return combos;
+}
+
+// Helper: Get valid matches for playing players, given partnershipTracker
+function getValidMatches(playing, courts, partnershipTracker) {
+  // Generate all possible pairs
+  const pairs = [];
+  for (let i = 0; i < playing.length; i++) {
+    for (let j = i + 1; j < playing.length; j++) {
+      const key = [playing[i], playing[j]].sort().join("-");
+      if (!partnershipTracker[key]) {
+        pairs.push([playing[i], playing[j]]);
+      }
+    }
+  }
+
+  // Try to select pairs for all courts without overlap
+  function selectPairs(pairs, used, result) {
+    if (result.length === courts) return result;
+    for (let i = 0; i < pairs.length; i++) {
+      const [a, b] = pairs[i];
+      if (used.has(a) || used.has(b)) continue;
+      used.add(a);
+      used.add(b);
+      const next = selectPairs(pairs, used, [...result, [a, b]]);
+      if (next) return next;
+      used.delete(a);
+      used.delete(b);
+    }
+    return null;
+  }
+
+  const selectedPairs = selectPairs(pairs, new Set(), []);
+  if (!selectedPairs || selectedPairs.length !== courts * 2) return null;
+
+  // Group pairs into matches (2 pairs per court)
+  const matches = [];
+  for (let i = 0; i < selectedPairs.length; i += 2) {
+    matches.push({
+      teamA: selectedPairs[i],
+      teamB: selectedPairs[i + 1],
+    });
+  }
+  return matches;
+}
+
+module.exports = generateDynamicSchedule;
 
 ```
 
@@ -7259,61 +10735,65 @@ block content
 
 ## views/createEvent.pug
 
-*Size: 2829 bytes*
+*Size: 3674 bytes*
 
 ```pug
 extends base
 
 block content
-	main.main
-		section.section
-			div.container
-				div.crudContainer-2-cols
-					div.text-box
-						h1.heading-secondary Create an Event
-						form.form-2-cols#createEventForm
-							div.form-col-left
-								label(for="eventName") Event name
-								input(name="eventName" type="text" id="eventName" required)
-								label(for="eventLocation") Event location
-								input(name="eventLocation" type="text" id="eventLocation" required)
-								label(for="eventType") Event Type
-								input(name="eventType" type="text" id="eventType")
-								label(for="eventDate") Event date
-								input(name="eventDate" type="date" id="eventDate" required)
-								label(for="eventStartTime") Event start time
-								input(name="eventStartTime" type="time" id="eventStartTime" required)
-								label(for="eventOrganiser") Event organiser
-								input(name="eventOrganiser" type="text" id="eventOrganiser" required)
-								label(for="eventWaitListSize") Max number of players on wait list
-								input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=systemDefaults.waitListSize required)
-								.form-row
-									label(for="active" class="form__label active-label") Is event Active ?
-									input(type="checkbox" id="active" name="active" class="active-checkbox")
-							div.form-col-right
-								.calculator-box
-									.calc-header-row(style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2em;")
-										h2(style="font-size: 2.8rem; margin: 0; font-weight: 700;") Schedule Calculator
-										span(style="margin-left: 1em;")
-											i(class="fa fa-calculator" aria-hidden="true" style="font-size: 2.8rem; color: #cf711f;")
-									.form-row
-										label(for="doublesToggle" class="form__label active-label") Doubles
-										input(type="checkbox" id="doublesToggle" name="doublesToggle" class="active-checkbox" checked)
-									.calc-row
-										label(for="numCourts" style="font-size: 1.6rem; font-weight: 500; margin-bottom: 0; margin-right: 1em;") Number of courts
-										select#numCourts(style="margin-left: 0.5em; min-width: 5em;")
-											option(value="" disabled selected) Choose courts
-									div#scheduleOptions
-									div#schedulePreview
-									input(type="hidden" id="selectedScheduleConfig" name="selectedScheduleConfig")
-									button.btn--form(type="button" id="confirmScheduleBtn") Confirm Schedule
-							// Move the form-buttons inside the form so they are inside the orange box
-							div.form-buttons
-								a.btn.btn--form#createEventButton(
-									href="#"
-									onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
-								) Create
-								a.btn.btn--form#cancelButton(href="/events/showall") Cancel
+  main.main
+    section.section
+      div.container
+        div.crudContainer-2-cols
+          div.text-box
+            h1.heading-secondary Create an Event
+            form.form-2-cols#createEventForm
+              div.form-col-left
+                label(for="eventName") Event name
+                input(name="eventName" type="text" id="eventName" required)
+                label(for="eventLocation") Event location
+                input(name="eventLocation" type="text" id="eventLocation" required)
+                label(for="eventType") Event Type
+                input(name="eventType" type="text" id="eventType")
+                label(for="eventDate") Event date
+                input(name="eventDate" type="date" id="eventDate" required)
+                label(for="eventStartTime") Event start time
+                input(name="eventStartTime" type="time" id="eventStartTime" required)
+                label(for="eventOrganiser") Event organiser
+                input(name="eventOrganiser" type="text" id="eventOrganiser" required)
+                label(for="eventWaitListSize") Max number of players on wait list
+                input(name="eventWaitListSize" type="number" id="eventWaitListSize" value=systemDefaults.waitListSize required)
+                .form-row
+                  label(for="active" class="form__label active-label") Is event Active ?
+                  input(type="checkbox" id="active" name="active" class="active-checkbox")
+              div.form-col-right
+                .calculator-box
+                  .calc-header-row(style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2em;")
+                    h2(style="font-size: 2.8rem; margin: 0; font-weight: 700;") Schedule Calculator
+                    span(style="margin-left: 1em;")
+                      i(class="fa fa-calculator" aria-hidden="true" style="font-size: 2.8rem; color: #cf711f;")
+                  .form-row
+                    label(for="doublesToggle" class="form__label active-label") Doubles
+                    input(type="checkbox" id="doublesToggle" name="doublesToggle" class="active-checkbox" checked)
+                  .calc-row
+                    label(for="numCourts" style="font-size: 1.6rem; font-weight: 500; margin-bottom: 0; margin-right: 1em;") Number of courts
+                    select#numCourts(style="margin-left: 0.5em; min-width: 5em;")
+                      option(value="" disabled selected) Choose courts
+                  .calc-row
+                    label(for="restPercent" style="font-size: 1.1rem; font-weight: 500; margin-right: 1em;") Approx. Rest % per player
+                    input(type="number" id="restPercent" min="0" max="100" value="30" style="width: 5em; margin-right: 2em;")
+                    label(for="targetRounds" style="font-size: 1.1rem; font-weight: 500; margin-right: 1em;") Approx. Rounds per event
+                    input(type="number" id="targetRounds" min="1" max="30" value="9" style="width: 5em;")
+                    button(type="button" id="recalcBtn" style="margin-left:2em;") Re-calculate
+                  div#scheduleOptions
+                  div#schedulePreview
+                  input(type="hidden" id="selectedScheduleConfig" name="selectedScheduleConfig")
+                div.form-buttons
+                  a.btn.btn--form#createEventButton(
+                    href="#"
+                    onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+                  ) Create
+                  a.btn.btn--form#cancelButton(href="/events/showall") Cancel
 ```
 
 ## views/createUser.pug

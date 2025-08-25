@@ -23,7 +23,20 @@ const roundSchema = new mongoose.Schema({
   ],
 });
 
-// Schedule configuration schema
+// New roundConfig schema for explicit pairings
+const roundConfigSchema = new mongoose.Schema(
+  {
+    resting: [{ type: Number }],
+    matches: [
+      {
+        teamA: [{ type: Number }],
+        teamB: [{ type: Number }],
+      },
+    ],
+  },
+  { _id: false }
+);
+
 const playerRoundSchema = new mongoose.Schema(
   {
     played: [{ type: Number }],
@@ -40,7 +53,8 @@ const scheduleConfigurationSchema = new mongoose.Schema(
     rounds: { type: Number, required: true },
     gamesPerPlayer: { type: Number, required: true },
     restsPerPlayer: { type: Number, required: true },
-    playerRounds: { type: [playerRoundSchema], required: true },
+    playerRounds: { type: [playerRoundSchema], required: false },
+    roundsConfig: { type: [roundConfigSchema], required: false },
   },
   { _id: false }
 );

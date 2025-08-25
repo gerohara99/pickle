@@ -2,170 +2,3234 @@
   {
     "courts": 3,
     "pairings": 2,
-    "players": 12,
-    "rounds": 6,
-    "restsPerPlayer": 2,
-    "gamesPerPlayer": 4,
-    "playingPerRound": 8,
-    "restingPerRound": 4,
-    "playerRounds": [
-      { "played": [1, 3, 4, 6], "resting": [2, 5] },
-      { "played": [2, 4, 5, 1], "resting": [3, 6] },
-      { "played": [3, 5, 6, 2], "resting": [4, 1] },
-      { "played": [4, 6, 1, 3], "resting": [5, 2] },
-      { "played": [5, 1, 2, 4], "resting": [6, 3] },
-      { "played": [6, 2, 3, 5], "resting": [1, 4] },
-      { "played": [1, 3, 4, 6], "resting": [2, 5] },
-      { "played": [2, 4, 5, 1], "resting": [3, 6] },
-      { "played": [3, 5, 6, 2], "resting": [4, 1] },
-      { "played": [4, 6, 1, 3], "resting": [5, 2] },
-      { "played": [5, 1, 2, 4], "resting": [6, 3] },
-      { "played": [6, 2, 3, 5], "resting": [1, 4] }
+    "players": 14,
+    "rounds": 7,
+    "restsPerPlayer": 1,
+    "actualRestPercent": 0.14285714285714285,
+    "gamesPerPlayer": 6,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2
+        ],
+        "matches": [
+          {
+            "teamA": [
+              3,
+              4
+            ],
+            "teamB": [
+              5,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              8
+            ],
+            "teamB": [
+              9,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              12
+            ],
+            "teamB": [
+              13,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              5,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              6,
+              8
+            ],
+            "teamB": [
+              9,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              13
+            ],
+            "teamB": [
+              12,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              9
+            ],
+            "teamB": [
+              8,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              14
+            ],
+            "teamB": [
+              12,
+              13
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              14
+            ],
+            "teamB": [
+              11,
+              13
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              11
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              13
+            ],
+            "teamB": [
+              8,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              13
+            ],
+            "teamB": [
+              9,
+              14
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              12
+            ],
+            "teamB": [
+              10,
+              11
+            ]
+          }
+        ]
+      }
     ]
   },
   {
     "courts": 3,
     "pairings": 2,
-    "players": 9,
-    "rounds": 9,
-    "restsPerPlayer": 3,
-    "gamesPerPlayer": 6,
-    "playingPerRound": 6,
-    "restingPerRound": 3,
-    "playerRounds": [
-      { "played": [1, 2, 4, 5, 7, 8], "resting": [3, 6, 9] },
-      { "played": [2, 3, 5, 6, 8, 9], "resting": [1, 4, 7] },
-      { "played": [3, 4, 6, 7, 9, 1], "resting": [2, 5, 8] },
-      { "played": [4, 5, 7, 8, 1, 2], "resting": [3, 6, 9] },
-      { "played": [5, 6, 8, 9, 2, 3], "resting": [4, 7, 1] },
-      { "played": [6, 7, 9, 1, 3, 4], "resting": [5, 8, 2] },
-      { "played": [7, 8, 1, 2, 4, 5], "resting": [6, 9, 3] },
-      { "played": [8, 9, 2, 3, 5, 6], "resting": [7, 1, 4] },
-      { "played": [9, 1, 3, 4, 6, 7], "resting": [8, 2, 5] }
-    ]
-  },
-  {
-    "courts": 5,
-    "pairings": 2,
-    "players": 20,
+    "players": 15,
     "rounds": 10,
     "restsPerPlayer": 2,
+    "actualRestPercent": 0.2,
     "gamesPerPlayer": 8,
-    "playingPerRound": 16,
-    "restingPerRound": 4,
-    "playerRounds": [
-      { "played": [1, 2, 3, 4, 6, 7, 8, 10], "resting": [5, 9] },
-      { "played": [1, 2, 4, 5, 7, 8, 9, 10], "resting": [3, 6] },
-      { "played": [1, 3, 4, 5, 6, 8, 9, 10], "resting": [2, 7] },
-      { "played": [2, 3, 5, 6, 7, 9, 10, 1], "resting": [4, 8] },
-      { "played": [3, 4, 6, 7, 8, 10, 1, 2], "resting": [5, 9] },
-      { "played": [4, 5, 7, 8, 9, 1, 2, 3], "resting": [6, 10] },
-      { "played": [5, 6, 8, 9, 10, 2, 3, 4], "resting": [1, 7] },
-      { "played": [6, 7, 9, 10, 1, 3, 4, 5], "resting": [2, 8] },
-      { "played": [7, 8, 10, 1, 2, 4, 5, 6], "resting": [3, 9] },
-      { "played": [8, 9, 1, 2, 3, 5, 6, 7], "resting": [4, 10] },
-      { "played": [9, 10, 2, 3, 4, 6, 7, 8], "resting": [1, 5] },
-      { "played": [10, 1, 3, 4, 5, 7, 8, 9], "resting": [2, 6] },
-      { "played": [1, 2, 4, 5, 6, 8, 9, 10], "resting": [3, 7] },
-      { "played": [2, 3, 5, 6, 7, 9, 10, 1], "resting": [4, 8] },
-      { "played": [3, 4, 6, 7, 8, 10, 1, 2], "resting": [5, 9] },
-      { "played": [4, 5, 7, 8, 9, 1, 2, 3], "resting": [6, 10] },
-      { "played": [5, 6, 8, 9, 10, 2, 3, 4], "resting": [1, 7] },
-      { "played": [6, 7, 9, 10, 1, 3, 4, 5], "resting": [2, 8] },
-      { "played": [7, 8, 10, 1, 2, 4, 5, 6], "resting": [3, 9] },
-      { "played": [8, 9, 1, 2, 3, 5, 6, 7], "resting": [4, 10] }
-    ]
-  },
-  {
-    "courts": 5,
-    "pairings": 2,
-    "players": 15,
-    "rounds": 15,
-    "restsPerPlayer": 5,
-    "gamesPerPlayer": 10,
-    "playingPerRound": 10,
-    "restingPerRound": 5,
-    "playerRounds": [
+    "roundsConfig": [
       {
-        "played": [1, 3, 5, 7, 9, 11, 13, 15, 2, 4],
-        "resting": [6, 8, 10, 12, 14]
+        "resting": [
+          1,
+          2,
+          3
+        ],
+        "matches": [
+          {
+            "teamA": [
+              4,
+              5
+            ],
+            "teamB": [
+              6,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              9
+            ],
+            "teamB": [
+              10,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              12,
+              13
+            ],
+            "teamB": [
+              14,
+              15
+            ]
+          }
+        ]
       },
       {
-        "played": [2, 4, 6, 8, 10, 12, 14, 1, 3, 5],
-        "resting": [7, 9, 11, 13, 15]
+        "resting": [
+          4,
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              3,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              10
+            ],
+            "teamB": [
+              9,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              12,
+              14
+            ],
+            "teamB": [
+              13,
+              15
+            ]
+          }
+        ]
       },
       {
-        "played": [3, 5, 7, 9, 11, 13, 15, 2, 4, 6],
-        "resting": [8, 10, 12, 14, 1]
+        "resting": [
+          7,
+          8,
+          9
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              6
+            ],
+            "teamB": [
+              10,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              13,
+              14
+            ]
+          }
+        ]
       },
       {
-        "played": [4, 6, 8, 10, 12, 14, 1, 3, 5, 7],
-        "resting": [9, 11, 13, 15, 2]
+        "resting": [
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              7
+            ],
+            "teamB": [
+              6,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              14
+            ],
+            "teamB": [
+              9,
+              15
+            ]
+          }
+        ]
       },
       {
-        "played": [5, 7, 9, 11, 13, 15, 2, 4, 6, 8],
-        "resting": [10, 12, 14, 1, 3]
+        "resting": [
+          13,
+          14,
+          15
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              4
+            ],
+            "teamB": [
+              7,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              10
+            ],
+            "teamB": [
+              11,
+              12
+            ]
+          }
+        ]
       },
       {
-        "played": [6, 8, 10, 12, 14, 1, 3, 5, 7, 9],
-        "resting": [11, 13, 15, 2, 4]
+        "resting": [
+          1,
+          2,
+          3
+        ],
+        "matches": [
+          {
+            "teamA": [
+              4,
+              6
+            ],
+            "teamB": [
+              5,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              9
+            ],
+            "teamB": [
+              10,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              14
+            ],
+            "teamB": [
+              12,
+              15
+            ]
+          }
+        ]
       },
       {
-        "played": [7, 9, 11, 13, 15, 2, 4, 6, 8, 10],
-        "resting": [12, 14, 1, 3, 5]
+        "resting": [
+          4,
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              12
+            ],
+            "teamB": [
+              9,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              15
+            ],
+            "teamB": [
+              11,
+              13
+            ]
+          }
+        ]
       },
       {
-        "played": [8, 10, 12, 14, 1, 3, 5, 7, 9, 11],
-        "resting": [13, 15, 2, 4, 6]
+        "resting": [
+          7,
+          8,
+          9
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              13
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              15
+            ],
+            "teamB": [
+              10,
+              14
+            ]
+          }
+        ]
       },
       {
-        "played": [9, 11, 13, 15, 2, 4, 6, 8, 10, 12],
-        "resting": [14, 1, 3, 5, 7]
+        "resting": [
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              15
+            ],
+            "teamB": [
+              9,
+              13
+            ]
+          }
+        ]
       },
       {
-        "played": [10, 12, 14, 1, 3, 5, 7, 9, 11, 13],
-        "resting": [15, 2, 4, 6, 8]
-      },
-      {
-        "played": [11, 13, 15, 2, 4, 6, 8, 10, 12, 14],
-        "resting": [1, 3, 5, 7, 9]
-      },
-      {
-        "played": [12, 14, 1, 3, 5, 7, 9, 11, 13, 15],
-        "resting": [2, 4, 6, 8, 10]
-      },
-      {
-        "played": [13, 15, 2, 4, 6, 8, 10, 12, 14, 1],
-        "resting": [3, 5, 7, 9, 11]
-      },
-      {
-        "played": [14, 1, 3, 5, 7, 9, 11, 13, 15, 2],
-        "resting": [4, 6, 8, 10, 12]
-      },
-      {
-        "played": [15, 2, 4, 6, 8, 10, 12, 14, 1, 3],
-        "resting": [5, 7, 9, 11, 13]
+        "resting": [
+          13,
+          14,
+          15
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              6,
+              11
+            ],
+            "teamB": [
+              8,
+              12
+            ]
+          }
+        ]
       }
     ]
   },
   {
-    "courts": 2,
+    "courts": 3,
     "pairings": 2,
-    "players": 8,
-    "rounds": 4,
+    "players": 16,
+    "rounds": 8,
+    "restsPerPlayer": 2,
+    "actualRestPercent": 0.25,
+    "gamesPerPlayer": 6,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              5,
+              6
+            ],
+            "teamB": [
+              7,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              10
+            ],
+            "teamB": [
+              11,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              14
+            ],
+            "teamB": [
+              15,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              3,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              11
+            ],
+            "teamB": [
+              10,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              15
+            ],
+            "teamB": [
+              14,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              7
+            ],
+            "teamB": [
+              6,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              16
+            ],
+            "teamB": [
+              14,
+              15
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14,
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              8
+            ],
+            "teamB": [
+              6,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              12
+            ],
+            "teamB": [
+              10,
+              11
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              13
+            ],
+            "teamB": [
+              8,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              12,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              13
+            ],
+            "teamB": [
+              4,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              16
+            ],
+            "teamB": [
+              12,
+              15
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              14
+            ],
+            "teamB": [
+              4,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              15
+            ],
+            "teamB": [
+              8,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14,
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              9
+            ],
+            "teamB": [
+              4,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              11
+            ],
+            "teamB": [
+              8,
+              12
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "courts": 4,
+    "pairings": 2,
+    "players": 18,
+    "rounds": 9,
     "restsPerPlayer": 1,
-    "gamesPerPlayer": 3,
-    "playingPerRound": 6,
-    "restingPerRound": 2,
-    "playerRounds": [
-      { "played": [1, 2, 4], "resting": [3] },
-      { "played": [2, 3, 1], "resting": [4] },
-      { "played": [3, 4, 2], "resting": [1] },
-      { "played": [4, 1, 3], "resting": [2] },
-      { "played": [1, 2, 4], "resting": [3] },
-      { "played": [2, 3, 1], "resting": [4] },
-      { "played": [3, 4, 2], "resting": [1] },
-      { "played": [4, 1, 3], "resting": [2] }
+    "actualRestPercent": 0.1111111111111111,
+    "gamesPerPlayer": 8,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2
+        ],
+        "matches": [
+          {
+            "teamA": [
+              3,
+              4
+            ],
+            "teamB": [
+              5,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              8
+            ],
+            "teamB": [
+              9,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              12
+            ],
+            "teamB": [
+              13,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              16
+            ],
+            "teamB": [
+              17,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              5,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              6,
+              8
+            ],
+            "teamB": [
+              9,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              12
+            ],
+            "teamB": [
+              13,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              17
+            ],
+            "teamB": [
+              16,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              9
+            ],
+            "teamB": [
+              8,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              13
+            ],
+            "teamB": [
+              12,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              18
+            ],
+            "teamB": [
+              16,
+              17
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              14
+            ],
+            "teamB": [
+              12,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              18
+            ],
+            "teamB": [
+              15,
+              17
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              12,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              16
+            ],
+            "teamB": [
+              14,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              8
+            ],
+            "teamB": [
+              4,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              15
+            ],
+            "teamB": [
+              10,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              17
+            ],
+            "teamB": [
+              14,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              16
+            ],
+            "teamB": [
+              10,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              17
+            ],
+            "teamB": [
+              12,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              14
+            ],
+            "teamB": [
+              10,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              18
+            ],
+            "teamB": [
+              12,
+              13
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          17,
+          18
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              11
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              8
+            ],
+            "teamB": [
+              6,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              16
+            ],
+            "teamB": [
+              14,
+              15
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "courts": 4,
+    "pairings": 2,
+    "players": 20,
+    "rounds": 10,
+    "restsPerPlayer": 2,
+    "actualRestPercent": 0.2,
+    "gamesPerPlayer": 8,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              5,
+              6
+            ],
+            "teamB": [
+              7,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              10
+            ],
+            "teamB": [
+              11,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              14
+            ],
+            "teamB": [
+              15,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              18
+            ],
+            "teamB": [
+              19,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              3,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              11
+            ],
+            "teamB": [
+              10,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              15
+            ],
+            "teamB": [
+              14,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              19
+            ],
+            "teamB": [
+              18,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              7
+            ],
+            "teamB": [
+              6,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              16
+            ],
+            "teamB": [
+              14,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              20
+            ],
+            "teamB": [
+              18,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14,
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              8
+            ],
+            "teamB": [
+              6,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              17
+            ],
+            "teamB": [
+              10,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              19
+            ],
+            "teamB": [
+              12,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          17,
+          18,
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              13
+            ],
+            "teamB": [
+              10,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              12,
+              16
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              11
+            ],
+            "teamB": [
+              8,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              17
+            ],
+            "teamB": [
+              14,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              19
+            ],
+            "teamB": [
+              16,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              11
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              18
+            ],
+            "teamB": [
+              14,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              20
+            ],
+            "teamB": [
+              16,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10,
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              8
+            ],
+            "teamB": [
+              4,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              19
+            ],
+            "teamB": [
+              14,
+              20
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              17
+            ],
+            "teamB": [
+              16,
+              18
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14,
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              18
+            ],
+            "teamB": [
+              10,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              20
+            ],
+            "teamB": [
+              12,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          17,
+          18,
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              14
+            ],
+            "teamB": [
+              10,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              16
+            ],
+            "teamB": [
+              12,
+              15
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "courts": 5,
+    "pairings": 2,
+    "players": 22,
+    "rounds": 11,
+    "restsPerPlayer": 1,
+    "actualRestPercent": 0.09090909090909091,
+    "gamesPerPlayer": 10,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2
+        ],
+        "matches": [
+          {
+            "teamA": [
+              3,
+              4
+            ],
+            "teamB": [
+              5,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              8
+            ],
+            "teamB": [
+              9,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              12
+            ],
+            "teamB": [
+              13,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              16
+            ],
+            "teamB": [
+              17,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              19,
+              20
+            ],
+            "teamB": [
+              21,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          3,
+          4
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              5,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              6,
+              8
+            ],
+            "teamB": [
+              9,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              12
+            ],
+            "teamB": [
+              13,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              16
+            ],
+            "teamB": [
+              17,
+              19
+            ]
+          },
+          {
+            "teamA": [
+              18,
+              21
+            ],
+            "teamB": [
+              20,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          5,
+          6
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              9
+            ],
+            "teamB": [
+              8,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              13
+            ],
+            "teamB": [
+              12,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              17
+            ],
+            "teamB": [
+              16,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              19,
+              22
+            ],
+            "teamB": [
+              20,
+              21
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          7,
+          8
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              9
+            ],
+            "teamB": [
+              6,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              14
+            ],
+            "teamB": [
+              12,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              18
+            ],
+            "teamB": [
+              16,
+              20
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              22
+            ],
+            "teamB": [
+              19,
+              21
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              15
+            ],
+            "teamB": [
+              12,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              19
+            ],
+            "teamB": [
+              14,
+              20
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              21
+            ],
+            "teamB": [
+              18,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              8
+            ],
+            "teamB": [
+              4,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              13
+            ],
+            "teamB": [
+              10,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              21
+            ],
+            "teamB": [
+              16,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              20
+            ],
+            "teamB": [
+              18,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          13,
+          14
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              12
+            ],
+            "teamB": [
+              10,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              19
+            ],
+            "teamB": [
+              15,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              16,
+              21
+            ],
+            "teamB": [
+              18,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          15,
+          16
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              17
+            ],
+            "teamB": [
+              10,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              20
+            ],
+            "teamB": [
+              12,
+              19
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              21
+            ],
+            "teamB": [
+              14,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          17,
+          18
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              9
+            ],
+            "teamB": [
+              2,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              11
+            ],
+            "teamB": [
+              4,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              8
+            ],
+            "teamB": [
+              6,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              22
+            ],
+            "teamB": [
+              14,
+              21
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              20
+            ],
+            "teamB": [
+              16,
+              19
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              10
+            ],
+            "teamB": [
+              2,
+              9
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              12
+            ],
+            "teamB": [
+              4,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              13
+            ],
+            "teamB": [
+              6,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              21
+            ],
+            "teamB": [
+              8,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              18
+            ],
+            "teamB": [
+              16,
+              17
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          21,
+          22
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              11
+            ],
+            "teamB": [
+              2,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              9
+            ],
+            "teamB": [
+              4,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              14
+            ],
+            "teamB": [
+              6,
+              16
+            ]
+          },
+          {
+            "teamA": [
+              7,
+              17
+            ],
+            "teamB": [
+              8,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              20
+            ],
+            "teamB": [
+              15,
+              19
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "courts": 5,
+    "pairings": 2,
+    "players": 25,
+    "rounds": 10,
+    "restsPerPlayer": 2,
+    "actualRestPercent": 0.2,
+    "gamesPerPlayer": 8,
+    "roundsConfig": [
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "matches": [
+          {
+            "teamA": [
+              6,
+              7
+            ],
+            "teamB": [
+              8,
+              9
+            ]
+          },
+          {
+            "teamA": [
+              10,
+              11
+            ],
+            "teamB": [
+              12,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              15
+            ],
+            "teamB": [
+              16,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              18,
+              19
+            ],
+            "teamB": [
+              20,
+              21
+            ]
+          },
+          {
+            "teamA": [
+              22,
+              23
+            ],
+            "teamB": [
+              24,
+              25
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              2
+            ],
+            "teamB": [
+              3,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              11
+            ],
+            "teamB": [
+              12,
+              14
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              15
+            ],
+            "teamB": [
+              16,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              19
+            ],
+            "teamB": [
+              20,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              21,
+              24
+            ],
+            "teamB": [
+              23,
+              25
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              3
+            ],
+            "teamB": [
+              2,
+              4
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              6
+            ],
+            "teamB": [
+              7,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              10
+            ],
+            "teamB": [
+              16,
+              19
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              18
+            ],
+            "teamB": [
+              20,
+              23
+            ]
+          },
+          {
+            "teamA": [
+              21,
+              25
+            ],
+            "teamB": [
+              22,
+              24
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              4
+            ],
+            "teamB": [
+              2,
+              3
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              7
+            ],
+            "teamB": [
+              6,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              11
+            ],
+            "teamB": [
+              10,
+              12
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              14
+            ],
+            "teamB": [
+              15,
+              21
+            ]
+          },
+          {
+            "teamA": [
+              22,
+              25
+            ],
+            "teamB": [
+              23,
+              24
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          21,
+          22,
+          23,
+          24,
+          25
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              5
+            ],
+            "teamB": [
+              2,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              7
+            ],
+            "teamB": [
+              4,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              12
+            ],
+            "teamB": [
+              10,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              16
+            ],
+            "teamB": [
+              14,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              18
+            ],
+            "teamB": [
+              19,
+              20
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "matches": [
+          {
+            "teamA": [
+              6,
+              9
+            ],
+            "teamB": [
+              7,
+              10
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              11
+            ],
+            "teamB": [
+              12,
+              15
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              16
+            ],
+            "teamB": [
+              14,
+              18
+            ]
+          },
+          {
+            "teamA": [
+              17,
+              22
+            ],
+            "teamB": [
+              19,
+              24
+            ]
+          },
+          {
+            "teamA": [
+              20,
+              25
+            ],
+            "teamB": [
+              21,
+              23
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              11
+            ],
+            "teamB": [
+              2,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              12
+            ],
+            "teamB": [
+              4,
+              13
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              16
+            ],
+            "teamB": [
+              15,
+              17
+            ]
+          },
+          {
+            "teamA": [
+              18,
+              23
+            ],
+            "teamB": [
+              19,
+              25
+            ]
+          },
+          {
+            "teamA": [
+              20,
+              24
+            ],
+            "teamB": [
+              21,
+              22
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              6
+            ],
+            "teamB": [
+              2,
+              7
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              5
+            ],
+            "teamB": [
+              4,
+              9
+            ]
+          },
+          {
+            "teamA": [
+              8,
+              20
+            ],
+            "teamB": [
+              10,
+              21
+            ]
+          },
+          {
+            "teamA": [
+              16,
+              22
+            ],
+            "teamB": [
+              17,
+              24
+            ]
+          },
+          {
+            "teamA": [
+              18,
+              25
+            ],
+            "teamB": [
+              19,
+              23
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              7
+            ],
+            "teamB": [
+              2,
+              8
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              6
+            ],
+            "teamB": [
+              4,
+              5
+            ]
+          },
+          {
+            "teamA": [
+              9,
+              13
+            ],
+            "teamB": [
+              10,
+              22
+            ]
+          },
+          {
+            "teamA": [
+              11,
+              21
+            ],
+            "teamB": [
+              12,
+              23
+            ]
+          },
+          {
+            "teamA": [
+              14,
+              24
+            ],
+            "teamB": [
+              15,
+              25
+            ]
+          }
+        ]
+      },
+      {
+        "resting": [
+          21,
+          22,
+          23,
+          24,
+          25
+        ],
+        "matches": [
+          {
+            "teamA": [
+              1,
+              8
+            ],
+            "teamB": [
+              2,
+              9
+            ]
+          },
+          {
+            "teamA": [
+              3,
+              10
+            ],
+            "teamB": [
+              4,
+              6
+            ]
+          },
+          {
+            "teamA": [
+              5,
+              12
+            ],
+            "teamB": [
+              7,
+              11
+            ]
+          },
+          {
+            "teamA": [
+              13,
+              17
+            ],
+            "teamB": [
+              14,
+              19
+            ]
+          },
+          {
+            "teamA": [
+              15,
+              16
+            ],
+            "teamB": [
+              18,
+              20
+            ]
+          }
+        ]
+      }
     ]
   }
 ]
