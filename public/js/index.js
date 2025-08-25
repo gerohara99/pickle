@@ -24,6 +24,8 @@ import {
   eventCancelBookingApiAction,
 } from "./apiActions";
 
+import { initScheduleCalculator } from "./scheduleCalculator";
+
 // Dependency check helper
 function validateDeps(deps, requiredKeys, context) {
   let missing = [];
@@ -122,6 +124,11 @@ document.addEventListener("DOMContentLoaded", () => {
       "initButtonDelegates"
     );
     initButtonDelegates(buttonDeps);
+
+    // Schedule Calculator: Only initialize on event creation page
+    if (document.getElementById("createEventForm")) {
+      initScheduleCalculator();
+    }
 
     console.log("App initialized successfully.");
   } catch (err) {

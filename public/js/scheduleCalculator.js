@@ -1,8 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
-  if (document.getElementById("createEventForm")) {
-    initScheduleCalculator();
-  }
-});
+console.log("scheduleCalculator.js loaded");
 
 // Fetch schedule configs from schedules.json
 async function fetchScheduleConfigs() {
@@ -16,9 +12,8 @@ function filterConfigs(configs, selectedCourts) {
 }
 
 // Render courts dropdown
-function renderCourtsDropdown(configs) {
+function renderCourtsDropdown(configs, select) {
   const courtsSet = new Set(configs.map((cfg) => cfg.courts));
-  const select = document.getElementById("numCourts");
   select.innerHTML =
     '<option value="" disabled selected>Choose courts</option>';
   Array.from(courtsSet)
@@ -30,7 +25,6 @@ function renderCourtsDropdown(configs) {
       select.appendChild(opt);
     });
 }
-
 // Render schedule options table
 function renderScheduleOptions(configs) {
   if (configs.length === 0)
@@ -128,7 +122,6 @@ function renderSchedulePreview(cfg, players = []) {
   return html;
 }
 
-// Main initialization function
 function initScheduleCalculator() {
   // Create UI container if not present
   let calculatorBox = document.querySelector(".calculator-box");
@@ -152,18 +145,20 @@ function initScheduleCalculator() {
     <input type="hidden" id="selectedScheduleConfig" name="selectedScheduleConfig">
   `;
 
-  const optionsDiv = document.getElementById("scheduleOptions");
-  const previewDiv = document.getElementById("schedulePreview");
-  const courtsSelect = document.getElementById("numCourts");
-  const hiddenInput = document.getElementById("selectedScheduleConfig");
+  // Query DOM elements **after** setting innerHTML
+  const courtsSelect = calculatorBox.querySelector("#numCourts");
+  const optionsDiv = calculatorBox.querySelector("#scheduleOptions");
+  const previewDiv = calculatorBox.querySelector("#schedulePreview");
+  const hiddenInput = calculatorBox.querySelector("#selectedScheduleConfig");
 
   let configs = [];
   let filteredConfigs = [];
   let selectedIdx = null;
 
   fetchScheduleConfigs().then((loadedConfigs) => {
+    console.log("Loaded configs:", loadedConfigs);
     configs = loadedConfigs;
-    renderCourtsDropdown(configs);
+    renderCourtsDropdown(configs, courtsSelect);
 
     function updateOptions() {
       const selectedCourts = courtsSelect.value;
@@ -177,7 +172,6 @@ function initScheduleCalculator() {
         .forEach((radio, idx) => {
           radio.addEventListener("change", function () {
             selectedIdx = idx;
-            // For preview, use dummy player names if not available
             const players = Array.from(
               { length: filteredConfigs[idx].players },
               (_, i) => `Player ${i + 1}`
@@ -194,23 +188,5 @@ function initScheduleCalculator() {
     courtsSelect.addEventListener("change", updateOptions);
   });
 }
-
-// Auto-init on DOMContentLoaded
-document.addEventListener("DOMContentLoaded", function () {
-  initScheduleCalculator();
-
-  // Optional: Prevent form submission if no schedule selected
-  const eventForm = document.getElementById("createEventForm");
-  if (eventForm) {
-    eventForm.addEventListener("submit", function (e) {
-      const hiddenInput = document.getElementById("selectedScheduleConfig");
-      if (!hiddenInput || !hiddenInput.value) {
-        e.preventDefault();
-        alert("Please select a schedule before saving the event.");
-      }
-    });
-  }
-});
-
-// Export for module usage
+// Export for module usage (if needed)
 export { initScheduleCalculator };
