@@ -11,271 +11,128 @@ web: npm run start:prod
 
 ## app.js
 
-*Size: 7362 bytes*
+*Size: 3348 bytes*
 
 ```js
-const path = require("path");
-const fs = require("fs");
+require("dotenv").config();
 const express = require("express");
-const morgan = require("morgan");
-const rateLimit = require("express-rate-limit");
-const helmet = require("helmet");
-const hpp = require("hpp");
-const mongoSanitize = require("express-mongo-sanitize");
-const xss = require("xss-clean");
-const cookieParser = require("cookie-parser");
-const AppError = require("./utils/appError");
-const compression = require("compression");
-const cors = require("cors");
-const session = require("express-session");
 const mongoose = require("mongoose");
+const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
+const path = require("path");
+const morgan = require("morgan");
+const helmet = require("helmet");
+const compression = require("compression");
+const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controllers/errorController");
-const userRouter = require("./routes/userRoutes");
-const viewRouter = require("./routes/viewRoutes");
-const eventRouter = require("./routes/eventRoutes");
-const settingsRouter = require("./routes/settingsRoutes");
-require("dotenv").config({ path: path.resolve(__dirname, "config.env") });
 
-// Define required environment variables for each environment
-const envVarsByEnv = {
-  production: [
-    "PROD_DATABASE",
-    "PROD_DATABASE_PASSWORD",
-    // Add any other prod-only variables here
-  ],
-  staging: [
-    "STAGE_DATABASE",
-    "STAGE_DATABASE_PASSWORD",
-    // Add any other staging-only variables here
-  ],
-  development: [
-    "DEV_DATABASE",
-    "DEV_DATABASE_PASSWORD",
-    // Add any other dev-only variables here
-  ],
-};
-
-// Variables required in all environments
-const alwaysRequired = [
-  "SESSIONS_SECRET",
-  "TWILIO_ACCOUNT_SID",
-  "TWILIO_AUTH_TOKEN",
-  "EMAIL_HOST",
-  "EMAIL_PORT",
-  "EMAIL_USERNAME",
-  "EMAIL_PASSWORD",
-];
-
-// Determine which environment variables to check
-const requiredEnv = (
-  envVarsByEnv[process.env.NODE_ENV] || envVarsByEnv.development
-).concat(alwaysRequired);
-
-// Check for missing environment variables
-requiredEnv.forEach((key) => {
-  if (!process.env[key]) {
-    console.error(`Missing required environment variable: ${key}`);
-    process.exit(1);
-  }
-});
-
-//Start express app
+// Express app setup
 const app = express();
-
-// ***************** DATABASE Setup with retry logic (recommendation 1)
-let DATABASE, DATABASE_PASSWORD;
-if (process.env.NODE_ENV === "production") {
-  DATABASE = process.env.PROD_DATABASE;
-  DATABASE_PASSWORD = process.env.PROD_DATABASE_PASSWORD;
-} else if (process.env.NODE_ENV === "staging") {
-  DATABASE = process.env.STAGE_DATABASE;
-  DATABASE_PASSWORD = process.env.STAGE_DATABASE_PASSWORD;
-} else {
-  DATABASE = process.env.DEV_DATABASE;
-  DATABASE_PASSWORD = process.env.DEV_DATABASE_PASSWORD;
-}
-
-// Replace <PASSWORD> placeholder if present
-if (DATABASE.includes("<PASSWORD>")) {
-  DATABASE = DATABASE.replace("<PASSWORD>", DATABASE_PASSWORD || "");
-}
-
-async function connectWithRetry(retries = 5, delay = 5000) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      await mongoose.connect(DATABASE, {
-        useNewUrlParser: true,
-        createIndexes: true,
-        useUnifiedTopology: true,
-        FindAndModify: false,
-      });
-      console.log("MongoDB connected.");
-      return;
-    } catch (err) {
-      console.log(
-        `MongoDB connection failed (attempt ${i + 1}/${retries}). Retrying in ${delay / 1000}s...`
-      );
-      if (i === retries - 1) {
-        console.error("MongoDB connection failed after maximum retries.");
-        process.exit(1);
-      }
-      await new Promise((res) => setTimeout(res, delay));
-    }
-  }
-}
-connectWithRetry();
-
-// ***************** SESSION Setup ***************************************
-
+app.use(helmet());
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
+if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
-const store = new MongoDBStore({
-  uri: DATABASE,
-  collection: "sessions",
-});
-
-// Catch errors (recommendation 4)
-store.on("error", function (error) {
-  console.error("Session store error:", error);
-  // Optionally, alert or fallback logic here
-});
-
-app.use(
-  session({
-    secret: process.env.SESSIONS_SECRET,
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-    },
-    store: store,
-    resave: false,
-    saveUninitialized: false,
-  })
+// MongoDB connection
+const DATABASE = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD
 );
 
-app.enable("trust proxy");
-app.set("trust proxy", 1);
-
-//Serving static files
-app.use(express.static(path.join(__dirname, "public")));
-app.use("/js/dist", express.static(path.join(__dirname, "public/js/dist")));
-
-// Vite manifest middleware (recommendation 4)
-app.use((req, res, next) => {
+async function connectWithRetry() {
   try {
-    const manifestPath = path.join(
-      __dirname,
-      "public/js/dist/.vite/manifest.json"
-    );
-    let manifest = {};
-    if (fs.existsSync(manifestPath)) {
-      manifest = require(manifestPath);
-    } else {
-      console.warn("⚠️ Could not load manifest.json");
-    }
-    const entry = manifest["index.js"];
-    if (entry && entry.file) {
-      res.locals.viteScript = `/js/dist/${entry.file}`;
-    } else {
-      console.warn("⚠️ Could not find entry in manifest for index.js");
-      res.locals.viteScript = "";
-    }
+    await mongoose.connect(DATABASE, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("✅ MongoDB connected");
   } catch (err) {
-    console.error("⚠️ Error loading manifest.json:", err.message);
-    res.locals.viteScript = "";
+    console.error("MongoDB connection failed, retrying in 5s...", err);
+    setTimeout(connectWithRetry, 5000);
   }
-  next();
-});
-
-//Implement cors - Access-Control-Allow-Origin * for Get and Post for all routes
-const corsOptions = {
-  credentials: true,
-  origin: [
-    "https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.esm.js",
-    "https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.js",
-    "https://fonts.gstatic.com",
-    "https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap",
-  ],
-};
-app.use(cors(corsOptions));
-
-// app.options("*", cors(corsOptions)); // Uncomment if needed for complex methods
-
-app.set("view engine", "pug");
-app.set("views", path.join(__dirname, "views"));
-
-// MIDDLEWARES
-
-// Set security HTTP headers
-app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
-
-// Rate limiter
-const limiter = rateLimit({
-  max: 100,
-  windowMS: 60 * 60 * 1000,
-  message: "Too many requests from this IP, please try again in an hour",
-});
-app.use("/api", limiter);
-
-// Development Logging
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
 }
 
-// Body parser, reading data from body into req.body
-app.use(express.json({ limit: "10kb" }));
-app.use(express.urlencoded({ extended: true, limit: "10kb" }));
-app.use(cookieParser());
+// Ensure TTL index for sessions
+async function ensureSessionTTLIndex() {
+  try {
+    const collection = mongoose.connection.collection("sessions");
+    await collection.createIndex({ expires: 1 }, { expireAfterSeconds: 0 });
+    console.log("✅ TTL index ensured for sessions collection.");
+  } catch (err) {
+    console.error("Failed to ensure TTL index for sessions:", err);
+  }
+}
 
-//Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
+// MongoDB connection pool diagnostics
+setInterval(() => {
+  const conn = mongoose.connection;
+  if (conn && conn.readyState === 1 && conn.client && conn.client.topology) {
+    const servers = conn.client.topology.s.servers;
+    Object.values(servers).forEach((server, idx) => {
+      const pool = server.s.pool;
+      if (pool) {
+        console.log(
+          `[MongoDB Pool] Server ${idx}: size=${pool.size}, available=${pool.available}, connections=${pool.connections.length}`
+        );
+      }
+    });
+  } else {
+    console.log("[MongoDB Pool] Connection not ready or topology missing.");
+  }
+}, 10000);
 
-//Data sanitization against Xss
-app.use(xss());
+// App startup sequence
+async function startup() {
+  await connectWithRetry();
+  await ensureSessionTTLIndex();
 
-//Data sanitization against parameter pollution (duplicates etc.. )
-app.use(
-  hpp({
-    whitelist: [], // Specifying parameters that are ok to be duplicated
-  })
-);
-app.use(compression());
-
-//Test middleware
-app.use((req, res, next) => {
-  req.requestTime = new Date().toISOString();
-  next();
-});
-
-// Request timeout middleware (recommendation 5)
-app.use((req, res, next) => {
-  res.setTimeout(15000, () => {
-    console.warn(`Request timed out: ${req.originalUrl}`);
-    res.status(503).send("Request timed out");
+  // Session store setup
+  const store = new MongoDBStore({
+    uri: DATABASE,
+    collection: "sessions",
   });
-  next();
-});
 
-// Health check endpoint (recommendation 6)
-app.get("/health", (req, res) => {
-  res.status(200).send("OK");
-});
+  store.on("error", function (error) {
+    console.error("Session store error:", error);
+  });
 
-// ROUTES
-app.use("/", viewRouter);
-app.use("/api/v1/users", userRouter);
-app.use("/api/v1/events", eventRouter);
-app.use("/api/v1/settings", settingsRouter);
+  app.use(
+    session({
+      secret: process.env.SESSIONS_SECRET,
+      store: store,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24, // 1 day
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+      },
+    })
+  );
 
-app.all("*", (req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
-});
+  // Your routes and middleware here
+  // Example:
+  // const eventRouter = require("./routes/eventRoutes");
+  // app.use("/api/v1/events", eventRouter);
 
-// Error-handling middleware should be last
-app.use(globalErrorHandler);
+  // Global error handler
+  app.use(globalErrorHandler);
 
-module.exports = app;
+  // 404 handler
+  app.all("*", (req, res, next) => {
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+  });
+
+  // Start server
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+}
+
+startup();
 
 ```
 
@@ -884,7 +741,7 @@ module.exports = (err, req, res, next) => {
 
 ## controllers/eventController.js
 
-*Size: 11563 bytes*
+*Size: 12049 bytes*
 
 ```js
 const Event = require("../models/eventModel");
@@ -905,35 +762,29 @@ exports.createBooking = catchAsync(async (req, res, next) => {
   }
 
   try {
-    const event = await Event.findById(req.body.eventId);
+    const userId = req.session.user.userId;
+    const userName = req.session.user.userName;
+
+    // Atomic booking: only add if not already booked and not full
+    const event = await Event.findOneAndUpdate(
+      {
+        _id: req.body.eventId,
+        "eventBookings.userId": { $ne: userId },
+        $expr: {
+          $lt: [
+            { $size: "$eventBookings" },
+            { $add: ["$scheduleConfiguration.players", "$eventWaitListSize"] },
+          ],
+        },
+      },
+      {
+        $push: { eventBookings: { userId, userName } },
+      },
+      { new: true }
+    );
 
     if (!event) {
-      return next(new AppError("No event found with that ID", 404));
-    }
-
-    if (
-      event.eventBookings.length ===
-      event.scheduleConfiguration.players + event.eventWaitListSize
-    ) {
-      return next(new AppError("There are no spaces left for this event", 400));
-    }
-
-    // Update event with booking
-    let newBookings = [...event.eventBookings];
-    let newBooking = {
-      userId: req.session.user.userId,
-      userName: req.session.user.userName,
-    };
-    newBookings.push(newBooking);
-
-    try {
-      await Event.findByIdAndUpdate(req.body.eventId, {
-        eventBookings: newBookings,
-        runValidators: false,
-      });
-    } catch (dbErr) {
-      console.error("Failed to update event bookings:", dbErr);
-      return next(new AppError("Failed to update event bookings", 500));
+      return next(new AppError("Event is full or already booked", 400));
     }
 
     try {
@@ -943,7 +794,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
       return next(new AppError("Failed to update event schedule", 500));
     }
 
-    /* try {
+    try {
       await sendWhatsAppMessage(
         req.session.user.userMobile,
         `Your booking for event ${event.eventName} is confirmed!`
@@ -951,7 +802,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
     } catch (waErr) {
       // Log error but don't block booking creation
       console.error("WhatsApp message failed:", waErr);
-    } */
+    }
 
     res.status(200).json({
       status: "success",
@@ -980,27 +831,18 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     const userId = req.session.user.userId;
     const eventId = req.body.eventId;
 
-    const event = await Event.findById(eventId);
+    // Atomic removal of booking using $pull and clearing rounds
+    const event = await Event.findByIdAndUpdate(
+      eventId,
+      {
+        $pull: { eventBookings: { userId: userId } },
+        $set: { rounds: [] },
+      },
+      { new: true }
+    );
+
     if (!event) {
       return next(new AppError("No event found with that ID", 404));
-    }
-
-    let newBookings = event.eventBookings.filter((val) => val.userId != userId);
-
-    try {
-      await Event.findByIdAndUpdate(eventId, {
-        eventBookings: newBookings,
-        rounds: [],
-        runValidators: false,
-      });
-    } catch (dbErr) {
-      console.error(
-        "Failed to update event bookings during cancellation:",
-        dbErr
-      );
-      return next(
-        new AppError("Failed to update event bookings during cancellation", 500)
-      );
     }
 
     try {
@@ -1015,7 +857,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
       );
     }
 
-    /*try {
+    try {
       await sendWhatsAppMessage(
         req.session.user.userMobile,
         `Your booking for event ${event.eventName} has been cancelled.`
@@ -1023,7 +865,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     } catch (waErr) {
       // Log error but don't block cancellation
       console.error("WhatsApp message failed:", waErr);
-    } */
+    }
 
     res.status(200).json({
       status: "success",
@@ -1051,6 +893,10 @@ exports.eventTimeout = (req, res, next) => {
 
 async function checkAndUpdateSchedule(eventId, next) {
   try {
+    const Event = require("../models/eventModel");
+    const AppError = require("../utils/appError");
+    const configs = require("../public/js/schedules.json");
+
     const event = await Event.findById(eventId);
     if (!event) return next(new AppError("No event found with that ID", 404));
 
@@ -1061,25 +907,53 @@ async function checkAndUpdateSchedule(eventId, next) {
     }
 
     // Select only the first N players for the schedule (ignore waitlist/extra bookings)
-    // You can sort by any deterministic property, e.g. signup time, userName, userId
-    // Here, we use signup order (assumes eventBookings are ordered by signup time)
     const selectedBookings = event.eventBookings.slice(0, numPlayers);
 
-    // Assign player numbers based on selectedBookings order
+    // Assign player numbers based on signup order, using 'name' for schema compatibility
     event.playerNumberMap = selectedBookings.map((booking, idx) => ({
       number: idx + 1,
       userId: booking.userId,
-      userName: booking.userName,
+      name: booking.userName, // Use 'name' for compatibility with playerSchema
     }));
     await event.save();
 
-    // Dynamically generate the rounds for these players
-    // This replaces the static scheduleConfig.roundsConfig logic
-    // Pass in selectedBookings and event.scheduleConfiguration (courts, pairings, etc.)
-    const rounds = generateDynamicSchedule(
-      selectedBookings,
-      event.scheduleConfiguration
+    // Find best matching precomputed schedule (allowing flexible rounds)
+    function findBestSchedule(courts, players, desiredRounds) {
+      const candidates = configs.filter(
+        (cfg) => cfg.courts === courts && cfg.players === players
+      );
+      if (candidates.length === 0) return null;
+      candidates.sort(
+        (a, b) =>
+          Math.abs(a.rounds - desiredRounds) -
+          Math.abs(b.rounds - desiredRounds)
+      );
+      return candidates[0];
+    }
+
+    const matchingConfig = findBestSchedule(
+      event.scheduleConfiguration.courts,
+      numPlayers,
+      event.scheduleConfiguration.rounds
     );
+
+    if (!matchingConfig) {
+      return next(
+        new AppError("No valid schedule found for these parameters.", 400)
+      );
+    }
+
+    // Map player numbers to actual users in roundsConfig
+    const rounds = matchingConfig.roundsConfig.map((round) => ({
+      matches: round.matches.map((m, court) => ({
+        teamA: m.teamA.map((num) => event.playerNumberMap[num - 1]),
+        teamB: m.teamB.map((num) => event.playerNumberMap[num - 1]),
+        court,
+        teamAScore: 0,
+        teamBScore: 0,
+      })),
+      standOuts: round.resting.map((num) => event.playerNumberMap[num - 1]),
+    }));
 
     await Event.findByIdAndUpdate(
       eventId,
@@ -1091,7 +965,6 @@ async function checkAndUpdateSchedule(eventId, next) {
     next(err);
   }
 }
-
 exports.updateMatchScore = catchAsync(async (req, res, next) => {
   try {
     if (!req.body.eventId) throw new AppError("Event ID is required", 400);
@@ -5286,7 +5159,7 @@ export function initFormListeners(deps) {
 
 ## public/js/index.js
 
-*Size: 3596 bytes*
+*Size: 3836 bytes*
 
 ```js
 import { initFormListeners } from "./formListeners";
@@ -5294,7 +5167,6 @@ import { initButtonDelegates } from "./buttonDelegates";
 import { initScoreModal } from "./modal";
 import { initMobileNavToggle } from "./navToggle";
 import { initTabs } from "./tabs";
-import { initScheduleCalculator } from "./scheduleCalculator.js";
 import {
   createUserApiAction,
   editUserApiAction,
@@ -5315,6 +5187,8 @@ import {
   eventCreateBookingApiAction,
   eventCancelBookingApiAction,
 } from "./apiActions";
+
+import { initScheduleCalculator } from "./scheduleCalculator";
 
 // Dependency check helper
 function validateDeps(deps, requiredKeys, context) {
@@ -5387,10 +5261,14 @@ document.addEventListener("DOMContentLoaded", () => {
     initScoreModal(eventUpdateMatchScoreApiAction);
 
     // Mobile nav toggle
-    initMobileNavToggle();
+    if (document.getElementById("mobileNavToggle")) {
+      initMobileNavToggle();
+    }
 
     // Tabs
-    initTabs();
+    if (document.querySelector(".tab")) {
+      initTabs();
+    }
 
     // Button and link event delegation
     const buttonDeps = {
@@ -5414,7 +5292,11 @@ document.addEventListener("DOMContentLoaded", () => {
       "initButtonDelegates"
     );
     initButtonDelegates(buttonDeps);
-    initScheduleCalculator();
+
+    // Schedule Calculator: Only initialize on event creation page
+    if (document.getElementById("createEventForm")) {
+      initScheduleCalculator();
+    }
 
     console.log("App initialized successfully.");
   } catch (err) {
@@ -5541,9 +5423,11 @@ export function initMobileNavToggle() {
 
 ## public/js/scheduleCalculator.js
 
-*Size: 6868 bytes*
+*Size: 6344 bytes*
 
 ```js
+console.log("scheduleCalculator.js loaded");
+
 // Fetch schedule configs from schedules.json
 async function fetchScheduleConfigs() {
   const response = await fetch("/js/schedules.json");
@@ -5556,9 +5440,8 @@ function filterConfigs(configs, selectedCourts) {
 }
 
 // Render courts dropdown
-function renderCourtsDropdown(configs) {
+function renderCourtsDropdown(configs, select) {
   const courtsSet = new Set(configs.map((cfg) => cfg.courts));
-  const select = document.getElementById("numCourts");
   select.innerHTML =
     '<option value="" disabled selected>Choose courts</option>';
   Array.from(courtsSet)
@@ -5570,7 +5453,6 @@ function renderCourtsDropdown(configs) {
       select.appendChild(opt);
     });
 }
-
 // Render schedule options table
 function renderScheduleOptions(configs) {
   if (configs.length === 0)
@@ -5668,7 +5550,6 @@ function renderSchedulePreview(cfg, players = []) {
   return html;
 }
 
-// Main initialization function
 function initScheduleCalculator() {
   // Create UI container if not present
   let calculatorBox = document.querySelector(".calculator-box");
@@ -5692,18 +5573,20 @@ function initScheduleCalculator() {
     <input type="hidden" id="selectedScheduleConfig" name="selectedScheduleConfig">
   `;
 
-  const optionsDiv = document.getElementById("scheduleOptions");
-  const previewDiv = document.getElementById("schedulePreview");
-  const courtsSelect = document.getElementById("numCourts");
-  const hiddenInput = document.getElementById("selectedScheduleConfig");
+  // Query DOM elements **after** setting innerHTML
+  const courtsSelect = calculatorBox.querySelector("#numCourts");
+  const optionsDiv = calculatorBox.querySelector("#scheduleOptions");
+  const previewDiv = calculatorBox.querySelector("#schedulePreview");
+  const hiddenInput = calculatorBox.querySelector("#selectedScheduleConfig");
 
   let configs = [];
   let filteredConfigs = [];
   let selectedIdx = null;
 
   fetchScheduleConfigs().then((loadedConfigs) => {
+    console.log("Loaded configs:", loadedConfigs);
     configs = loadedConfigs;
-    renderCourtsDropdown(configs);
+    renderCourtsDropdown(configs, courtsSelect);
 
     function updateOptions() {
       const selectedCourts = courtsSelect.value;
@@ -5717,7 +5600,6 @@ function initScheduleCalculator() {
         .forEach((radio, idx) => {
           radio.addEventListener("change", function () {
             selectedIdx = idx;
-            // For preview, use dummy player names if not available
             const players = Array.from(
               { length: filteredConfigs[idx].players },
               (_, i) => `Player ${i + 1}`
@@ -5734,25 +5616,7 @@ function initScheduleCalculator() {
     courtsSelect.addEventListener("change", updateOptions);
   });
 }
-
-// Auto-init on DOMContentLoaded
-document.addEventListener("DOMContentLoaded", function () {
-  initScheduleCalculator();
-
-  // Optional: Prevent form submission if no schedule selected
-  const eventForm = document.getElementById("createEventForm");
-  if (eventForm) {
-    eventForm.addEventListener("submit", function (e) {
-      const hiddenInput = document.getElementById("selectedScheduleConfig");
-      if (!hiddenInput || !hiddenInput.value) {
-        e.preventDefault();
-        alert("Please select a schedule before saving the event.");
-      }
-    });
-  }
-});
-
-// Export for module usage
+// Export for module usage (if needed)
 export { initScheduleCalculator };
 
 ```
@@ -10735,7 +10599,7 @@ block content
 
 ## views/createEvent.pug
 
-*Size: 3674 bytes*
+*Size: 3014 bytes*
 
 ```pug
 extends base
@@ -10779,21 +10643,15 @@ block content
                     label(for="numCourts" style="font-size: 1.6rem; font-weight: 500; margin-bottom: 0; margin-right: 1em;") Number of courts
                     select#numCourts(style="margin-left: 0.5em; min-width: 5em;")
                       option(value="" disabled selected) Choose courts
-                  .calc-row
-                    label(for="restPercent" style="font-size: 1.1rem; font-weight: 500; margin-right: 1em;") Approx. Rest % per player
-                    input(type="number" id="restPercent" min="0" max="100" value="30" style="width: 5em; margin-right: 2em;")
-                    label(for="targetRounds" style="font-size: 1.1rem; font-weight: 500; margin-right: 1em;") Approx. Rounds per event
-                    input(type="number" id="targetRounds" min="1" max="30" value="9" style="width: 5em;")
-                    button(type="button" id="recalcBtn" style="margin-left:2em;") Re-calculate
                   div#scheduleOptions
                   div#schedulePreview
                   input(type="hidden" id="selectedScheduleConfig" name="selectedScheduleConfig")
-                div.form-buttons
-                  a.btn.btn--form#createEventButton(
-                    href="#"
-                    onclick="document.getElementById('createEventForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
-                  ) Create
-                  a.btn.btn--form#cancelButton(href="/events/showall") Cancel
+          div.form-buttons
+            a.btn.btn--form#createEventButton(
+              href="#"
+              onclick="document.getElementById('createEventForm').dispatchEvent(new Event ('submit', {cancelable: true, bubbles: true})); return false;"
+            ) Create
+            a.btn.btn--form#cancelButton(href="/events/showall") Cancel
 ```
 
 ## views/createUser.pug

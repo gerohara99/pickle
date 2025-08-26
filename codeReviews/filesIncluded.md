@@ -3,11 +3,11 @@
 | File Path | Size (bytes) |
 |-----------|--------------|
 | Procfile | 24 |
-| app.js | 7362 |
+| app.js | 3348 |
 | app.js.map | 40720 |
 | controllers/authController.js | 12581 |
 | controllers/errorController.js | 4759 |
-| controllers/eventController.js | 11563 |
+| controllers/eventController.js | 12049 |
 | controllers/handlerFactory.js | 5160 |
 | controllers/settingsController.js | 3727 |
 | controllers/userController.js | 8676 |
@@ -26,10 +26,10 @@
 | public/js/apiActions.js | 6141 |
 | public/js/buttonDelegates.js | 5842 |
 | public/js/formListeners.js | 9543 |
-| public/js/index.js | 3596 |
+| public/js/index.js | 3836 |
 | public/js/modal.js | 2298 |
 | public/js/navToggle.js | 1070 |
-| public/js/scheduleCalculator.js | 6868 |
+| public/js/scheduleCalculator.js | 6344 |
 | public/js/schedules.json | 52260 |
 | public/js/tabs.js | 864 |
 | routes/eventRoutes.js | 2289 |
@@ -53,7 +53,7 @@
 | views/base.pug | 1063 |
 | views/browseMyEvents.pug | 1602 |
 | views/browseNewEvents.pug | 1385 |
-| views/createEvent.pug | 3674 |
+| views/createEvent.pug | 3014 |
 | views/createUser.pug | 1329 |
 | views/editEvent.pug | 3035 |
 | views/editSystemSettings.pug | 3044 |

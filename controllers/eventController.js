@@ -16,35 +16,29 @@ exports.createBooking = catchAsync(async (req, res, next) => {
   }
 
   try {
-    const event = await Event.findById(req.body.eventId);
+    const userId = req.session.user.userId;
+    const userName = req.session.user.userName;
+
+    // Atomic booking: only add if not already booked and not full
+    const event = await Event.findOneAndUpdate(
+      {
+        _id: req.body.eventId,
+        "eventBookings.userId": { $ne: userId },
+        $expr: {
+          $lt: [
+            { $size: "$eventBookings" },
+            { $add: ["$scheduleConfiguration.players", "$eventWaitListSize"] },
+          ],
+        },
+      },
+      {
+        $push: { eventBookings: { userId, userName } },
+      },
+      { new: true }
+    );
 
     if (!event) {
-      return next(new AppError("No event found with that ID", 404));
-    }
-
-    if (
-      event.eventBookings.length ===
-      event.scheduleConfiguration.players + event.eventWaitListSize
-    ) {
-      return next(new AppError("There are no spaces left for this event", 400));
-    }
-
-    // Update event with booking
-    let newBookings = [...event.eventBookings];
-    let newBooking = {
-      userId: req.session.user.userId,
-      userName: req.session.user.userName,
-    };
-    newBookings.push(newBooking);
-
-    try {
-      await Event.findByIdAndUpdate(req.body.eventId, {
-        eventBookings: newBookings,
-        runValidators: false,
-      });
-    } catch (dbErr) {
-      console.error("Failed to update event bookings:", dbErr);
-      return next(new AppError("Failed to update event bookings", 500));
+      return next(new AppError("Event is full or already booked", 400));
     }
 
     try {
@@ -54,7 +48,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
       return next(new AppError("Failed to update event schedule", 500));
     }
 
-    /* try {
+    try {
       await sendWhatsAppMessage(
         req.session.user.userMobile,
         `Your booking for event ${event.eventName} is confirmed!`
@@ -62,7 +56,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
     } catch (waErr) {
       // Log error but don't block booking creation
       console.error("WhatsApp message failed:", waErr);
-    } */
+    }
 
     res.status(200).json({
       status: "success",
@@ -91,27 +85,18 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     const userId = req.session.user.userId;
     const eventId = req.body.eventId;
 
-    const event = await Event.findById(eventId);
+    // Atomic removal of booking using $pull and clearing rounds
+    const event = await Event.findByIdAndUpdate(
+      eventId,
+      {
+        $pull: { eventBookings: { userId: userId } },
+        $set: { rounds: [] },
+      },
+      { new: true }
+    );
+
     if (!event) {
       return next(new AppError("No event found with that ID", 404));
-    }
-
-    let newBookings = event.eventBookings.filter((val) => val.userId != userId);
-
-    try {
-      await Event.findByIdAndUpdate(eventId, {
-        eventBookings: newBookings,
-        rounds: [],
-        runValidators: false,
-      });
-    } catch (dbErr) {
-      console.error(
-        "Failed to update event bookings during cancellation:",
-        dbErr
-      );
-      return next(
-        new AppError("Failed to update event bookings during cancellation", 500)
-      );
     }
 
     try {
@@ -126,7 +111,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
       );
     }
 
-    /*try {
+    try {
       await sendWhatsAppMessage(
         req.session.user.userMobile,
         `Your booking for event ${event.eventName} has been cancelled.`
@@ -134,7 +119,7 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
     } catch (waErr) {
       // Log error but don't block cancellation
       console.error("WhatsApp message failed:", waErr);
-    } */
+    }
 
     res.status(200).json({
       status: "success",
