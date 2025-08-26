@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RallyPoint - Login</title>
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/public/js/login.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/me/signUp" aria-label="Signup">
+        <i class="fas fa-user-plus"></i>
+      </a>
+    </nav>
+    <main class="main">
+      <section class="section">
+        <div class="crudContainer-1-cols">
+          <div class="text-box">
+            <h1 class="heading-secondary">Log into your account</h1>
+            <p class="normal-text">
+              The "go to" place to book all your sports games
+            </p>
+            <form class="form-1-cols" id="loginForm">
+              <div>
+                <label for="email">Email</label>
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  id="email"
+                  required
+                />
+                <label for="password">Password</label>
+                <input name="password" type="password" id="password" required />
+                <button
+                  type="button"
+                  id="togglePassword"
+                  class="show-password-link"
+                  aria-label="Show Password"
+                >
+                  <i class="fas fa-eye"></i> Show Password
+                </button>
+              </div>
+              <div class="form-buttons">
+                <button id="loginButton" class="btn-icon" aria-label="Login">
+                  <i class="fas fa-sign-in-alt"></i>
+                </button>
+                <a
+                  id="forgotPasswordLink"
+                  class="text-link"
+                  href="/me/forgotPassword"
+                  aria-label="Forgot Password"
+                >
+                  <i class="fas fa-key"></i> Forgot Password?
+                </a>
+                <a
+                  class="btn btn--outline"
+                  id="cancelButton"
+                  href="/"
+                  aria-label="Cancel"
+                >
+                  <i class="fas fa-times"></i> Cancel
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
