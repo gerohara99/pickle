@@ -3,7 +3,7 @@
 | File Path | Size (bytes) |
 |-----------|--------------|
 | Procfile | 24 |
-| app.js | 3348 |
+| app.js | 7247 |
 | app.js.map | 40720 |
 | controllers/authController.js | 12581 |
 | controllers/errorController.js | 4759 |
@@ -37,7 +37,7 @@
 | routes/userRoutes.js | 1956 |
 | routes/viewRoutes.js | 2319 |
 | scripts/generateSchedulesJson.js | 5669 |
-| server.js | 1628 |
+| server.js | 1623 |
 | tests/testScheduleCreation.js | 1346 |
 | tests/testSchedulesJSON.js | 1128 |
 | tests/validateSchedule.js | 5836 |

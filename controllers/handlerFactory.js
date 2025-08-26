@@ -29,28 +29,27 @@ exports.deleteOne = (Model) => [
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-      const doc = await Model.findByIdAndDelete(
-        req.params.id,
-        req.body
-      ).session(session);
+      const doc = await Model.findByIdAndDelete(req.params.id).session(session);
 
       if (!doc) {
         await session.abortTransaction();
-        session.endSession();
         return next(new AppError("No document found with that ID", 404));
       }
+
       await session.commitTransaction();
-      session.endSession();
-      res.status(204).json({
-        status: "success",
-        data: null,
-      });
     } catch (err) {
+      console.error("Error in deleteOne transaction:", err);
       await session.abortTransaction();
+      return next(new AppError("Failed to delete document", 500));
+    } finally {
       session.endSession();
-      console.error("Delete operation error:", err);
-      next(new AppError("Failed to delete document", 500));
     }
+
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+    if (res.headersSent) return;
   }),
 ];
 

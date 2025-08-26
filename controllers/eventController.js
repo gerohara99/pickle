@@ -4,6 +4,7 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { sendWhatsAppMessage } = require("../utils/twilioClient");
 const generateDynamicSchedule = require("../utils/generateDynamicSchedule");
+const configs = require("../public/js/schedules.json");
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   try {
@@ -147,12 +148,14 @@ exports.eventTimeout = (req, res, next) => {
 
 async function checkAndUpdateSchedule(eventId, next) {
   try {
-    const Event = require("../models/eventModel");
-    const AppError = require("../utils/appError");
-    const configs = require("../public/js/schedules.json");
-
     const event = await Event.findById(eventId);
-    if (!event) return next(new AppError("No event found with that ID", 404));
+    if (!event) {
+      throw new AppError("Event not found", 404);
+    }
+
+    if (!event.scheduleConfiguration) {
+      throw new AppError("Schedule configuration is missing", 400);
+    }
 
     // Only generate schedule if enough bookings
     const numPlayers = event.scheduleConfiguration.players;

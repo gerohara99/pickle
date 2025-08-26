@@ -2,8 +2,29 @@ const express = require("express");
 const { body } = require("express-validator");
 const eventController = require("../controllers/eventController");
 const authController = require("../controllers/authController");
+const rateLimit = require("express-rate-limit");
 
 const router = express.Router();
+
+// Rate limiting middleware for booking
+const bookingLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.BOOKING_LIMIT || 10, // Limit each IP to N requests per windowMs
+  message: "Too many booking attempts from this IP, please try again later.",
+});
+
+const updateMatchScoreLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.UPDATE_SCORE_LIMIT || 5, // Limit each IP to N requests per windowMs
+  message:
+    "Too many score update attempts from this IP, please try again later.",
+});
+
+const handleNoShowLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NO_SHOW_LIMIT || 5, // Limit each IP to N requests per windowMs
+  message: "Too many no-show reports from this IP, please try again later.",
+});
 
 // Input validation for critical event fields
 const validateEventFields = [
@@ -30,6 +51,7 @@ router
   .patch(
     eventController.eventTimeout,
     authController.protect,
+    updateMatchScoreLimiter,
     eventController.updateMatchScore
   );
 
@@ -84,7 +106,10 @@ router.post(
   authController.protect,
   authController.restrictTo("clubAdmin", "pickleAdmin"),
   validateNoShowFields,
+  handleNoShowLimiter,
   eventController.handleNoShow
 );
+
+router.post("/book", bookingLimiter, eventController.createBooking);
 
 module.exports = router;

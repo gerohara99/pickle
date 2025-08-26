@@ -33,36 +33,23 @@ exports.getMe = (req, res, next) => {
 exports.updateAcDetails = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
-    try {
-      if (!req.body.userId) throw new AppError("User ID is required", 400);
-      if (!req.body.name) throw new AppError("Name is required", 400);
-      if (!req.body.email) throw new AppError("Email is required", 400);
-      if (!req.body.mobile) throw new AppError("Mobile is required", 400);
-    } catch (err) {
-      console.error("Synchronous error in updateAcDetails:", err);
-      return next(err);
-    }
-
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
       const updatedUser = await User.findByIdAndUpdate(
         req.body.userId,
-        {
-          name: req.body.name,
-          email: req.body.email,
-          mobile: req.body.mobile,
-        },
+        { name: req.body.name, email: req.body.email },
         { runValidators: true, session }
-      );
+      ).lean();
+
       await session.commitTransaction();
-      session.endSession();
       res.status(200).json({ status: "success", data: { user: updatedUser } });
     } catch (err) {
       await session.abortTransaction();
-      session.endSession();
       console.error("Error updating account details:", err);
       next(new AppError("Failed to update account details", 500));
+    } finally {
+      session.endSession();
     }
   }),
 ];
@@ -70,29 +57,18 @@ exports.updateAcDetails = [
 exports.deleteMe = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
-    try {
-      if (!req.user || !req.user.id)
-        throw new AppError("User not authenticated", 401);
-    } catch (err) {
-      console.error("Synchronous error in deleteMe:", err);
-      return next(err);
-    }
-
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
       await User.findByIdAndUpdate(req.user.id, { active: false }, { session });
       await session.commitTransaction();
-      session.endSession();
-      res.status(204).json({
-        status: "success",
-        data: null,
-      });
+      res.status(204).json({ status: "success", data: null });
     } catch (err) {
       await session.abortTransaction();
-      session.endSession();
       console.error("Error deleting user:", err);
       next(new AppError("Failed to delete user", 500));
+    } finally {
+      session.endSession();
     }
   }),
 ];
@@ -101,12 +77,14 @@ exports.createUser = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
     try {
-      if (!req.body.name) throw new AppError("Name is required", 400);
-      if (!req.body.email) throw new AppError("Email is required", 400);
-      if (!req.body.mobile) throw new AppError("Mobile is required", 400);
-      if (!req.body.password) throw new AppError("Password is required", 400);
-      if (!req.body.passwordConfirm)
-        throw new AppError("Password confirmation is required", 400);
+      if (
+        !req.body.name ||
+        !req.body.email ||
+        !req.body.password ||
+        !req.body.passwordConfirm
+      ) {
+        throw new AppError("Required fields are missing", 400);
+      }
     } catch (err) {
       console.error("Synchronous error in createUser:", err);
       return next(err);
@@ -115,40 +93,26 @@ exports.createUser = [
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-      let activeValue = false;
-      if (typeof req.body.active !== "undefined") {
-        if (typeof req.body.active === "string") {
-          activeValue = req.body.active === "true" || req.body.active === "on";
-        } else {
-          activeValue = !!req.body.active;
-        }
-      }
-
-      const newUserArr = await User.create(
+      const newUser = await User.create(
         [
           {
             name: req.body.name,
             email: req.body.email,
-            mobile: req.body.mobile,
             password: req.body.password,
             passwordConfirm: req.body.passwordConfirm,
-            active: activeValue,
           },
         ],
         { session }
       );
-      const newUser = newUserArr[0];
+
       await session.commitTransaction();
-      session.endSession();
-      res.status(201).json({
-        status: "success",
-        data: { user: newUser },
-      });
+      res.status(201).json({ status: "success", data: { user: newUser } });
     } catch (err) {
       await session.abortTransaction();
-      session.endSession();
       console.error("Error creating user:", err);
       next(new AppError("Failed to create user", 500));
+    } finally {
+      session.endSession();
     }
   }),
 ];

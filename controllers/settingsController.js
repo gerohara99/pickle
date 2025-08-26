@@ -19,51 +19,33 @@ const requestTimeout = (req, res, next) => {
 exports.getSystemSettings = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
-    try {
-      if (!req.session) throw new AppError("Session not available", 500);
-    } catch (err) {
-      console.error("Synchronous error in getSystemSettings:", err);
-      return next(err);
-    }
-
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-      const settings = await Settings.findOne({}).session(session);
+      const settings = await Settings.findOne({}).session(session).lean();
       if (!settings) {
         await session.abortTransaction();
-        session.endSession();
         return next(new AppError("No system settings found", 404));
       }
 
       req.session.systemDefaults = settings.systemDefaults;
       req.session.features = settings.features;
 
-      req.session.save((err) => {
-        if (err) {
-          session.abortTransaction();
-          session.endSession();
-          console.error("Session save error:", err);
-          return next(err);
-        }
-
-        session.commitTransaction();
-        session.endSession();
-
-        res.status(200).json({
-          status: "success",
-          message: "System settings retrieved successfully",
-          data: {
-            systemDefaults: req.session.systemDefaults,
-            features: req.session.features,
-          },
-        });
+      await session.commitTransaction();
+      if (res.headersSent) return;
+      res.status(200).json({
+        status: "success",
+        data: {
+          systemDefaults: req.session.systemDefaults,
+          features: req.session.features,
+        },
       });
-    } catch (error) {
+    } catch (err) {
       await session.abortTransaction();
-      session.endSession();
-      console.error("Error retrieving system settings:", error);
+      console.error("Error in getSystemSettings transaction:", err);
       next(new AppError("Failed to retrieve system settings", 500));
+    } finally {
+      session.endSession();
     }
   }),
 ];
@@ -71,14 +53,6 @@ exports.getSystemSettings = [
 exports.saveSettings = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
-    try {
-      if (!req.session) throw new AppError("Session not available", 500);
-      if (!req.body) throw new AppError("Request body is required", 400);
-    } catch (err) {
-      console.error("Synchronous error in saveSettings:", err);
-      return next(err);
-    }
-
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -87,37 +61,31 @@ exports.saveSettings = [
         updateObj.systemDefaults = req.body.systemDefaults;
       if (req.body.features) updateObj.features = req.body.features;
 
-      await Settings.findOneAndUpdate({}, { $set: updateObj }, { session });
+      await Settings.findOneAndUpdate(
+        {},
+        { $set: updateObj },
+        { session }
+      ).lean();
 
-      if (req.body.systemDefaults)
-        req.session.systemDefaults = req.body.systemDefaults;
-      if (req.body.features) req.session.features = req.body.features;
+      req.session.systemDefaults = req.body.systemDefaults;
+      req.session.features = req.body.features;
 
-      req.session.save((err) => {
-        if (err) {
-          session.abortTransaction();
-          session.endSession();
-          console.error("Session save error:", err);
-          return next(err);
-        }
-
-        session.commitTransaction();
-        session.endSession();
-
-        res.status(200).json({
-          status: "success",
-          message: "System settings saved successfully",
-          data: {
-            systemDefaults: req.session.systemDefaults,
-            features: req.session.features,
-          },
-        });
+      await session.commitTransaction();
+      if (res.headersSent) return;
+      res.status(200).json({
+        status: "success",
+        message: "System settings saved successfully",
+        data: {
+          systemDefaults: req.session.systemDefaults,
+          features: req.session.features,
+        },
       });
-    } catch (error) {
+    } catch (err) {
       await session.abortTransaction();
-      session.endSession();
-      console.error("Error saving system settings:", error);
+      console.error("Error saving system settings:", err);
       next(new AppError("Failed to save system settings", 500));
+    } finally {
+      session.endSession();
     }
   }),
 ];

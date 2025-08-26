@@ -38,6 +38,14 @@ const createSendToken = (user, statusCode, req, res, next) => {
       secure: req.secure || req.headers["x-forwarded-proto"] === "https",
     });
 
+    // Ensure req.session is defined before assigning properties
+    if (!req.session) {
+      console.error(
+        "Session is undefined. Ensure session middleware is properly configured."
+      );
+      return next(new Error("Session is not initialized."));
+    }
+
     req.session.user = {};
     req.session.systemDefaults = {};
 
@@ -47,18 +55,26 @@ const createSendToken = (user, statusCode, req, res, next) => {
     req.session.user.userMobile = user.mobile;
     user.password = undefined;
 
-    req.session.save((error) => {
-      if (error) {
+    // Replace callback-based req.session.save() with Promise-based approach
+    new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    })
+      .then(() => {
+        if (res.headersSent) return;
+        res.status(statusCode).json({
+          status: "success",
+          token,
+          user: user,
+        });
+      })
+      .catch((error) => {
+        if (res.headersSent) return;
         console.error("Session save error:", error);
         return next(error);
-      }
-
-      res.status(statusCode).json({
-        status: "success",
-        token,
-        user: user,
       });
-    });
   } catch (err) {
     console.error("Synchronous error in createSendToken:", err);
     next(err);
@@ -146,10 +162,13 @@ exports.create = catchAsync(async (req, res, next) => {
 
 exports.login = catchAsync(async (req, res, next) => {
   try {
-    if (!req.body.email) throw new AppError("Please provide email", 400);
-    if (!req.body.password) throw new AppError("Please provide password", 400);
+    if (!req.body.email) {
+      throw new AppError("Please provide email", 400);
+    }
+    if (!req.body.password) {
+      throw new AppError("Please provide password", 400);
+    }
   } catch (err) {
-    console.error("Synchronous error in login:", err);
     return next(err);
   }
 

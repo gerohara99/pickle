@@ -30,18 +30,18 @@ try {
 // Graceful shutdown function
 function gracefulShutdown(signal) {
   console.log(`${signal} RECEIVED. Shutting down gracefully`);
-  server.close(() => {
+  server.close(async () => {
     // Close DB connections if using mongoose
     if (require("mongoose").connection.readyState === 1) {
-      require("mongoose").connection.close(false, () => {
+      try {
+        await require("mongoose").connection.close(false);
         console.log("MongoDB connection closed.");
-        console.log("Process terminated");
-        setTimeout(() => process.exit(0), 1000);
-      });
-    } else {
-      console.log("Process terminated");
-      setTimeout(() => process.exit(0), 1000);
+      } catch (err) {
+        console.error("Error closing MongoDB connection:", err);
+      }
     }
+    console.log("Process terminated");
+    setTimeout(() => process.exit(0), 1000);
   });
 }
 
