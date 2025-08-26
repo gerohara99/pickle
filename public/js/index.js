@@ -97,10 +97,14 @@ document.addEventListener("DOMContentLoaded", () => {
     initScoreModal(eventUpdateMatchScoreApiAction);
 
     // Mobile nav toggle
-    initMobileNavToggle();
+    if (document.getElementById("mobileNavToggle")) {
+      initMobileNavToggle();
+    }
 
     // Tabs
-    initTabs();
+    if (document.querySelector(".tab")) {
+      initTabs();
+    }
 
     // Button and link event delegation
     const buttonDeps = {
