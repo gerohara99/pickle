@@ -12,7 +12,8 @@
     "heroku-postbuild": "npm run build",
     "copyDb": "node data/copyDb.js",
     "validateSchedule": "node tests/validateSchedule.js",
-    "codeReview": "node codeReviews/generateCodebaseMarkdown.js"
+    "codeReview": "node codeReviews/generateCodebaseMarkdown.js",
+    "watch": "vite"
   },
   "author": "Gerard O'Hara",
   "license": "ISC",

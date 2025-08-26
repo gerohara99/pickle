@@ -22,17 +22,21 @@ block content
 									span()=`${event.eventLocation}`
 								p.event-title Players
 									div.eventCardDetails
-										- let i = 0;
-										each booking in event.eventBookings
-											if i === event.eventNumOfPlayers
+										- const playersLimit = event.scheduleConfiguration.players;
+										- let playerCount = 0;
+										- let waitlistCount = 0;
+
+										each booking, index in event.eventBookings
+											if index < playersLimit
+												p.event-attribute=booking.userName
+												- playerCount++;
+											else if index === playersLimit
 												p.event-title Wait List
-												p.event-attribute=booking.userName
-											else
-												p.event-attribute=booking.userName
-											- i++;
+											if index >= playersLimit
+												p.event-attribute #{++waitlistCount}. #{booking.userName}
 
 									div.form-buttons
-										- const isWaitList = event.eventBookings.length >= event.eventNumOfPlayers
+										- const isWaitList = event.eventBookings.length >= event.scheduleConfiguration.players
 										a.btn.btn--outline.bookEventButtons(href="#")
 											if isWaitList
 												| Join Wait List
