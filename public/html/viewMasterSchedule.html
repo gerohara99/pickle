@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -24,7 +24,7 @@
     <header>
       <h1>RallyPoint</h1>
     </header>
-    
+
     <nav>
       <a href="/" aria-label="Home">
         <i class="fas fa-home"></i>
@@ -42,7 +42,7 @@
         <i class="fas fa-sign-out-alt"></i>
       </a>
     </nav>
-    
+
     <main class="main">
       <section class="section">
         <div class="container">
@@ -50,7 +50,7 @@
             <h2 class="text-center mb-md event-title" id="eventTitle"></h2>
             <p class="text-center mb-lg event-details" id="eventDetails"></p>
           </div>
-          
+
           <!-- Round filter -->
           <form class="filter-form mb-lg">
             <div class="filter-group">
@@ -62,12 +62,12 @@
             </div>
             <button type="submit" class="btn btn-primary">Filter</button>
           </form>
-          
+
           <!-- Matches list -->
           <div class="matches-container" id="matchesContainer">
             <!-- Match cards will be inserted here dynamically -->
           </div>
-          
+
           <!-- Pagination -->
           <div class="pagination" id="pagination">
             <!-- Pagination controls will be added dynamically -->
@@ -75,7 +75,7 @@
         </div>
       </section>
     </main>
-    
+
     <!-- Score entry modal -->
     <div class="modal" id="scoreModal">
       <div class="modal-content">
@@ -85,24 +85,40 @@
           <div class="form-group">
             <label>Team A</label>
             <div id="teamAPlayers" class="team-players"></div>
-            <input type="number" id="teamAScore" name="teamAScore" min="0" class="form-control" required>
+            <input
+              type="number"
+              id="teamAScore"
+              name="teamAScore"
+              min="0"
+              class="form-control"
+              required
+            />
           </div>
-          
+
           <div class="form-group">
             <label>Team B</label>
             <div id="teamBPlayers" class="team-players"></div>
-            <input type="number" id="teamBScore" name="teamBScore" min="0" class="form-control" required>
+            <input
+              type="number"
+              id="teamBScore"
+              name="teamBScore"
+              min="0"
+              class="form-control"
+              required
+            />
           </div>
-          
-          <input type="hidden" id="roundIndex" name="roundIndex">
-          <input type="hidden" id="matchIndex" name="matchIndex">
-          <input type="hidden" id="eventId" name="eventId">
-          
-          <button type="submit" class="btn btn-primary btn-block">Save Score</button>
+
+          <input type="hidden" id="roundIndex" name="roundIndex" />
+          <input type="hidden" id="matchIndex" name="matchIndex" />
+          <input type="hidden" id="eventId" name="eventId" />
+
+          <button type="submit" class="btn btn-primary btn-block">
+            Save Score
+          </button>
         </form>
       </div>
     </div>
-    
+
     <!-- Match card template - will be cloned in JavaScript -->
     <template id="matchCardTemplate">
       <div class="match-card">
@@ -129,20 +145,7 @@
         </div>
       </div>
     </template>
-    
-    <script>
-      // This script will be replaced with module-based code in schedules.js
-      document.addEventListener('DOMContentLoaded', function() {
-        // Get event details from URL parameters or fetch from API
-        const urlParams = new URLSearchParams(window.location.search);
-        const eventId = window.location.pathname.split('/').pop();
-        
-        // Example code to populate event details - will be replaced with actual API calls
-        document.getElementById('eventTitle').textContent = 'Event Name';
-        document.getElementById('eventDetails').textContent = 'Date, Time, Location';
-        
-        // The rest of the functionality will be handled by the schedules.js module
-      });
-    </script>
+
+    <!-- Module-based code is now in schedules.js -->
   </body>
 </html>

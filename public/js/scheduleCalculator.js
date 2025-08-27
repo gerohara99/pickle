@@ -137,16 +137,19 @@ function generatePlayerNames(count) {
 function initScheduleCalculator() {
   // Function to initialize when DOM is available
   const init = async () => {
+    // Check if we're on a page that needs the schedule calculator
     const courtsSelect = document.getElementById("numCourts");
+
+    // If the required elements don't exist, we're probably on a different page
+    // so we'll just exit gracefully without errors
+    if (!courtsSelect) {
+      return;
+    }
+
     const scheduleOptions = document.getElementById("scheduleOptions");
     const schedulePreview = document.getElementById("schedulePreview");
     const doublesToggle = document.getElementById("doublesToggle");
     const hiddenInput = document.getElementById("selectedScheduleConfig");
-
-    if (!courtsSelect) {
-      console.error("Courts select element not found");
-      return;
-    }
 
     // Fetch configuration data
     let configs = await fetchScheduleConfigs();
@@ -224,8 +227,5 @@ function initScheduleCalculator() {
   }
 }
 
-// Initialize
-initScheduleCalculator();
-
-// Export for module usage (if needed)
+// Export for module usage
 export { initScheduleCalculator };

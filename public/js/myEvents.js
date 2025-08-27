@@ -85,10 +85,22 @@ class MyEvents {
     // View schedule buttons
     document.querySelectorAll(".view-schedule-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
-        const eventId = e.target
-          .closest(".event-card")
-          .querySelector(".event-id").textContent;
-        window.location.href = `/events/viewMySchedule/${eventId}`;
+        // Find the event card containing this button
+        const eventCard = btn.closest(".event-card");
+        // Get the event ID from the hidden span
+        const eventId = eventCard.querySelector(".event-id").textContent;
+
+        if (!eventId) {
+          console.error("Event ID not found");
+          showAlert("error", "Error: Could not find event ID");
+          return;
+        }
+
+        // Store the event ID in localStorage before navigating
+        localStorage.setItem("currentEventId", eventId);
+
+        console.log("Viewing schedule for event:", eventId);
+        window.location.href = `/events/viewMasterSchedule/${eventId}`;
       });
     });
 

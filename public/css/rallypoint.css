@@ -516,14 +516,14 @@ textarea:focus {
   margin-bottom: var(--spacing-md);
 }
 
-.event-players, 
+.event-players,
 .event-waitlist {
   flex: 1;
   min-width: 230px;
   background-color: var(--background-light);
   padding: var(--spacing-sm);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .event-players h4,
@@ -1117,12 +1117,42 @@ textarea:focus {
 
 .event-title {
   color: var(--primary-color);
-  font-size: 1.8rem;
+  font-size: 2.5rem; /* Same size as RallyPoint header */
+  margin-bottom: 1rem;
 }
 
 .event-details {
   color: var(--grey-dark);
+  font-size: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.event-detail-item {
+  display: flex;
+  align-items: center;
+}
+
+.event-detail-item i {
+  margin-right: 0.5rem;
+  color: var(--primary-color);
+}
+
+.event-organizer {
+  color: var(--grey-dark);
   font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.event-organizer i {
+  margin-right: 0.5rem;
+  color: var(--primary-color);
 }
 
 /* ===== COMPONENTS: TABLES ===== */

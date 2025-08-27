@@ -12,6 +12,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link rel="stylesheet" href="/css/schedules.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
@@ -47,8 +48,12 @@
       <section class="section">
         <div class="container">
           <div class="event-header">
-            <h2 class="text-center mb-md event-title" id="eventTitle"></h2>
-            <p class="text-center mb-lg event-details" id="eventDetails"></p>
+            <h2 class="text-center mb-md event-title" id="eventTitle">
+              Loading event...
+            </h2>
+            <p class="text-center mb-lg event-details" id="eventDetails">
+              Loading details...
+            </p>
           </div>
 
           <!-- Round filter -->
@@ -146,20 +151,6 @@
       </div>
     </template>
 
-    <script>
-      // This script will be replaced with module-based code in schedules.js
-      document.addEventListener("DOMContentLoaded", function () {
-        // Get event details from URL parameters or fetch from API
-        const urlParams = new URLSearchParams(window.location.search);
-        const eventId = window.location.pathname.split("/").pop();
-
-        // Example code to populate event details - will be replaced with actual API calls
-        document.getElementById("eventTitle").textContent = "Event Name";
-        document.getElementById("eventDetails").textContent =
-          "Date, Time, Location";
-
-        // The rest of the functionality will be handled by the schedules.js module
-      });
-    </script>
+    <!-- Module-based code is now in schedules.js -->
   </body>
 </html>
