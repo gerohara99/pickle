@@ -1,4 +1,7 @@
 const AppError = require("../utils/appError");
+const path = require("path");
+const fs = require("fs").promises;
+const htmlErrorController = require("./htmlErrorController");
 
 const handleCastErrorDB = (err) => {
   try {
@@ -50,6 +53,39 @@ const handleTokenExpiredError = () => {
   }
 };
 
+/**
+ * Serve the error HTML page
+ * @param {Object} err - Error object
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {string} title - Error title
+ * @param {string} msg - Error message
+ */
+const serveErrorHtml = async (err, req, res, title, msg) => {
+  try {
+    // For non-API requests, use the htmlErrorController
+    if (!req.originalUrl.startsWith("/api")) {
+      const errorObj = {
+        statusCode: err.statusCode || 500,
+        message: msg,
+        status: err.status || "error",
+      };
+      return htmlErrorController.redirectToErrorPage(errorObj, req, res);
+    }
+
+    // For API requests, just return JSON
+    const statusCode = err.statusCode || 500;
+    return res.status(statusCode).json({
+      status: err.status || "error",
+      message: msg,
+    });
+  } catch (e) {
+    console.error("Error in serveErrorHtml:", e);
+    // Final fallback
+    return res.status(500).send("An error occurred");
+  }
+};
+
 const sendErrorDev = (err, req, res) => {
   try {
     // A) API
@@ -65,16 +101,16 @@ const sendErrorDev = (err, req, res) => {
 
     // B) RENDERED WEBSITE
     console.error("ERROR 💥", err);
-    return res.status(err.statusCode).render("error", {
-      title: "Something went wrong!",
-      msg: err.message,
-    });
+    return serveErrorHtml(err, req, res, "Something went wrong!", err.message);
   } catch (syncErr) {
     console.error("Synchronous error in sendErrorDev:", syncErr);
-    return res.status(500).render("error", {
-      title: "Something went wrong!",
-      msg: "Please try again later.",
-    });
+    return serveErrorHtml(
+      err,
+      req,
+      res,
+      "Something went wrong!",
+      "Please try again later."
+    );
   }
 };
 
@@ -103,25 +139,34 @@ const sendErrorProd = (err, req, res) => {
     // B) RENDERED WEBSITE
     // A) Operational, trusted error: send message to client
     if (err.isOperational) {
-      return res.status(err.statusCode).render("error", {
-        title: "Something went wrong!",
-        msg: err.message,
-      });
+      return serveErrorHtml(
+        err,
+        req,
+        res,
+        "Something went wrong!",
+        err.message
+      );
     }
     // B) Programming or other unknown error: don't leak error details
     // 1) Log error
     console.error("ERROR 💥", err);
     // 2) Send generic message
-    return res.status(err.statusCode).render("error", {
-      title: "Something went wrong!",
-      msg: "Please try again later.",
-    });
+    return serveErrorHtml(
+      err,
+      req,
+      res,
+      "Something went wrong!",
+      "Please try again later."
+    );
   } catch (syncErr) {
     console.error("Synchronous error in sendErrorProd:", syncErr);
-    return res.status(500).render("error", {
-      title: "Something went wrong!",
-      msg: "Please try again later.",
-    });
+    return serveErrorHtml(
+      err,
+      req,
+      res,
+      "Something went wrong!",
+      "Please try again later."
+    );
   }
 };
 
@@ -146,9 +191,12 @@ module.exports = (err, req, res, next) => {
     }
   } catch (syncErr) {
     console.error("Synchronous error in errorController middleware:", syncErr);
-    res.status(500).render("error", {
-      title: "Something went wrong!",
-      msg: "Please try again later.",
-    });
+    serveErrorHtml(
+      { statusCode: 500 },
+      req,
+      res,
+      "Something went wrong!",
+      "Please try again later."
+    );
   }
 };

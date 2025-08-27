@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - Create User" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <script type="module" src="/js/passwordValidator.js" defer></script>
+    <title>RallyPoint - Create User</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/myAccountDetails" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="/users/showAll" aria-label="Users" class="admin-only">
+        <i class="fas fa-users"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Create User</h2>
+            </div>
+
+            <div class="card-body">
+              <form id="createUserForm" class="form">
+                <div class="form-group">
+                  <label for="name">Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-control"
+                    placeholder="user@example.com"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="mobile">Mobile</label>
+                  <input
+                    type="tel"
+                    id="mobile"
+                    name="mobile"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="role">Role</label>
+                  <select id="role" name="role" class="form-control">
+                    <option value="user" selected>User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <div class="password-input-wrapper">
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      class="form-control"
+                      required
+                    />
+                    <button
+                      type="button"
+                      class="password-toggle"
+                      aria-label="Toggle password visibility"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                  <div class="password-strength-meter">
+                    <div class="strength-bar"></div>
+                  </div>
+                  <div class="password-feedback"></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="passwordConfirm">Confirm Password</label>
+                  <div class="password-input-wrapper">
+                    <input
+                      type="password"
+                      id="passwordConfirm"
+                      name="passwordConfirm"
+                      class="form-control"
+                      required
+                    />
+                    <button
+                      type="button"
+                      class="password-toggle"
+                      aria-label="Toggle password visibility"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                  <div class="password-match-message"></div>
+                </div>
+
+                <div class="form-group">
+                  <div class="checkbox-group">
+                    <input
+                      type="checkbox"
+                      id="active"
+                      name="active"
+                      class="checkbox-input"
+                      checked
+                    />
+                    <label for="active" class="checkbox-label"
+                      >User is active</label
+                    >
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">
+                    Create User
+                  </button>
+                  <a href="/users/showAll" class="btn btn-outline">Cancel</a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const createUserForm = document.getElementById("createUserForm");
+
+        createUserForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          // Validate password match
+          const password = document.getElementById("password").value;
+          const passwordConfirm =
+            document.getElementById("passwordConfirm").value;
+
+          if (password !== passwordConfirm) {
+            const matchMessage = document.querySelector(
+              ".password-match-message"
+            );
+            matchMessage.textContent = "Passwords do not match";
+            matchMessage.classList.add("error-message");
+            return;
+          }
+
+          const formData = new FormData(createUserForm);
+          const userData = {};
+
+          // Convert FormData to object
+          for (const [key, value] of formData.entries()) {
+            if (key === "active") {
+              userData[key] = true; // Checkbox is checked
+            } else {
+              userData[key] = value;
+            }
+          }
+
+          // Handle unchecked checkboxes
+          if (!formData.has("active")) {
+            userData.active = false;
+          }
+
+          try {
+            const response = await fetch("/api/v1/users", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(userData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              // Show success message and redirect
+              alert("User created successfully!");
+              window.location.href = `/users/showAll`;
+            } else {
+              // Show error message
+              alert(`Error: ${data.message || "Failed to create user"}`);
+            }
+          } catch (err) {
+            console.error("Error creating user:", err);
+            alert("An error occurred while creating the user");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

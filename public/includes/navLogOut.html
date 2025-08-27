@@ -1,0 +1,26 @@
+<a class="main-nav-link" id="logOutButton" href="#">Logout</a>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const logoutButton = document.getElementById("logOutButton");
+    if (logoutButton) {
+      logoutButton.addEventListener("click", function (e) {
+        e.preventDefault();
+        // Call the logout API endpoint
+        fetch("/api/v1/users/logout", {
+          method: "GET",
+          credentials: "same-origin",
+        })
+          .then((res) => {
+            if (res.status === 200) {
+              // Redirect to login page
+              window.location.href = "/me/login";
+            }
+          })
+          .catch((err) => {
+            console.error("Logout failed:", err);
+          });
+      });
+    }
+  });
+</script>

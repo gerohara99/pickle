@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test HTML Page</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        color: #2c3e50;
+      }
+      .success {
+        background-color: #2ecc71;
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>HTML Test Page</h1>
+    <div class="success">
+      <p>
+        <strong>Success!</strong> If you can see this page, HTML serving is
+        working correctly.
+      </p>
+      <p>
+        This confirms that the directHtmlController is finding and serving HTML
+        files from the views directory.
+      </p>
+    </div>
+    <p>Current time: <span id="current-time"></span></p>
+    <script>
+      document.getElementById("current-time").textContent =
+        new Date().toLocaleString();
+    </script>
+  </body>
+</html>

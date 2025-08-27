@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - My Schedule" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <script type="module" src="/js/schedules.js" defer></script>
+    <script type="module" src="/js/mySchedule.js" defer></script>
+    <title>RallyPoint - My Schedule</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+    
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events" class="active">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/myAccountDetails" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+    
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <div class="event-header">
+            <h2 class="text-center mb-md event-title" id="eventTitle"></h2>
+            <p class="text-center mb-md event-details" id="eventDetails"></p>
+          </div>
+          
+          <!-- Resting info message -->
+          <div class="resting-info text-center mb-lg" id="restingInfo">
+            <!-- Will be populated dynamically -->
+          </div>
+          
+          <!-- My matches list -->
+          <div class="matches-container" id="myMatchesContainer">
+            <!-- Match cards will be inserted here dynamically -->
+          </div>
+          
+          <!-- No matches message -->
+          <div id="noMatchesMessage" class="text-center mb-lg" style="display: none;">
+            <p>You don't have any matches in this event.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <!-- Score entry modal -->
+    <div class="modal" id="scoreModal">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h3>Enter Match Score</h3>
+        <form id="scoreForm" class="form">
+          <div class="form-group">
+            <label>My Team</label>
+            <div id="myTeamPlayers" class="team-players"></div>
+            <input type="number" id="myTeamScore" name="myTeamScore" min="0" class="form-control" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Opposing Team</label>
+            <div id="opposingTeamPlayers" class="team-players"></div>
+            <input type="number" id="opposingTeamScore" name="opposingTeamScore" min="0" class="form-control" required>
+          </div>
+          
+          <input type="hidden" id="roundIndex" name="roundIndex">
+          <input type="hidden" id="matchIndex" name="matchIndex">
+          <input type="hidden" id="eventId" name="eventId">
+          <input type="hidden" id="myTeam" name="myTeam">
+          
+          <button type="submit" class="btn btn-primary btn-block">Save Score</button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- My match card template - will be cloned in JavaScript -->
+    <template id="myMatchCardTemplate">
+      <div class="match-card">
+        <div class="match-header">
+          <span class="round-badge">Round</span>
+          <span class="court-badge">Court</span>
+        </div>
+        <div class="match-body">
+          <div class="team-row">
+            <div class="team-label">My Team:</div>
+            <div class="team-players my-team-players"></div>
+          </div>
+          <div class="team-row">
+            <div class="team-label">Opponents:</div>
+            <div class="team-players opposing-team-players"></div>
+          </div>
+          <div class="score-row">
+            <div class="score-label">Score:</div>
+            <div class="score-display"></div>
+          </div>
+        </div>
+        <div class="match-footer">
+          <button class="btn btn-secondary score-button">Enter Score</button>
+        </div>
+      </div>
+    </template>
+  </body>
+</html>
+          
+          <div class="card">
+            <div class="card__content">
+              <!-- Resting rounds info -->
+              <div class="resting-info text-center mb-lg" id="resting-info">
+                <!-- Will be populated by JavaScript -->
+              </div>
+              
+              <!-- Schedule table -->
+              <div class="schedule-table">
+                <!-- Will be populated by JavaScript -->
+              </div>
+              
+              <!-- Back button -->
+              <div class="form-buttons mt-lg">
+                <a href="/events/myBrowse" class="btn btn--outline">
+                  <i class="fas fa-arrow-left"></i> Back to My Events
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <!-- Score Modal -->
+    <div class="modal hidden" id="scoreModal">
+      <div class="modal__content">
+        <div class="modal__header">
+          <h3>Update Score</h3>
+          <button class="btn-icon modal__close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal__body">
+          <form id="scoreForm">
+            <input type="hidden" id="scoreRound" name="roundIndex">
+            <input type="hidden" id="scoreMatch" name="matchIndex">
+            <input type="hidden" id="scoreEvent" name="eventId">
+            
+            <div class="score-inputs">
+              <div class="form-group">
+                <label for="teamAScore">Team A Score</label>
+                <input type="number" id="teamAScore" name="teamAScore" min="0" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="teamBScore">Team B Score</label>
+                <input type="number" id="teamBScore" name="teamBScore" min="0" required>
+              </div>
+            </div>
+            
+            <div class="form-buttons">
+              <button type="button" class="btn btn--outline modal__cancel">Cancel</button>
+              <button type="submit" class="btn btn--primary">Save Score</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <footer class="footer text-center mt-lg">
+      <p>&copy; 2025 RallyPoint. All rights reserved.</p>
+    </footer>
+    
+    <!-- Alert container for displaying messages -->
+    <div id="alert" class="alert hidden"></div>
+    
+    <script type="module">
+      document.addEventListener('DOMContentLoaded', () => {
+        // Data would be injected by server when rendering the page
+        const event = window.eventData || { eventName: "Event", eventDate: new Date(), eventStartTime: "12:00", eventLocation: "Location" };
+        const filteredMatches = window.matchesData || [];
+        const restingRounds = window.restingRounds || [];
+        const showScoreButton = window.features?.teamCanEditScore || false;
+        
+        // Format the event title
+        const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
+        const eventDate = new Date(event.eventDate).toLocaleDateString(undefined, options);
+        const eventTitle = `${event.eventName} on ${eventDate} @ ${event.eventStartTime} in ${event.eventLocation}`;
+        document.getElementById('event-title').textContent = eventTitle;
+        
+        // Show resting rounds info
+        const restingInfo = document.getElementById('resting-info');
+        if (restingRounds && restingRounds.length) {
+          restingInfo.innerHTML = `You will be resting in round(s): ${restingRounds.map(r => ' ' + (r + 1)).join(',')}`;
+        } else {
+          restingInfo.innerHTML = 'You are playing in every round.';
+        }
+        
+        // Build the schedule table
+        const scheduleTable = document.querySelector('.schedule-table');
+        if (filteredMatches && filteredMatches.length) {
+          const tableHTML = `
+            <div class="schedule-grid ${showScoreButton ? 'with-score-button' : ''}">
+              ${filteredMatches.map(matchData => `
+                <div class="schedule-row">
+                  <div class="schedule-cell">
+                    <span class="label">Round:</span>
+                    <span class="value">${matchData.round + 1}</span>
+                  </div>
+                  <div class="schedule-cell">
+                    <span class="label">Court:</span>
+                    <span class="value">${matchData.match.court + 1}</span>
+                  </div>
+                  <div class="schedule-cell">
+                    <span class="label">My Team:</span>
+                    <span class="value">${matchData.match[matchData.playerTeam].map(p => p.name).join(' & ')}</span>
+                  </div>
+                  <div class="schedule-cell">
+                    <span class="label">Opposing Team:</span>
+                    <span class="value">
+                      ${matchData.match[matchData.playerTeam === 'teamA' ? 'teamB' : 'teamA'].map(p => p.name).join(' & ')}
+                    </span>
+                  </div>
+                  <div class="schedule-cell">
+                    <span class="label">Score:</span>
+                    <span class="value">${typeof matchData.match.teamAScore === "number" ? matchData.match.teamAScore : 0} / ${typeof matchData.match.teamBScore === "number" ? matchData.match.teamBScore : 0}</span>
+                  </div>
+                  ${showScoreButton ? `
+                    <div class="schedule-cell">
+                      <button class="btn btn--secondary btn-score" 
+                        data-round="${matchData.round}"
+                        data-matchindex="${matchData.matchIndex}"
+                        data-eventid="${event._id}"
+                        data-teama-score="${matchData.match.teamAScore || 0}"
+                        data-teamb-score="${matchData.match.teamBScore || 0}">
+                        ${matchData.hasScore ? 'Edit Score' : 'Enter Score'}
+                      </button>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          `;
+          scheduleTable.innerHTML = tableHTML;
+        } else {
+          scheduleTable.innerHTML = '<p class="text-center">No matches found in your schedule.</p>';
+        }
+        
+        // Score modal functionality
+        if (showScoreButton) {
+          const modal = document.getElementById('scoreModal');
+          const closeModal = document.querySelector('.modal__close');
+          const cancelModal = document.querySelector('.modal__cancel');
+          const scoreForm = document.getElementById('scoreForm');
+          
+          // Open modal when clicking score buttons
+          document.querySelectorAll('.btn-score').forEach(btn => {
+            btn.addEventListener('click', () => {
+              document.getElementById('scoreRound').value = btn.dataset.round;
+              document.getElementById('scoreMatch').value = btn.dataset.matchindex;
+              document.getElementById('scoreEvent').value = btn.dataset.eventid;
+              document.getElementById('teamAScore').value = btn.dataset.teamaScore;
+              document.getElementById('teamBScore').value = btn.dataset.teambScore;
+              modal.classList.remove('hidden');
+            });
+          });
+          
+          // Close modal functions
+          closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+          cancelModal.addEventListener('click', () => modal.classList.add('hidden'));
+          
+          // Submit form
+          scoreForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+              // This would be handled by eventUpdateMatchScoreApiAction through initFormListeners
+              // Just closing the modal here as the actual API call is handled elsewhere
+              modal.classList.add('hidden');
+            } catch (error) {
+              console.error('Error updating score:', error);
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

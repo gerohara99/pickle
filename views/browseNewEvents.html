@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - Browse Events" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <script type="module" src="/js/browseEvents.js" defer></script>
+    <title>RallyPoint - Browse Events</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events" class="active">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/account" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <h2 class="text-center mb-lg">Available Events</h2>
+
+          <!-- Search filters -->
+          <div class="filters mb-lg">
+            <div class="filter-group">
+              <input
+                type="text"
+                id="eventSearch"
+                placeholder="Search events..."
+                class="filter-input"
+              />
+              <button class="btn btn--outline" id="searchButton">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+
+            <div class="filter-options">
+              <label class="filter-label">
+                <input type="checkbox" id="filterUpcoming" checked />
+                <span>Upcoming Events</span>
+              </label>
+
+              <label class="filter-label">
+                <input type="checkbox" id="filterAvailable" />
+                <span>Available Spots</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- No events message (shown conditionally) -->
+          <div id="no-events-message" class="text-center hidden">
+            <p class="mb-md">
+              There are currently no new events for you to book
+            </p>
+          </div>
+
+          <!-- Events container (populated dynamically) -->
+          <div id="event-container" class="grid grid--1-cols">
+            <!-- Event cards will be rendered here -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer text-center mt-lg">
+      <p>&copy; 2025 RallyPoint. All rights reserved.</p>
+    </footer>
+
+    <!-- Event card template -->
+    <template id="event-card-template">
+      <div class="card event-card mb-md">
+        <div class="card__content">
+          <div class="event-header">
+            <div class="event-date">
+              <i class="fas fa-calendar-day"></i>
+              <span class="event-date-text"></span>
+            </div>
+            <div class="event-time">
+              <i class="fas fa-clock"></i>
+              <span class="event-time-text"></span>
+            </div>
+            <div class="event-location">
+              <i class="fas fa-map-marker-alt"></i>
+              <span class="event-location-text"></span>
+            </div>
+          </div>
+
+          <div class="event-players">
+            <h4>Players</h4>
+            <ul class="player-list"></ul>
+          </div>
+
+          <div class="event-waitlist hidden">
+            <h4>Wait List</h4>
+            <ol class="waitlist-list"></ol>
+          </div>
+
+          <div class="event-status">
+            <span class="status-badge available">
+              <i class="fas fa-users"></i>
+              <span class="status-text"></span>
+            </span>
+          </div>
+
+          <div class="form-buttons">
+            <button class="btn btn--primary book-event-btn">
+              <i class="fas fa-calendar-plus"></i>
+              <span class="book-btn-text">Book Event</span>
+            </button>
+            <span class="hidden event-id"></span>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Alert container for displaying messages -->
+    <div id="alert" class="alert hidden"></div>
+  </body>
+</html>

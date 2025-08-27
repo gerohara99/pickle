@@ -1,11 +1,11 @@
 /* eslint-disable */
-import "core-js/stable";
-import "regenerator-runtime/runtime";
-import axios from "./api";
-import { showAlert } from "./alerts";
+// Use modern browser APIs directly instead of polyfills
+import axios from "./api.js";
+import { showAlert } from "./alerts.js";
 
 // --- Helper Functions ---
-async function apiRequest({
+// Export this function so it can be used by other modules
+export async function apiRequest({
   method,
   url,
   data,
@@ -15,13 +15,16 @@ async function apiRequest({
   reload,
 }) {
   try {
-    const res = await axios({ method, url, data });
+    const res = await axios.request({ method, url, data });
     if (res.data?.status === "success" || res.status === 204) {
       if (successMessage) showAlert("success", successMessage);
       if (onSuccess) onSuccess(res);
 
-      // Only one of redirect or reload will happen
-      if (redirect === "userLoggingIn") {
+      // Store user data in localStorage if we're logging in and have user data
+      if (redirect === "userLoggingIn" && res.data.user) {
+        // Store user data for role detection
+        localStorage.setItem("userData", JSON.stringify(res.data.user));
+
         let landingPage;
         if (res.data.user.role === "clubAdmin") {
           landingPage = "/events/showAll";

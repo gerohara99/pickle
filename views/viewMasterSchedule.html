@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - Master Schedule" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <script type="module" src="/js/schedules.js" defer></script>
+    <title>RallyPoint - Master Schedule</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/myAccountDetails" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <div class="event-header">
+            <h2 class="text-center mb-md event-title" id="eventTitle"></h2>
+            <p class="text-center mb-lg event-details" id="eventDetails"></p>
+          </div>
+
+          <!-- Round filter -->
+          <form class="filter-form mb-lg">
+            <div class="filter-group">
+              <label for="roundSelect">Filter by round:</label>
+              <select id="roundSelect" name="round" class="form-control">
+                <option value="all" selected>All Rounds</option>
+                <!-- Round options will be populated dynamically -->
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+          </form>
+
+          <!-- Matches list -->
+          <div class="matches-container" id="matchesContainer">
+            <!-- Match cards will be inserted here dynamically -->
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination" id="pagination">
+            <!-- Pagination controls will be added dynamically -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Score entry modal -->
+    <div class="modal" id="scoreModal">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h3>Enter Match Score</h3>
+        <form id="scoreForm" class="form">
+          <div class="form-group">
+            <label>Team A</label>
+            <div id="teamAPlayers" class="team-players"></div>
+            <input
+              type="number"
+              id="teamAScore"
+              name="teamAScore"
+              min="0"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Team B</label>
+            <div id="teamBPlayers" class="team-players"></div>
+            <input
+              type="number"
+              id="teamBScore"
+              name="teamBScore"
+              min="0"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <input type="hidden" id="roundIndex" name="roundIndex" />
+          <input type="hidden" id="matchIndex" name="matchIndex" />
+          <input type="hidden" id="eventId" name="eventId" />
+
+          <button type="submit" class="btn btn-primary btn-block">
+            Save Score
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Match card template - will be cloned in JavaScript -->
+    <template id="matchCardTemplate">
+      <div class="match-card">
+        <div class="match-header">
+          <span class="round-badge">Round</span>
+          <span class="court-badge">Court</span>
+        </div>
+        <div class="match-body">
+          <div class="team-row">
+            <div class="team-label">Team A:</div>
+            <div class="team-players team-a-players"></div>
+          </div>
+          <div class="team-row">
+            <div class="team-label">Team B:</div>
+            <div class="team-players team-b-players"></div>
+          </div>
+          <div class="score-row">
+            <div class="score-label">Score:</div>
+            <div class="score-display"></div>
+          </div>
+        </div>
+        <div class="match-footer">
+          <button class="btn btn-secondary score-button">Enter Score</button>
+        </div>
+      </div>
+    </template>
+
+    <script>
+      // This script will be replaced with module-based code in schedules.js
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get event details from URL parameters or fetch from API
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = window.location.pathname.split("/").pop();
+
+        // Example code to populate event details - will be replaced with actual API calls
+        document.getElementById("eventTitle").textContent = "Event Name";
+        document.getElementById("eventDetails").textContent =
+          "Date, Time, Location";
+
+        // The rest of the functionality will be handled by the schedules.js module
+      });
+    </script>
+  </body>
+</html>

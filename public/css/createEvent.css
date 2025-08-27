@@ -1,0 +1,322 @@
+/* Create Event Page Styles */
+
+/* Layout */
+.form-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 2fr !important; /* 33% : 66% split */
+  gap: 1rem !important; /* Further reduced gap for more compact layout */
+}
+
+/* Compact form */
+.form-group {
+  margin-bottom: 0.6rem !important; /* Further reduced vertical spacing */
+}
+
+/* Card styling */
+.card {
+  background-color: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden !important;
+}
+
+.card-header {
+  background-color: #e67e22 !important; /* Orange */
+  color: #fff !important;
+  padding: 1.6rem !important;
+}
+
+.card-title {
+  margin: 0 !important;
+  font-size: 1.8rem !important;
+  font-weight: 600 !important;
+}
+
+.card-body {
+  padding: 1rem 1.2rem !important; /* Further reduced padding */
+  background-color: #fdf2e9 !important; /* Light orange background */
+}
+
+/* Form columns */
+.form-column {
+  padding: 0.8rem !important; /* Further reduced padding */
+}
+
+/* Section titles */
+.section-title {
+  margin-bottom: 1rem !important; /* Reduced margin */
+  color: #333 !important;
+  font-size: 1.8rem !important;
+  font-weight: 600 !important;
+}
+
+/* Calculator styling */
+.calculator-box {
+  background-color: #e6ecfa !important; /* Light blue background */
+  border-radius: 8px !important;
+  padding: 1.5rem !important; /* Reduced padding */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid #4169e1 !important; /* Royal blue border */
+}
+
+.calculator-header,
+.event-details-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 1.2rem !important; /* Reduced margin */
+  padding-bottom: 0.8rem !important; /* Reduced padding */
+}
+
+.calculator-header {
+  border-bottom: 2px solid #4169e1 !important;
+}
+
+.event-details-header {
+  border-bottom: 2px solid #e67e22 !important;
+}
+
+/* Event details icon */
+.event-details-icon-wrapper {
+  background-color: #e67e22 !important; /* Orange */
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  margin-left: 1rem !important;
+}
+
+.event-details-icon {
+  font-size: 2rem !important;
+  color: #fff !important;
+  display: block !important;
+}
+
+.calculator-icon-wrapper {
+  background-color: #4169e1 !important; /* Royal blue */
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important; /* Prevent shrinking */
+  margin-left: 1rem !important; /* Add some spacing */
+}
+
+.calculator-icon {
+  font-size: 2rem !important;
+  color: #fff !important;
+  display: block !important; /* Ensure it's always displayed */
+}
+
+/* Schedule containers */
+.schedule-options-container {
+  margin-top: 0.8rem !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 4px !important;
+  padding: 0.8rem !important;
+  max-height: 200px !important; /* Further reduced height */
+  overflow-y: auto !important;
+  background-color: #fff !important;
+  width: 100% !important;
+}
+
+.schedule-preview-container {
+  margin-top: 0.8rem !important;
+  background-color: #fff !important;
+  border-radius: 4px !important;
+  padding: 0.8rem !important;
+  border: 1px solid #dee2e6 !important;
+  overflow-x: auto !important;
+  width: 100% !important;
+  max-height: 200px !important; /* Limited height */
+  overflow-y: auto !important;
+}
+
+/* Schedule table styling */
+.schedule-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 1rem !important;
+  font-size: 0.9rem !important;
+  table-layout: fixed !important; /* Ensure consistent column widths */
+  min-width: 650px !important; /* Increased minimum width for better data display */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.schedule-table th,
+.schedule-table td {
+  border: 2px solid #b8c4de !important; /* Thicker borders with blue tint */
+  padding: 0.5rem !important;
+  text-align: center !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  background-clip: padding-box !important; /* Ensure background doesn't bleed through borders */
+}
+
+.schedule-table th {
+  background-color: #e6ecfa !important;
+  font-weight: 600 !important;
+  border-bottom: 3px solid #4169e1 !important; /* Emphasize header border */
+  color: #333 !important;
+}
+
+.schedule-table tr:nth-child(even) {
+  background-color: #f8f9fa !important;
+}
+
+.schedule-table tr:hover {
+  background-color: #eef2ff !important; /* Highlight row on hover */
+}
+
+.schedule-option {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 0.5rem !important;
+  padding: 0.5rem !important;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+}
+
+.schedule-option:hover {
+  background-color: #f8f9fa !important;
+  border-color: #dee2e6 !important;
+}
+
+.schedule-option.selected {
+  background-color: #e6ecfa !important;
+  border-color: #4169e1 !important;
+}
+
+/* Checkbox styling */
+.checkbox-group {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Custom toggle switch */
+.toggle-switch {
+  position: relative !important;
+  display: inline-block !important;
+  width: 60px !important;
+  height: 34px !important;
+  min-width: 60px !important; /* Ensure minimum width */
+  z-index: 10 !important; /* Higher z-index to ensure visibility */
+  flex-shrink: 0 !important; /* Prevent shrinking */
+}
+
+.toggle-switch input {
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.slider {
+  position: absolute !important;
+  cursor: pointer !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: #ccc !important;
+  transition: 0.4s !important;
+  border-radius: 34px !important;
+  border: 1px solid #aaa !important; /* Add border for better visibility */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important; /* Add shadow */
+  opacity: 1 !important; /* Ensure visibility */
+}
+
+.slider:before {
+  position: absolute !important;
+  content: "" !important;
+  height: 26px !important;
+  width: 26px !important;
+  left: 4px !important;
+  bottom: 4px !important;
+  background-color: white !important;
+  transition: 0.4s !important;
+  border-radius: 50% !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important; /* Add shadow to the handle */
+}
+
+input:checked + .slider {
+  background-color: #e67e22 !important;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #e67e22 !important;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px) !important;
+}
+
+.toggle-label {
+  margin-left: 70px !important;
+  font-weight: 500 !important;
+  display: inline-block !important; /* Ensure it's always displayed */
+  vertical-align: middle !important;
+}
+
+/* Form actions */
+.form-actions {
+  margin-top: 1rem !important;
+  display: flex !important;
+  justify-content: space-between !important; /* Spread buttons to corners */
+  width: 100% !important;
+  padding: 0 !important; /* Remove horizontal padding to align to edges */
+  position: sticky !important; /* Keep buttons accessible while scrolling */
+  bottom: 0 !important;
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.9
+  ) !important; /* Semi-transparent background */
+  padding-bottom: 0.5rem !important;
+  z-index: 10 !important;
+}
+
+.btn {
+  padding: 0.8rem 1.5rem !important; /* Slightly smaller buttons */
+  border-radius: 4px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.3s !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+.btn-primary {
+  background-color: #e67e22 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.btn-primary:hover {
+  background-color: #cf711f !important;
+}
+
+.btn-outline {
+  background-color: transparent !important;
+  color: #333 !important;
+  border: 1px solid #dee2e6 !important;
+}
+
+.btn-outline:hover {
+  background-color: #f8f9fa !important;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

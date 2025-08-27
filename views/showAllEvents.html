@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - All Events" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <script type="module" src="/js/eventManager.js" defer></script>
+    <title>RallyPoint - All Events</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/myAccountDetails" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <div class="header-with-actions">
+            <h2 class="text-center mb-lg">All Events</h2>
+            <a href="/events/create" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Create Event
+            </a>
+          </div>
+
+          <!-- Filter form -->
+          <form class="filter-form mb-lg">
+            <div class="filter-group">
+              <label for="organiser" class="filter-label"
+                >Filter by organiser:</label
+              >
+              <input
+                type="text"
+                id="organiser"
+                name="organiser"
+                class="form-control"
+                placeholder="Enter organiser name"
+              />
+            </div>
+
+            <div class="filter-group">
+              <label for="date" class="filter-label">Filter by date:</label>
+              <input type="date" id="date" name="date" class="form-control" />
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">Filter by status:</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="active" value="" checked />
+                  <span>All</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="active" value="true" />
+                  <span>Active</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="active" value="false" />
+                  <span>Inactive</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="filter-actions">
+              <button type="submit" class="btn btn-secondary">
+                <i class="fas fa-filter"></i> Filter
+              </button>
+              <button type="reset" class="btn btn-outline">
+                <i class="fas fa-undo"></i> Reset
+              </button>
+            </div>
+          </form>
+
+          <!-- Events table -->
+          <div class="table">
+            <div class="table-header">
+              <div class="table-cell">Name</div>
+              <div class="table-cell">Organiser</div>
+              <div class="table-cell">Date</div>
+              <div class="table-cell">Time</div>
+              <div class="table-cell">Status</div>
+              <div class="table-cell">Actions</div>
+            </div>
+
+            <div class="table-body" id="eventsTableBody">
+              <!-- Event rows will be added dynamically -->
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination" id="pagination">
+            <!-- Pagination controls will be added dynamically -->
+          </div>
+
+          <!-- Empty state -->
+          <div id="emptyState" class="empty-state" style="display: none">
+            <div class="empty-state-icon">
+              <i class="fas fa-calendar-times"></i>
+            </div>
+            <h3>No Events Found</h3>
+            <p>Try adjusting your filters or create a new event.</p>
+            <a href="/events/create" class="btn btn-primary mt-md">
+              <i class="fas fa-plus"></i> Create Event
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Delete confirmation modal -->
+    <div class="modal" id="deleteModal">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <h3>Confirm Deletion</h3>
+        <p>
+          Are you sure you want to delete this event? This action cannot be
+          undone.
+        </p>
+        <div class="modal-actions">
+          <button id="cancelDelete" class="btn btn-outline">Cancel</button>
+          <button id="confirmDelete" class="btn btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event row template -->
+    <template id="eventRowTemplate">
+      <div class="table-row">
+        <div class="table-cell event-name"></div>
+        <div class="table-cell event-organiser"></div>
+        <div class="table-cell event-date"></div>
+        <div class="table-cell event-time"></div>
+        <div class="table-cell event-status">
+          <span class="status-badge"></span>
+        </div>
+        <div class="table-cell event-actions">
+          <button class="btn-icon edit-event" title="Edit event">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-icon view-schedule" title="View schedule">
+            <i class="fas fa-calendar-alt"></i>
+          </button>
+          <button class="btn-icon delete-event" title="Delete event">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <script>
+      // This will be replaced with the eventManager.js module
+      document.addEventListener("DOMContentLoaded", function () {
+        // The eventManager.js module will handle all the event management functionality
+      });
+    </script>
+  </body>
+</html>

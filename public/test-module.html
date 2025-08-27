@@ -1,0 +1,31 @@
+/** * HTML test page to verify JavaScript module loading */
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JS Module Test</title>
+  </head>
+  <body>
+    <h1>JavaScript Module Test</h1>
+    <p>Check the browser console for logs.</p>
+
+    <!-- Test loading a JavaScript module -->
+    <script type="module">
+      console.log("Module script loaded successfully!");
+
+      // Try importing a module from your app
+      try {
+        import("/js/login.js")
+          .then((module) => {
+            console.log("Successfully imported login.js module:", module);
+          })
+          .catch((error) => {
+            console.error("Error importing login.js module:", error);
+          });
+      } catch (error) {
+        console.error("Error in module import syntax:", error);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,96 @@
+<header class="header">
+  <a class="logo" href="/">
+    <img src="/img/logo.png" alt="Pickle Logo" />
+  </a>
+  <div id="navigation-container">
+    <!-- Navigation will be inserted based on user role -->
+  </div>
+</header>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Get user role from window.templateData
+    const templateData = window.templateData || {};
+    const userRole = templateData.userRole;
+    const userName = templateData.userName;
+    const showNav = templateData.showNav !== false;
+
+    // Only show navigation if showNav is true
+    if (showNav) {
+      // Insert appropriate navigation based on user role
+      if (userRole === "clubAdmin") {
+        fetch("/includes/navLoggedInAsAdmin.html")
+          .then((response) => response.text())
+          .then((html) => {
+            const navContainer = document.getElementById(
+              "navigation-container"
+            );
+            navContainer.innerHTML = html.replace(
+              "{{userName}}",
+              userName || "User"
+            );
+
+            // Initialize navigation behaviors after loading
+            initializeNavigation();
+          });
+      } else if (userRole === "user") {
+        fetch("/includes/navLoggedInAsUser.html")
+          .then((response) => response.text())
+          .then((html) => {
+            const navContainer = document.getElementById(
+              "navigation-container"
+            );
+            navContainer.innerHTML = html.replace(
+              "{{userName}}",
+              userName || "User"
+            );
+
+            // Initialize navigation behaviors after loading
+            initializeNavigation();
+          });
+      }
+    }
+  });
+
+  function initializeNavigation() {
+    // Toggle settings dropdown
+    const settingsToggle = document.querySelector(".settings-toggle");
+    if (settingsToggle) {
+      settingsToggle.addEventListener("click", function (e) {
+        e.preventDefault();
+        const dropdown = document.querySelector(".settings-dropdown");
+        dropdown.classList.toggle("show");
+      });
+    }
+
+    // Mobile navigation toggle
+    const mobileNavToggle = document.getElementById("mobileNavToggle");
+    if (mobileNavToggle) {
+      mobileNavToggle.addEventListener("click", function () {
+        document.body.classList.toggle("nav-open");
+      });
+    }
+
+    // Logout functionality
+    const logoutButtons = document.querySelectorAll(".logOutButton");
+    logoutButtons.forEach((button) => {
+      button.addEventListener("click", function (e) {
+        e.preventDefault();
+        // Call the logout API endpoint
+        fetch("/api/v1/users/logout", {
+          method: "GET",
+          credentials: "same-origin",
+        })
+          .then((res) => {
+            if (res.status === 200) {
+              // Redirect to login page
+              window.location.href = "/me/login";
+            }
+          })
+          .catch((err) => {
+            console.error("Logout failed:", err);
+          });
+      });
+    });
+  }
+</script>

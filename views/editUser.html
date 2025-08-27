@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - Edit User" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <title>RallyPoint - Edit User</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/myAccountDetails" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="/users/showAll" aria-label="Users" class="active admin-only">
+        <i class="fas fa-users"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Edit User</h2>
+            </div>
+
+            <div class="card-body">
+              <form id="editUserForm" class="form">
+                <div class="form-group">
+                  <label for="name">Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="mobile">Mobile</label>
+                  <input
+                    type="tel"
+                    id="mobile"
+                    name="mobile"
+                    class="form-control"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="role">Role</label>
+                  <select id="role" name="role" class="form-control">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <div class="checkbox-group">
+                    <input
+                      type="checkbox"
+                      id="active"
+                      name="active"
+                      class="checkbox-input"
+                    />
+                    <label for="active" class="checkbox-label"
+                      >User is active</label
+                    >
+                  </div>
+                </div>
+
+                <!-- Hidden field for user ID -->
+                <input type="hidden" id="userId" name="userId" />
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">
+                    Save Changes
+                  </button>
+                  <a href="/users/showAll" class="btn btn-outline">Cancel</a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const editUserForm = document.getElementById("editUserForm");
+        const userId = window.location.pathname.split("/").pop();
+
+        // Fetch user data
+        fetch(`/api/v1/users/${userId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" && data.data && data.data.user) {
+              const user = data.data.user;
+
+              // Populate form fields
+              document.getElementById("name").value = user.name || "";
+              document.getElementById("email").value = user.email || "";
+              document.getElementById("mobile").value = user.mobile || "";
+              document.getElementById("userId").value = user._id;
+              document.getElementById("active").checked = user.active;
+
+              // Set role
+              const roleSelect = document.getElementById("role");
+              for (let i = 0; i < roleSelect.options.length; i++) {
+                if (roleSelect.options[i].value === user.role) {
+                  roleSelect.selectedIndex = i;
+                  break;
+                }
+              }
+            } else {
+              alert("Failed to load user data");
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching user data:", err);
+            alert("An error occurred while loading user data");
+          });
+
+        // Handle form submission
+        editUserForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(editUserForm);
+          const userData = {};
+
+          // Convert FormData to object
+          for (const [key, value] of formData.entries()) {
+            if (key === "active") {
+              userData[key] = true; // Checkbox is checked
+            } else if (key !== "userId") {
+              // Skip userId, we'll use it in the URL
+              userData[key] = value;
+            }
+          }
+
+          // Handle unchecked checkboxes
+          if (!formData.has("active")) {
+            userData.active = false;
+          }
+
+          try {
+            const response = await fetch(
+              `/api/v1/users/${formData.get("userId")}`,
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(userData),
+              }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+              // Show success message and redirect
+              alert("User updated successfully!");
+              window.location.href = `/users/showAll`;
+            } else {
+              // Show error message
+              alert(`Error: ${data.message || "Failed to update user"}`);
+            }
+          } catch (err) {
+            console.error("Error updating user:", err);
+            alert("An error occurred while updating the user");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

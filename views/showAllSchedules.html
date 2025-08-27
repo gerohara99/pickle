@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Pickleball admin - All Schedules" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/mediaQueries.css" />
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule=""
+      src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.js"
+    ></script>
+    <title>Pickleball | All Schedules</title>
+  </head>
+  <body>
+    <!-- Header will be included dynamically -->
+    <div id="header-placeholder"></div>
+
+    <main>
+      <section class="section-list">
+        <div class="container">
+          <form method="get" action="" class="filter-form">
+            <label for="organiser">Filter by organiser:</label>
+            <input
+              id="organiser"
+              type="text"
+              name="organiser"
+              placeholder="Enter organiser"
+            />
+            <label for="date">Filter by date:</label>
+            <input id="date" type="date" name="date" />
+            <button type="submit">Filter</button>
+          </form>
+
+          <div class="schedule-table">
+            <p class="subheading">Event Name</p>
+            <p class="subheading">Organiser</p>
+            <p class="subheading">Date</p>
+            <p class="subheading">Time</p>
+            <!-- Events will be populated by JavaScript -->
+            <div id="events-container"></div>
+          </div>
+
+          <!-- Pagination controls -->
+          <div id="pagination-controls" class="pagination"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Template data script -->
+    <script>
+      // This will be populated by server with actual data
+      window.templateData = window.templateData || {};
+    </script>
+
+    <!-- Load header component -->
+    <script>
+      // This script dynamically loads the header
+      fetch("/includes/header.html")
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById("header-placeholder").innerHTML = data;
+        })
+        .catch((error) => console.error("Error loading header:", error));
+    </script>
+
+    <!-- Main page script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Access template data from server
+        const { events, filters, pagination } = window.templateData;
+
+        // Set filter values if they exist
+        if (filters) {
+          document.getElementById("organiser").value = filters.organiser || "";
+          document.getElementById("date").value = filters.date || "";
+        }
+
+        // Generate event rows
+        const eventsContainer = document.getElementById("events-container");
+        if (events && events.length) {
+          events.forEach((event) => {
+            // Format date
+            const eventDate = new Date(event.eventDate);
+            const options = {
+              weekday: "short",
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            };
+            const formattedDate = eventDate.toLocaleDateString(
+              "en-GB",
+              options
+            );
+
+            // Create row elements
+            const row = document.createElement("div");
+            row.className = "table-row";
+
+            // Event name with link
+            const nameCell = document.createElement("p");
+            nameCell.className = "listItemText";
+            const nameLink = document.createElement("a");
+            nameLink.href = `/events/viewMasterSchedule/${event._id}`;
+            nameLink.textContent = event.eventName;
+            nameCell.appendChild(nameLink);
+
+            // Organiser
+            const organiserCell = document.createElement("p");
+            organiserCell.className = "listItemText";
+            organiserCell.textContent = event.eventOrganiser;
+
+            // Date
+            const dateCell = document.createElement("p");
+            dateCell.className = "listItemText";
+            dateCell.textContent = formattedDate;
+
+            // Time
+            const timeCell = document.createElement("p");
+            timeCell.className = "listItemText";
+            timeCell.textContent = event.eventStartTime;
+
+            // Append all cells to row
+            row.appendChild(nameCell);
+            row.appendChild(organiserCell);
+            row.appendChild(dateCell);
+            row.appendChild(timeCell);
+
+            // Add row to container
+            eventsContainer.appendChild(row);
+          });
+        } else {
+          // No events found
+          eventsContainer.innerHTML =
+            '<div class="table-row"><p class="listItemText">No schedules found</p></div>';
+        }
+
+        // Generate pagination if needed
+        if (pagination) {
+          const paginationControls = document.getElementById(
+            "pagination-controls"
+          );
+
+          // Create pagination UI
+          if (pagination.totalPages > 1) {
+            // Previous page button
+            if (pagination.currentPage > 1) {
+              const prevLink = createPaginationLink(
+                pagination.currentPage - 1,
+                "&laquo; Previous"
+              );
+              paginationControls.appendChild(prevLink);
+            }
+
+            // Page numbers
+            for (let i = 1; i <= pagination.totalPages; i++) {
+              const pageLink = createPaginationLink(i, i.toString());
+              if (i === pagination.currentPage) {
+                pageLink.classList.add("active");
+              }
+              paginationControls.appendChild(pageLink);
+            }
+
+            // Next page button
+            if (pagination.currentPage < pagination.totalPages) {
+              const nextLink = createPaginationLink(
+                pagination.currentPage + 1,
+                "Next &raquo;"
+              );
+              paginationControls.appendChild(nextLink);
+            }
+          }
+        }
+
+        // Helper function to create pagination links
+        function createPaginationLink(page, text) {
+          const link = document.createElement("a");
+          link.href = `?page=${page}`;
+          link.innerHTML = text;
+
+          // Add current filters to pagination links
+          if (filters) {
+            if (filters.organiser) {
+              link.href += `&organiser=${encodeURIComponent(filters.organiser)}`;
+            }
+            if (filters.date) {
+              link.href += `&date=${encodeURIComponent(filters.date)}`;
+            }
+          }
+
+          return link;
+        }
+      });
+    </script>
+  </body>
+</html>

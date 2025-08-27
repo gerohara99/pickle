@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - Account Details" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <title>RallyPoint - Account Details</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+    
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/account" aria-label="Profile" class="active">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+    
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <div class="card">
+            <div class="card__content">
+              <h2 class="text-center mb-lg">Account Details</h2>
+              
+              <ul class="account-tabs">
+                <li class="active"><a href="/me/account">Profile</a></li>
+                <li><a href="/me/passwordUpdate">Change Password</a></li>
+              </ul>
+              
+              <form id="acDetailsForm" class="form">
+                <div class="form-group">
+                  <label for="name">Name</label>
+                  <input 
+                    name="name" 
+                    type="text" 
+                    id="name" 
+                    required 
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input 
+                    name="email" 
+                    type="email" 
+                    id="email" 
+                    placeholder="you@example.com" 
+                    required 
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label for="mobile">Mobile</label>
+                  <input 
+                    name="mobile" 
+                    type="tel" 
+                    id="mobile" 
+                    required 
+                  />
+                </div>
+                
+                <input type="hidden" id="userId" />
+                
+                <div class="form-buttons">
+                  <button type="submit" class="btn btn--primary">
+                    <i class="fas fa-save"></i> Save Changes
+                  </button>
+                  <a href="/events/myBrowse" class="btn btn--outline">Cancel</a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <footer class="footer text-center mt-lg">
+      <p>&copy; 2025 RallyPoint. All rights reserved.</p>
+    </footer>
+    
+    <!-- Alert container for displaying messages -->
+    <div id="alert" class="alert hidden"></div>
+    
+    <script type="module">
+      document.addEventListener('DOMContentLoaded', () => {
+        // Populate form fields with user data (would be injected by server)
+        const user = window.userData || {};
+        if (user) {
+          document.getElementById('name').value = user.name || '';
+          document.getElementById('email').value = user.email || '';
+          document.getElementById('mobile').value = user.mobile || '';
+          document.getElementById('userId').value = user._id || '';
+        }
+      });
+    </script>
+  </body>
+</html>

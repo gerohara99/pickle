@@ -1,0 +1,81 @@
+<!-- Pagination component -->
+<div class="pagination">
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const templateData = window.templateData || {};
+      const pagination = templateData.pagination || {};
+
+      if (pagination.totalPages > 1) {
+        const paginationContainer = document.querySelector(".pagination");
+        const paginationList = document.createElement("ul");
+        paginationList.className = "pagination-list";
+
+        // Previous button
+        if (pagination.currentPage > 1) {
+          const prevItem = document.createElement("li");
+          const prevLink = document.createElement("a");
+          prevLink.href = `?page=${pagination.currentPage - 1}`;
+          prevLink.textContent = "Previous";
+
+          // Add any existing query parameters
+          if (window.location.search) {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.delete("page");
+            if (urlParams.toString()) {
+              prevLink.href += `&${urlParams.toString()}`;
+            }
+          }
+
+          prevItem.appendChild(prevLink);
+          paginationList.appendChild(prevItem);
+        }
+
+        // Page numbers
+        for (let i = 1; i <= pagination.totalPages; i++) {
+          const pageItem = document.createElement("li");
+          if (i === pagination.currentPage) {
+            pageItem.className = "active";
+          }
+
+          const pageLink = document.createElement("a");
+          pageLink.href = `?page=${i}`;
+          pageLink.textContent = i;
+
+          // Add any existing query parameters
+          if (window.location.search) {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.delete("page");
+            if (urlParams.toString()) {
+              pageLink.href += `&${urlParams.toString()}`;
+            }
+          }
+
+          pageItem.appendChild(pageLink);
+          paginationList.appendChild(pageItem);
+        }
+
+        // Next button
+        if (pagination.currentPage < pagination.totalPages) {
+          const nextItem = document.createElement("li");
+          const nextLink = document.createElement("a");
+          nextLink.href = `?page=${pagination.currentPage + 1}`;
+          nextLink.textContent = "Next";
+
+          // Add any existing query parameters
+          if (window.location.search) {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.delete("page");
+            if (urlParams.toString()) {
+              nextLink.href += `&${urlParams.toString()}`;
+            }
+          }
+
+          nextItem.appendChild(nextLink);
+          paginationList.appendChild(nextItem);
+        }
+
+        paginationContainer.appendChild(paginationList);
+      }
+    });
+  </script>
+</div>

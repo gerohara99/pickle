@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - System Settings" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <title>RallyPoint - System Settings</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/myAccountDetails" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="/users/showAll" aria-label="Users" class="admin-only">
+        <i class="fas fa-users"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">System Settings</h2>
+            </div>
+
+            <div class="card-body">
+              <form id="systemSettingsForm" class="form">
+                <div class="form-section">
+                  <h3 class="section-title">General Settings</h3>
+
+                  <div class="form-group">
+                    <label for="applicationName">Application Name</label>
+                    <input
+                      type="text"
+                      id="applicationName"
+                      name="applicationName"
+                      class="form-control"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="supportEmail">Support Email</label>
+                    <input
+                      type="email"
+                      id="supportEmail"
+                      name="supportEmail"
+                      class="form-control"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-section">
+                  <h3 class="section-title">Notification Settings</h3>
+
+                  <div class="form-group">
+                    <div class="checkbox-group">
+                      <input
+                        type="checkbox"
+                        id="enableEmailNotifications"
+                        name="enableEmailNotifications"
+                        class="checkbox-input"
+                      />
+                      <label
+                        for="enableEmailNotifications"
+                        class="checkbox-label"
+                        >Enable Email Notifications</label
+                      >
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <div class="checkbox-group">
+                      <input
+                        type="checkbox"
+                        id="enableSmsNotifications"
+                        name="enableSmsNotifications"
+                        class="checkbox-input"
+                      />
+                      <label for="enableSmsNotifications" class="checkbox-label"
+                        >Enable SMS Notifications</label
+                      >
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="notificationPrefix">Notification Prefix</label>
+                    <input
+                      type="text"
+                      id="notificationPrefix"
+                      name="notificationPrefix"
+                      class="form-control"
+                    />
+                    <small class="form-help-text"
+                      >This text will appear at the beginning of all
+                      notifications.</small
+                    >
+                  </div>
+                </div>
+
+                <div class="form-section">
+                  <h3 class="section-title">Scheduling Settings</h3>
+
+                  <div class="form-group">
+                    <label for="defaultSessionDuration"
+                      >Default Session Duration (minutes)</label
+                    >
+                    <input
+                      type="number"
+                      id="defaultSessionDuration"
+                      name="defaultSessionDuration"
+                      class="form-control"
+                      min="5"
+                      step="5"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="defaultMaxPlayers"
+                      >Default Maximum Players per Session</label
+                    >
+                    <input
+                      type="number"
+                      id="defaultMaxPlayers"
+                      name="defaultMaxPlayers"
+                      class="form-control"
+                      min="1"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="maxSessionsPerEvent"
+                      >Maximum Sessions per Event</label
+                    >
+                    <input
+                      type="number"
+                      id="maxSessionsPerEvent"
+                      name="maxSessionsPerEvent"
+                      class="form-control"
+                      min="1"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-section">
+                  <h3 class="section-title">Security Settings</h3>
+
+                  <div class="form-group">
+                    <label for="maxLoginAttempts">Maximum Login Attempts</label>
+                    <input
+                      type="number"
+                      id="maxLoginAttempts"
+                      name="maxLoginAttempts"
+                      class="form-control"
+                      min="1"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="passwordResetTimeLimit"
+                      >Password Reset Time Limit (minutes)</label
+                    >
+                    <input
+                      type="number"
+                      id="passwordResetTimeLimit"
+                      name="passwordResetTimeLimit"
+                      class="form-control"
+                      min="5"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sessionTimeout"
+                      >Session Timeout (minutes)</label
+                    >
+                    <input
+                      type="number"
+                      id="sessionTimeout"
+                      name="sessionTimeout"
+                      class="form-control"
+                      min="5"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">
+                    Save Settings
+                  </button>
+                  <button
+                    type="button"
+                    id="resetToDefaultsButton"
+                    class="btn btn-danger"
+                  >
+                    Reset to Defaults
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const systemSettingsForm =
+          document.getElementById("systemSettingsForm");
+        const resetToDefaultsButton = document.getElementById(
+          "resetToDefaultsButton"
+        );
+
+        // Fetch current settings
+        fetch("/api/v1/settings")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === "success" && data.data && data.data.settings) {
+              const settings = data.data.settings;
+
+              // Populate form fields with current settings
+              for (const key in settings) {
+                const element = document.getElementById(key);
+                if (element) {
+                  if (element.type === "checkbox") {
+                    element.checked = settings[key];
+                  } else {
+                    element.value = settings[key];
+                  }
+                }
+              }
+            } else {
+              alert("Failed to load system settings");
+            }
+          })
+          .catch((err) => {
+            console.error("Error fetching system settings:", err);
+            alert("An error occurred while loading system settings");
+          });
+
+        // Handle form submission
+        systemSettingsForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(systemSettingsForm);
+          const settingsData = {};
+
+          // Convert FormData to object
+          for (const [key, value] of formData.entries()) {
+            if (document.getElementById(key).type === "checkbox") {
+              settingsData[key] = true; // Checkbox is checked
+            } else if (document.getElementById(key).type === "number") {
+              settingsData[key] = parseInt(value, 10);
+            } else {
+              settingsData[key] = value;
+            }
+          }
+
+          // Handle unchecked checkboxes
+          const checkboxes = systemSettingsForm.querySelectorAll(
+            'input[type="checkbox"]'
+          );
+          checkboxes.forEach((checkbox) => {
+            if (!formData.has(checkbox.name)) {
+              settingsData[checkbox.name] = false;
+            }
+          });
+
+          try {
+            const response = await fetch("/api/v1/settings", {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(settingsData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              // Show success message
+              alert("System settings updated successfully!");
+            } else {
+              // Show error message
+              alert(
+                `Error: ${data.message || "Failed to update system settings"}`
+              );
+            }
+          } catch (err) {
+            console.error("Error updating system settings:", err);
+            alert("An error occurred while updating system settings");
+          }
+        });
+
+        // Handle reset to defaults
+        resetToDefaultsButton.addEventListener("click", async function () {
+          if (
+            confirm(
+              "Are you sure you want to reset all settings to default values? This cannot be undone."
+            )
+          ) {
+            try {
+              const response = await fetch("/api/v1/settings/reset", {
+                method: "POST",
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                // Show success message
+                alert("System settings reset to defaults");
+
+                // Reload the page to show the default settings
+                window.location.reload();
+              } else {
+                // Show error message
+                alert(
+                  `Error: ${data.message || "Failed to reset system settings"}`
+                );
+              }
+            } catch (err) {
+              console.error("Error resetting system settings:", err);
+              alert("An error occurred while resetting system settings");
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "name": "rallypoint-frontend",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "RallyPoint Frontend JavaScript",
+  "private": true
+}

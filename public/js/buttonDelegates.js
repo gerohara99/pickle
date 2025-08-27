@@ -47,18 +47,23 @@ export function initButtonDelegates(deps) {
     });
   }
 
-  delegate(document.body, "a.logOutButton", "click", async (e, target) => {
-    e.preventDefault();
-    target.disabled = true;
-    try {
-      await retryAsync(() => safeApiCall(logOutApiAction), [], 2, 500);
-    } catch (err) {
-      alert("Logout failed. Please try again.");
-      console.error("Logout failed:", err);
-    } finally {
-      target.disabled = false;
+  delegate(
+    document.body,
+    ".logOutButton, #logoutButton",
+    "click",
+    async (e, target) => {
+      e.preventDefault();
+      target.disabled = true;
+      try {
+        await retryAsync(() => safeApiCall(logOutApiAction), [], 2, 500);
+      } catch (err) {
+        alert("Logout failed. Please try again.");
+        console.error("Logout failed:", err);
+      } finally {
+        target.disabled = false;
+      }
     }
-  });
+  );
 
   delegate(document.body, "a.editUserButtons", "click", (e, target) => {
     e.preventDefault();

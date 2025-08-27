@@ -1,0 +1,13 @@
+<a class="main-nav-link" id="userNameGreeting" href="#">
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const templateData = window.templateData || {};
+      const userName = templateData.userName;
+
+      if (userName) {
+        document.getElementById("userNameGreeting").textContent =
+          `Hi ${userName} !!`;
+      }
+    });
+  </script>
+</a>

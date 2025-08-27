@@ -1,8 +1,9 @@
-import { initFormListeners } from "./formListeners";
-import { initButtonDelegates } from "./buttonDelegates";
-import { initScoreModal } from "./modal";
-import { initMobileNavToggle } from "./navToggle";
-import { initTabs } from "./tabs";
+import { initFormListeners } from "./formListeners.js";
+import { initButtonDelegates } from "./buttonDelegates.js";
+import { initScoreModal } from "./modal.js";
+import { initMobileNavToggle } from "./navToggle.js";
+import { initTabs } from "./tabs.js";
+import { initRoleDetection } from "./roleDetection.js";
 import {
   createUserApiAction,
   editUserApiAction,
@@ -22,9 +23,9 @@ import {
   markNoShowApiAction,
   eventCreateBookingApiAction,
   eventCancelBookingApiAction,
-} from "./apiActions";
+} from "./apiActions.js";
 
-import { initScheduleCalculator } from "./scheduleCalculator";
+import { initScheduleCalculator } from "./scheduleCalculator.js";
 
 // Dependency check helper
 function validateDeps(deps, requiredKeys, context) {
@@ -105,6 +106,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (document.querySelector(".tab")) {
       initTabs();
     }
+
+    // Role detection for UI visibility
+    initRoleDetection();
 
     // Button and link event delegation
     const buttonDeps = {

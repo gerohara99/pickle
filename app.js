@@ -19,6 +19,7 @@ const userRouter = require("./routes/userRoutes");
 const viewRouter = require("./routes/viewRoutes");
 const eventRouter = require("./routes/eventRoutes");
 const settingsRouter = require("./routes/settingsRoutes");
+const directHtmlController = require("./controllers/directHtmlController");
 require("dotenv").config({ path: path.resolve(__dirname, "config.env") });
 
 // Define required environment variables for each environment
@@ -139,9 +140,34 @@ console.log("Session middleware initialized.");
 app.enable("trust proxy");
 app.set("trust proxy", 1);
 
-//Serving static files
-app.use(express.static(path.join(__dirname, "public")));
-app.use("/js/dist", express.static(path.join(__dirname, "public/js/dist")));
+//Import MIME types middleware
+const mimeTypesMiddleware = require("./middleware/mimeTypes");
+const jsFileMiddleware = require("./middleware/jsFileMiddleware");
+
+// Apply special handling for JavaScript files
+app.use("/js", jsFileMiddleware);
+
+//Apply MIME types middleware before serving static files
+app.use(mimeTypesMiddleware);
+
+//Serving static files with proper MIME types
+const staticOptions = {
+  setHeaders: (res, path) => {
+    if (path.endsWith(".js")) {
+      res.setHeader("Content-Type", "application/javascript");
+    }
+  },
+};
+
+app.use(express.static(path.join(__dirname, "public"), staticOptions));
+app.use(
+  "/js/dist",
+  express.static(path.join(__dirname, "public/js/dist"), staticOptions)
+);
+app.use(
+  "/includes",
+  express.static(path.join(__dirname, "public/includes"), staticOptions)
+);
 
 // Vite manifest middleware (recommendation 4)
 app.use((req, res, next) => {
@@ -178,14 +204,14 @@ const corsOptions = {
     "https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.js",
     "https://fonts.gstatic.com",
     "https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap",
+    "http://localhost:3000", // Allow local domain for development
   ],
 };
 app.use(cors(corsOptions));
 
-// app.options("*", cors(corsOptions)); // Uncomment if needed for complex methods
-
-app.set("view engine", "pug");
-app.set("views", path.join(__dirname, "views"));
+// Direct HTML serving instead of Pug templates
+console.log("Using direct HTML serving for views");
+app.use(directHtmlController.serveHtmlMiddleware("views"));
 
 // MIDDLEWARES
 

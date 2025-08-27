@@ -1,6 +1,25 @@
 // api.js
-import axios from "axios";
+// The CDN version of axios doesn't use ES module exports
+// So we need to use it as a global variable
+// No need to import it as it will be loaded via script tag
 
-axios.defaults.withCredentials = true;
+// Create a wrapper module around axios
+const api = {
+  request: function (options) {
+    // Make sure axios is available
+    if (typeof axios === "undefined") {
+      console.error("Axios is not loaded! Check script loading in HTML.");
+      throw new Error("Axios is not available");
+    }
 
-export default axios;
+    return axios(options);
+  },
+};
+
+// Configure axios defaults if available
+if (typeof axios !== "undefined") {
+  axios.defaults.withCredentials = true;
+}
+
+// Export our API wrapper
+export default api;
