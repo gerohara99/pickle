@@ -43,9 +43,8 @@ exports.updateAcDetails = [
       return next(err);
     }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
+      // Removed transaction for simplicity and to avoid conflicts with session handling
       const updatedUser = await User.findByIdAndUpdate(
         req.body.userId,
         {
@@ -53,14 +52,10 @@ exports.updateAcDetails = [
           email: req.body.email,
           mobile: req.body.mobile,
         },
-        { runValidators: true, session }
+        { runValidators: true }
       );
-      await session.commitTransaction();
-      session.endSession();
       res.status(200).json({ status: "success", data: { user: updatedUser } });
     } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
       console.error("Error updating account details:", err);
       next(new AppError("Failed to update account details", 500));
     }
@@ -78,19 +73,14 @@ exports.deleteMe = [
       return next(err);
     }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
-      await User.findByIdAndUpdate(req.user.id, { active: false }, { session });
-      await session.commitTransaction();
-      session.endSession();
+      // Removed transaction for simplicity and to avoid conflicts with session handling
+      await User.findByIdAndUpdate(req.user.id, { active: false });
       res.status(204).json({
         status: "success",
         data: null,
       });
     } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
       console.error("Error deleting user:", err);
       next(new AppError("Failed to delete user", 500));
     }
@@ -112,9 +102,8 @@ exports.createUser = [
       return next(err);
     }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
+      // Removed transaction for simplicity and to avoid conflicts with session handling
       let activeValue = false;
       if (typeof req.body.active !== "undefined") {
         if (typeof req.body.active === "string") {
@@ -124,29 +113,20 @@ exports.createUser = [
         }
       }
 
-      const newUserArr = await User.create(
-        [
-          {
-            name: req.body.name,
-            email: req.body.email,
-            mobile: req.body.mobile,
-            password: req.body.password,
-            passwordConfirm: req.body.passwordConfirm,
-            active: activeValue,
-          },
-        ],
-        { session }
-      );
-      const newUser = newUserArr[0];
-      await session.commitTransaction();
-      session.endSession();
+      const newUser = await User.create({
+        name: req.body.name,
+        email: req.body.email,
+        mobile: req.body.mobile,
+        password: req.body.password,
+        passwordConfirm: req.body.passwordConfirm,
+        active: activeValue,
+      });
+
       res.status(201).json({
         status: "success",
         data: { user: newUser },
       });
     } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
       console.error("Error creating user:", err);
       next(new AppError("Failed to create user", 500));
     }
@@ -166,9 +146,8 @@ exports.updateUser = [
       return next(err);
     }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
+      // Removed transaction for simplicity and to avoid conflicts with session handling
       let activeValue = undefined;
       if (typeof req.body.active !== "undefined") {
         if (typeof req.body.active === "string") {
@@ -191,25 +170,18 @@ exports.updateUser = [
         {
           new: true,
           runValidators: true,
-          session,
         }
       );
 
       if (!updatedUser) {
-        await session.abortTransaction();
-        session.endSession();
         return next(new AppError("No user found with that ID", 404));
       }
 
-      await session.commitTransaction();
-      session.endSession();
       res.status(200).json({
         status: "success",
         data: { user: updatedUser },
       });
     } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
       console.error("Error updating user:", err);
       next(new AppError("Failed to update user", 500));
     }
@@ -226,26 +198,18 @@ exports.deleteUser = [
       return next(err);
     }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
-      const deletedUser = await User.findByIdAndDelete(req.params.id, {
-        session,
-      });
+      // Removed transaction for simplicity and to avoid conflicts with session handling
+      const deletedUser = await User.findByIdAndDelete(req.params.id);
       if (!deletedUser) {
-        await session.abortTransaction();
-        session.endSession();
         return next(new AppError("No user found with that ID", 404));
       }
-      await session.commitTransaction();
-      session.endSession();
+      
       res.status(204).json({
         status: "success",
         data: null,
       });
     } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
       console.error("Error deleting user:", err);
       next(new AppError("Failed to delete user", 500));
     }

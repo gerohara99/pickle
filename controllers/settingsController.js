@@ -26,42 +26,33 @@ exports.getSystemSettings = [
       return next(err);
     }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
-      const settings = await Settings.findOne({}).session(session);
+      // Removed transactions for simplicity and to avoid conflicts with session save
+      const settings = await Settings.findOne({});
       if (!settings) {
-        await session.abortTransaction();
-        session.endSession();
         return next(new AppError("No system settings found", 404));
       }
 
       req.session.systemDefaults = settings.systemDefaults;
       req.session.features = settings.features;
 
-      req.session.save((err) => {
-        if (err) {
-          session.abortTransaction();
-          session.endSession();
-          console.error("Session save error:", err);
-          return next(err);
-        }
-
-        session.commitTransaction();
-        session.endSession();
-
-        res.status(200).json({
-          status: "success",
-          message: "System settings retrieved successfully",
-          data: {
-            systemDefaults: req.session.systemDefaults,
-            features: req.session.features,
-          },
+      // Use Promise-based approach for session save
+      await new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) return reject(err);
+          resolve();
         });
       });
+
+      res.status(200).json({
+        status: "success",
+        message: "System settings retrieved successfully",
+        data: {
+          systemDefaults: req.session.systemDefaults,
+          features: req.session.features,
+        },
+      });
     } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
       console.error("Error retrieving system settings:", error);
       next(new AppError("Failed to retrieve system settings", 500));
     }
@@ -79,43 +70,36 @@ exports.saveSettings = [
       return next(err);
     }
 
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try {
+      // Removed transactions for simplicity and to avoid conflicts with session save
       const updateObj = {};
       if (req.body.systemDefaults)
         updateObj.systemDefaults = req.body.systemDefaults;
       if (req.body.features) updateObj.features = req.body.features;
 
-      await Settings.findOneAndUpdate({}, { $set: updateObj }, { session });
+      await Settings.findOneAndUpdate({}, { $set: updateObj });
 
       if (req.body.systemDefaults)
         req.session.systemDefaults = req.body.systemDefaults;
       if (req.body.features) req.session.features = req.body.features;
 
-      req.session.save((err) => {
-        if (err) {
-          session.abortTransaction();
-          session.endSession();
-          console.error("Session save error:", err);
-          return next(err);
-        }
-
-        session.commitTransaction();
-        session.endSession();
-
-        res.status(200).json({
-          status: "success",
-          message: "System settings saved successfully",
-          data: {
-            systemDefaults: req.session.systemDefaults,
-            features: req.session.features,
-          },
+      // Use Promise-based approach for session save
+      await new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) return reject(err);
+          resolve();
         });
       });
+
+      res.status(200).json({
+        status: "success",
+        message: "System settings saved successfully",
+        data: {
+          systemDefaults: req.session.systemDefaults,
+          features: req.session.features,
+        },
+      });
     } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
       console.error("Error saving system settings:", error);
       next(new AppError("Failed to save system settings", 500));
     }

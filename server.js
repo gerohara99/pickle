@@ -28,31 +28,45 @@ try {
 }
 
 // Graceful shutdown function
-function gracefulShutdown(signal) {
+async function gracefulShutdown(signal) {
   console.log(`${signal} RECEIVED. Shutting down gracefully`);
-  server.close(() => {
-    // Close DB connections if using mongoose
-    if (require("mongoose").connection.readyState === 1) {
-      require("mongoose").connection.close(false, () => {
-        console.log("MongoDB connection closed.");
-        console.log("Process terminated");
-        setTimeout(() => process.exit(0), 1000);
-      });
-    } else {
-      console.log("Process terminated");
-      setTimeout(() => process.exit(0), 1000);
-    }
+
+  // Close the HTTP server first
+  await new Promise((resolve) => {
+    server.close(resolve);
   });
+
+  // Close DB connections if using mongoose
+  try {
+    if (require("mongoose").connection.readyState === 1) {
+      await require("mongoose").connection.close();
+      console.log("MongoDB connection closed.");
+    }
+    console.log("Process terminated");
+    setTimeout(() => process.exit(0), 1000);
+  } catch (err) {
+    console.error("Error during shutdown:", err);
+    process.exit(1);
+  }
 }
 
 // Handle unhandled promise rejections
 process.on("unhandledRejection", (err) => {
   console.error("UNHANDLED REJECTION! Shutting down...");
   console.error(err.name, err.message);
-  gracefulShutdown("unhandledRejection");
+  // Call gracefulShutdown but don't wait for it as it's async
+  gracefulShutdown("unhandledRejection").catch((shutdownErr) => {
+    console.error("Error during graceful shutdown:", shutdownErr);
+    process.exit(1);
+  });
 });
 
 // Graceful shutdown on SIGTERM/SIGINT
 ["SIGTERM", "SIGINT"].forEach((signal) => {
-  process.on(signal, () => gracefulShutdown(signal));
+  process.on(signal, () => {
+    gracefulShutdown(signal).catch((shutdownErr) => {
+      console.error("Error during graceful shutdown:", shutdownErr);
+      process.exit(1);
+    });
+  });
 });

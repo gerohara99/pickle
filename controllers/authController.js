@@ -31,12 +31,20 @@ const createSendToken = (user, statusCode, req, res, next) => {
     const token = signToken(user._id);
 
     res.cookie("jwt", token, {
-      expiresIn: new Date(
+      expires: new Date(
         Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
       ),
       httpOnly: true,
       secure: req.secure || req.headers["x-forwarded-proto"] === "https",
     });
+
+    // Ensure req.session is defined before assigning properties
+    if (!req.session) {
+      console.error(
+        "Session is undefined. Ensure session middleware is properly configured."
+      );
+      return next(new Error("Session is not initialized."));
+    }
 
     req.session.user = {};
     req.session.systemDefaults = {};
@@ -47,121 +55,107 @@ const createSendToken = (user, statusCode, req, res, next) => {
     req.session.user.userMobile = user.mobile;
     user.password = undefined;
 
-    req.session.save((error) => {
-      if (error) {
+    // Replace callback-based req.session.save() with Promise-based approach
+    new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    })
+      .then(() => {
+        if (res.headersSent) return;
+        res.status(statusCode).json({
+          status: "success",
+          token,
+          user: user,
+        });
+      })
+      .catch((error) => {
+        if (res.headersSent) return;
         console.error("Session save error:", error);
         return next(error);
-      }
-
-      res.status(statusCode).json({
-        status: "success",
-        token,
-        user: user,
       });
-    });
   } catch (err) {
-    console.error("Synchronous error in createSendToken:", err);
+    console.error("Error in createSendToken:", err);
     next(err);
   }
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  try {
-    if (!req.body.email) throw new AppError("Email is required", 400);
-    if (!req.body.password) throw new AppError("Password is required", 400);
-    if (!req.body.passwordConfirm)
-      throw new AppError("Password confirmation is required", 400);
-  } catch (err) {
-    console.error("Synchronous error in signup:", err);
-    return next(err);
+  // Basic validation
+  if (!req.body.email || !req.body.password || !req.body.passwordConfirm) {
+    return next(new AppError("Please provide email, password and password confirmation", 400));
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const newUserArr = await User.create(
-      [
-        {
-          name: req.body.name,
-          email: req.body.email,
-          mobile: req.body.mobile,
-          password: req.body.password,
-          passwordConfirm: req.body.passwordConfirm,
-          passwordChangedAt: req.body.passwordChangedAt,
-          role: req.body.role,
-          active: true,
-        },
-      ],
-      { session }
-    );
-    await session.commitTransaction();
-    session.endSession();
-    createSendToken(newUserArr[0], 201, req, res, next);
+    // Create user without transaction for simplicity
+    const newUser = await User.create({
+      name: req.body.name,
+      email: req.body.email,
+      mobile: req.body.mobile,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+      passwordChangedAt: req.body.passwordChangedAt,
+      role: req.body.role,
+      active: true,
+    });
+    
+    // Send token
+    createSendToken(newUser, 201, req, res, next);
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Signup transaction error:", err);
+    console.error("Signup error:", err);
     next(new AppError("Failed to sign up user", 500));
   }
 });
 
 exports.create = catchAsync(async (req, res, next) => {
-  try {
-    if (!req.body.email) throw new AppError("Email is required", 400);
-    if (!req.body.password) throw new AppError("Password is required", 400);
-    if (!req.body.passwordConfirm)
-      throw new AppError("Password confirmation is required", 400);
-  } catch (err) {
-    console.error("Synchronous error in create:", err);
-    return next(err);
+  // Basic validation
+  if (!req.body.email || !req.body.password || !req.body.passwordConfirm) {
+    return next(new AppError("Please provide email, password and password confirmation", 400));
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const newUserArr = await User.create(
-      [
-        {
-          name: req.body.name,
-          email: req.body.email,
-          mobile: req.body.mobile,
-          password: req.body.password,
-          passwordConfirm: req.body.passwordConfirm,
-          passwordChangedAt: req.body.passwordChangedAt,
-          role: req.body.role,
-        },
-      ],
-      { session }
-    );
-    await session.commitTransaction();
-    session.endSession();
-    createSendToken(newUserArr[0], 201, req, res, next);
+    // Create user without transaction for simplicity
+    const newUser = await User.create({
+      name: req.body.name,
+      email: req.body.email,
+      mobile: req.body.mobile,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+      passwordChangedAt: req.body.passwordChangedAt,
+      role: req.body.role,
+    });
+    
+    // Send token
+    createSendToken(newUser, 201, req, res, next);
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("User creation transaction error:", err);
+    console.error("User creation error:", err);
     next(new AppError("Failed to create user", 500));
   }
 });
 
 exports.login = catchAsync(async (req, res, next) => {
-  try {
-    if (!req.body.email) throw new AppError("Please provide email", 400);
-    if (!req.body.password) throw new AppError("Please provide password", 400);
-  } catch (err) {
-    console.error("Synchronous error in login:", err);
-    return next(err);
+  // Basic validation
+  if (!req.body.email || !req.body.password) {
+    return next(new AppError("Please provide email and password", 400));
   }
 
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email }).select("+password");
-
-  if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError("Incorrect email or password", 401));
+  try {
+    // Find user
+    const user = await User.findOne({ email }).select("+password");
+    
+    // Check if user exists and password is correct
+    if (!user || !(await user.correctPassword(password, user.password))) {
+      return next(new AppError("Incorrect email or password", 401));
+    }
+    
+    createSendToken(user, 200, req, res, next);
+  } catch (error) {
+    console.error("Error during login process:", error);
+    return next(new AppError("Login process failed", 500));
   }
-
-  createSendToken(user, 200, req, res, next);
 });
 
 exports.logout = (req, res, next) => {
@@ -263,165 +257,123 @@ exports.restrictTo =
   };
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
-  try {
-    if (!req.body.email) throw new AppError("Email is required", 400);
-  } catch (err) {
-    console.error("Synchronous error in forgotPassword:", err);
-    return next(err);
+  if (!req.body.email) {
+    return next(new AppError("Please provide your email", 400));
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const user = await User.findOne({ email: req.body.email }).session(session);
+    // Find user
+    const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      await session.abortTransaction();
-      session.endSession();
-      return next(
-        new AppError("User does not exist with that email address", 404)
-      );
+      return next(new AppError("No user found with that email address", 404));
     }
-    const resetToken = user.createPasswordResetToken();
-    await user.save({ validateBeforeSave: false, session });
 
+    // Generate reset token
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Send email with reset URL
     const resetURL = `${req.protocol}://${req.get("host")}/me/myPasswordReset/${resetToken}`;
     const message = `Forgot your password? Submit a PATCH request with your new password and password confirm to: ${resetURL}. \nIf you didn't forget your password, please ignore this email`;
 
     try {
       await sendEMail({
-        email: req.body.email,
+        email: user.email,
         subject: "Your password reset token (valid only for 10 minutes)",
         message,
       });
 
-      await session.commitTransaction();
-      session.endSession();
-
       res.status(200).json({
         status: "success",
-        message: "Token sent to email",
+        message: "Token sent to email"
       });
     } catch (err) {
+      // Reset the token fields and save
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
-      await user.save({ validateBeforeSave: false, session });
-      await session.abortTransaction();
-      session.endSession();
+      await user.save({ validateBeforeSave: false });
 
-      console.error("Error sending password reset email:", err);
-      return next(
-        new AppError("There was an error sending password reset email", 500)
-      );
+      console.error("Error sending email:", err);
+      return next(new AppError("There was an error sending the email. Try again later!", 500));
     }
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Forgot password transaction error:", err);
-    next(new AppError("Unexpected error during password reset", 500));
+    console.error("Password reset error:", err);
+    return next(new AppError("Error processing password reset", 500));
   }
 });
 
 exports.passwordReset = catchAsync(async (req, res, next) => {
-  try {
-    if (!req.body.resetToken)
-      throw new AppError("Reset token is required", 400);
-    if (!req.body.password) throw new AppError("Password is required", 400);
-    if (!req.body.passwordConfirm)
-      throw new AppError("Password confirmation is required", 400);
-  } catch (err) {
-    console.error("Synchronous error in passwordReset:", err);
-    return next(err);
+  if (!req.body.resetToken || !req.body.password || !req.body.passwordConfirm) {
+    return next(new AppError("Please provide token, password and password confirmation", 400));
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
+    // Hash the token from the URL parameter
     const hashedToken = crypto
       .createHash("sha256")
       .update(req.body.resetToken)
       .digest("hex");
 
+    // Find user with valid token
     const user = await User.findOne({
       passwordResetToken: hashedToken,
-      passwordResetExpires: { $gt: Date.now() },
-    }).session(session);
+      passwordResetExpires: { $gt: Date.now() }
+    });
 
+    // Check if user exists and token is valid
     if (!user) {
-      await session.abortTransaction();
-      session.endSession();
       return next(new AppError("Token is invalid or has expired", 400));
     }
 
+    // Update password
     user.password = req.body.password;
     user.passwordConfirm = req.body.passwordConfirm;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-    await user.save({ session });
+    await user.save();
 
-    await session.commitTransaction();
-    session.endSession();
-
+    // Log the user in
     createSendToken(user, 200, req, res, next);
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Password reset transaction error:", err);
-    next(new AppError("Unexpected error during password reset", 500));
+    console.error("Password reset error:", err);
+    next(new AppError("Error resetting password", 500));
   }
 });
 
 exports.updateMyPassword = catchAsync(async (req, res, next) => {
-  try {
-    if (!req.body.userId) throw new AppError("User ID is required", 400);
-    if (!req.body.currentPassword)
-      throw new AppError("Current password is required", 400);
-    if (!req.body.newPassword)
-      throw new AppError("New password is required", 400);
-    if (!req.body.newPasswordConfirm)
-      throw new AppError("New password confirmation is required", 400);
-  } catch (err) {
-    console.error("Synchronous error in updateMyPassword:", err);
-    return next(err);
+  // Validate inputs
+  if (!req.body.userId || !req.body.currentPassword || !req.body.newPassword || !req.body.newPasswordConfirm) {
+    return next(new AppError("Please provide userId, current password, new password, and password confirmation", 400));
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
-    const user = await User.findById(req.body.userId)
-      .select("+password")
-      .session(session);
+    // Find current user
+    const user = await User.findById(req.body.userId).select("+password");
+    
+    // Check if user exists
     if (!user) {
-      await session.abortTransaction();
-      session.endSession();
-      return next(new AppError("No match for logged in user in database", 404));
+      return next(new AppError("No user found", 404));
     }
 
-    if (
-      !(await user.correctPassword(req.body.currentPassword, user.password))
-    ) {
-      await session.abortTransaction();
-      session.endSession();
-      return next(new AppError("Your current password is wrong", 401));
+    // Check if current password is correct
+    if (!(await user.correctPassword(req.body.currentPassword, user.password))) {
+      return next(new AppError("Your current password is incorrect", 401));
     }
 
+    // Check if new passwords match
     if (req.body.newPassword !== req.body.newPasswordConfirm) {
-      await session.abortTransaction();
-      session.endSession();
-      return next(new AppError("Passwords are not the same", 400));
+      return next(new AppError("New passwords do not match", 400));
     }
 
+    // Update password
     user.password = req.body.newPassword;
     user.passwordConfirm = req.body.newPasswordConfirm;
-    await user.save({ session });
+    await user.save();
 
-    await session.commitTransaction();
-    session.endSession();
-
+    // Log user in with new password
     createSendToken(user, 200, req, res, next);
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Update password transaction error:", err);
-    next(new AppError("Unexpected error during password update", 500));
+    console.error("Password update error:", err);
+    next(new AppError("Error updating password", 500));
   }
 });

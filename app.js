@@ -70,30 +70,30 @@ const app = express();
 // ***************** DATABASE Setup with retry logic (recommendation 1)
 let DATABASE, DATABASE_PASSWORD;
 if (process.env.NODE_ENV === "production") {
+  console.log("Using PRODUCTION database");
   DATABASE = process.env.PROD_DATABASE;
   DATABASE_PASSWORD = process.env.PROD_DATABASE_PASSWORD;
 } else if (process.env.NODE_ENV === "staging") {
+  console.log("Using STAGING database");
   DATABASE = process.env.STAGE_DATABASE;
   DATABASE_PASSWORD = process.env.STAGE_DATABASE_PASSWORD;
 } else {
+  console.log("Using DEVELOPMENT database");
   DATABASE = process.env.DEV_DATABASE;
   DATABASE_PASSWORD = process.env.DEV_DATABASE_PASSWORD;
 }
 
 // Replace <PASSWORD> placeholder if present
-if (DATABASE.includes("<PASSWORD>")) {
+if (DATABASE && DATABASE.includes("<PASSWORD>")) {
   DATABASE = DATABASE.replace("<PASSWORD>", DATABASE_PASSWORD || "");
 }
+
+console.log("NODE_ENV:", process.env.NODE_ENV);
 
 async function connectWithRetry(retries = 5, delay = 5000) {
   for (let i = 0; i < retries; i++) {
     try {
-      await mongoose.connect(DATABASE, {
-        useNewUrlParser: true,
-        createIndexes: true,
-        useUnifiedTopology: true,
-        FindAndModify: false,
-      });
+      await mongoose.connect(DATABASE);
       console.log("MongoDB connected.");
       return;
     } catch (err) {
@@ -118,6 +118,9 @@ app.use(express.urlencoded({ extended: true }));
 const store = new MongoDBStore({
   uri: DATABASE,
   collection: "sessions",
+  connectionOptions: {
+    serverSelectionTimeoutMS: 10000,
+  },
 });
 
 // Catch errors (recommendation 4)
@@ -137,6 +140,8 @@ app.use(
     saveUninitialized: false,
   })
 );
+
+console.log("Session middleware initialized.");
 
 app.enable("trust proxy");
 app.set("trust proxy", 1);
