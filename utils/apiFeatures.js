@@ -14,9 +14,40 @@ class APIFeatures {
 
   filter() {
     try {
+      console.log(
+        "[APIFeatures.filter] Initial queryString:",
+        this.queryString
+      );
+
       const queryObj = { ...this.queryString };
       const excludedFields = ["page", "sort", "limit", "fields"];
       excludedFields.forEach((el) => delete queryObj[el]);
+
+      console.log(
+        "[APIFeatures.filter] After removing pagination fields:",
+        queryObj
+      );
+
+      // Special handling for regex fields
+      // Convert fields with [$regex] and [$options] into proper MongoDB regex
+      Object.keys(queryObj).forEach((key) => {
+        if (key.endsWith("[$regex]")) {
+          const fieldName = key.replace("[$regex]", "");
+          const options = queryObj[`${fieldName}[$options]`] || "";
+
+          // Create regex object
+          queryObj[fieldName] = {
+            $regex: queryObj[key],
+            $options: options,
+          };
+
+          // Remove the original keys
+          delete queryObj[key];
+          delete queryObj[`${fieldName}[$options]`];
+        }
+      });
+
+      console.log("[APIFeatures.filter] After regex processing:", queryObj);
 
       let queryStr = JSON.stringify(queryObj);
       queryStr = queryStr.replace(
@@ -24,7 +55,10 @@ class APIFeatures {
         (match) => `$${match}`
       );
 
-      this.query = this.query.find(JSON.parse(queryStr));
+      const parsedQuery = JSON.parse(queryStr);
+      console.log("[APIFeatures.filter] Final MongoDB query:", parsedQuery);
+
+      this.query = this.query.find(parsedQuery);
     } catch (err) {
       console.error("APIFeatures.filter error:", err);
       this.query = this.query.find({});

@@ -1,0 +1,871 @@
+Clone found (markup):
+ - [1m[32mviews/viewMasterSchedule.html[39m[22m [6:29 - 15:2] (9 lines, 97 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 16:7]
+
+Clone found (markup):
+ - [1m[32mviews/viewMasterSchedule.html[39m[22m [15:19 - 22:6] (7 lines, 68 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [14:20 - 21:7]
+
+Clone found (markup):
+ - [1m[32mviews/viewMasterSchedule.html[39m[22m [22:2 - 33:2] (11 lines, 91 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:2 - 33:2]
+
+Clone found (markup):
+ - [1m[32mviews/viewMasterSchedule.html[39m[22m [33:10 - 52:8] (19 lines, 204 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [33:7 - 51:3]
+
+Clone found (markup):
+ - [1m[32mviews/viewMasterSchedule.html[39m[22m [79:11 - 91:5] (12 lines, 111 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [68:11 - 80:3]
+
+Clone found (markup):
+ - [1m[32mviews/viewMasterSchedule.html[39m[22m [128:18 - 136:5] (8 lines, 92 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [102:20 - 110:3]
+
+Clone found (markup):
+ - [1m[32mviews/viewMasterSchedule.html[39m[22m [141:28 - 154:50] (13 lines, 106 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [115:35 - 127:3]
+
+Clone found (markup):
+ - [1m[32mviews/signup.html[39m[22m [9:5 - 18:16] (9 lines, 105 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:2 - 15:19]
+
+Clone found (markup):
+ - [1m[32mviews/signup.html[39m[22m [24:3 - 34:10] (10 lines, 81 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 33:17]
+
+Clone found (markup):
+ - [1m[32mviews/showAllUsers.html[39m[22m [1:1 - 6:23] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/showAllUsers.html[39m[22m [6:23 - 20:19] (14 lines, 147 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:17]
+
+Clone found (markup):
+ - [1m[32mviews/showAllUsers.html[39m[22m [21:6 - 41:15] (20 lines, 190 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 42:2]
+
+Clone found (markup):
+ - [1m[32mviews/showAllUsers.html[39m[22m [42:13 - 52:20] (10 lines, 99 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [40:12 - 50:13]
+
+Clone found (markup):
+ - [1m[32mviews/showAllSchedules.html[39m[22m [7:33 - 15:16] (8 lines, 89 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 14:20]
+
+Clone found (markup):
+ - [1m[32mviews/showAllEvents.html[39m[22m [1:1 - 6:24] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/showAllEvents.html[39m[22m [6:24 - 20:20] (14 lines, 147 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:17]
+
+Clone found (markup):
+ - [1m[32mviews/showAllEvents.html[39m[22m [21:7 - 50:4] (29 lines, 285 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 53:5]
+
+Clone found (markup):
+ - [1m[32mviews/showAllEvents.html[39m[22m [74:13 - 104:22] (30 lines, 304 tokens)
+   [1m[32mviews/showAllUsers.html[39m[22m [81:13 - 111:21]
+
+Clone found (markup):
+ - [1m[32mviews/showAllEvents.html[39m[22m [117:13 - 128:22] (11 lines, 83 tokens)
+   [1m[32mviews/showAllUsers.html[39m[22m [123:13 - 134:13]
+
+Clone found (markup):
+ - [1m[32mviews/showAllEvents.html[39m[22m [134:13 - 146:7] (12 lines, 104 tokens)
+   [1m[32mviews/showAllUsers.html[39m[22m [140:13 - 152:6]
+
+Clone found (markup):
+ - [1m[32mviews/showAllEvents.html[39m[22m [146:2 - 156:28] (10 lines, 86 tokens)
+   [1m[32mviews/showAllUsers.html[39m[22m [152:2 - 162:27]
+
+Clone found (markup):
+ - [1m[32mviews/scheduleCalculator.html[39m[22m [1:1 - 6:33] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/scheduleCalculator.html[39m[22m [6:33 - 20:26] (14 lines, 147 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:17]
+
+Clone found (markup):
+ - [1m[32mviews/scheduleCalculator.html[39m[22m [21:11 - 41:11] (20 lines, 202 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 41:18]
+
+Clone found (markup):
+ - [1m[32mviews/scheduleCalculator.html[39m[22m [41:11 - 52:5] (11 lines, 110 tokens)
+   [1m[32mviews/showAllUsers.html[39m[22m [41:18 - 50:13]
+
+Clone found (markup):
+ - [1m[32mviews/scheduleCalculator.html[39m[22m [45:20 - 53:12] (8 lines, 68 tokens)
+   [1m[32mviews/signup.html[39m[22m [35:19 - 42:14]
+
+Clone found (markup):
+ - [1m[32mviews/noShowEvent.html[39m[22m [1:1 - 6:29] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/noShowEvent.html[39m[22m [6:29 - 20:6] (14 lines, 136 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:7]
+
+Clone found (markup):
+ - [1m[32mviews/noShowEvent.html[39m[22m [20:6 - 34:2] (14 lines, 126 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 36:2]
+
+Clone found (markup):
+ - [1m[32mviews/noShowEvent.html[39m[22m [34:7 - 51:16] (17 lines, 188 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [36:12 - 50:13]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordUpdate.html[39m[22m [1:1 - 6:29] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordUpdate.html[39m[22m [6:29 - 20:22] (14 lines, 147 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:17]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordUpdate.html[39m[22m [21:9 - 38:12] (17 lines, 154 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 39:21]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordUpdate.html[39m[22m [38:7 - 51:18] (13 lines, 132 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [39:8 - 43:12]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordUpdate.html[39m[22m [135:4 - 150:2] (15 lines, 99 tokens)
+   [1m[32mviews/signup.html[39m[22m [137:2 - 151:2]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordReset.html[39m[22m [1:1 - 6:28] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordReset.html[39m[22m [6:28 - 20:25] (14 lines, 147 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:17]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordForgot.html[39m[22m [1:1 - 6:29] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordForgot.html[39m[22m [6:29 - 20:7] (14 lines, 142 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:6]
+
+Clone found (markup):
+ - [1m[32mviews/myPasswordForgot.html[39m[22m [20:2 - 32:7] (12 lines, 106 tokens)
+   [1m[32mviews/myPasswordReset.html[39m[22m [21:2 - 33:6]
+
+Clone found (markup):
+ - [1m[32mviews/myAccountDetails.html[39m[22m [1:1 - 6:29] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/myAccountDetails.html[39m[22m [6:29 - 20:22] (14 lines, 147 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:17]
+
+Clone found (markup):
+ - [1m[32mviews/myAccountDetails.html[39m[22m [21:8 - 51:8] (30 lines, 302 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 51:7]
+
+Clone found (markup):
+ - [1m[32mviews/myAccountDetails.html[39m[22m [61:2 - 76:3] (15 lines, 94 tokens)
+   [1m[32mviews/signup.html[39m[22m [56:19 - 71:7]
+
+Clone found (markup):
+ - [1m[32mviews/myAccountDetails.html[39m[22m [86:17 - 102:2] (16 lines, 110 tokens)
+   [1m[32mviews/myPasswordUpdate.html[39m[22m [134:12 - 150:3]
+
+Clone found (markup):
+ - [1m[32mviews/myAccountDetails.html[39m[22m [93:5 - 103:46] (10 lines, 75 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [188:4 - 198:46]
+
+Clone found (markup):
+ - [1m[32mviews/login.html[39m[22m [14:7 - 24:11] (10 lines, 79 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:6 - 33:17]
+
+Clone found (markup):
+ - [1m[32mviews/homepage.html[39m[22m [1:1 - 8:52] (7 lines, 60 tokens)
+   [1m[32mviews/signup.html[39m[22m [1:1 - 8:44]
+
+Clone found (markup):
+ - [1m[32mviews/homepage.html[39m[22m [8:52 - 23:5] (15 lines, 142 tokens)
+   [1m[32mviews/signup.html[39m[22m [8:44 - 20:6]
+
+Clone found (markup):
+ - [1m[32mviews/homepage.html[39m[22m [35:19 - 44:10] (9 lines, 82 tokens)
+   [1m[32mviews/login.html[39m[22m [22:12 - 30:21]
+
+Clone found (markup):
+ - [1m[32mviews/homepage.html[39m[22m [93:4 - 107:2] (14 lines, 94 tokens)
+   [1m[32mviews/signup.html[39m[22m [138:5 - 151:2]
+
+Clone found (markup):
+ - [1m[32mviews/error.html[39m[22m [1:1 - 6:19] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/error.html[39m[22m [6:19 - 20:6] (14 lines, 142 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:6]
+
+Clone found (markup):
+ - [1m[32mviews/error.html[39m[22m [20:6 - 30:16] (10 lines, 74 tokens)
+   [1m[32mviews/myPasswordReset.html[39m[22m [21:9 - 31:13]
+
+Clone found (markup):
+ - [1m[32mviews/error.html[39m[22m [25:7 - 32:28] (7 lines, 65 tokens)
+   [1m[32mviews/noShowEvent.html[39m[22m [46:4 - 53:22]
+
+Clone found (markup):
+ - [1m[32mviews/editUser.html[39m[22m [1:1 - 6:23] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/editUser.html[39m[22m [6:23 - 20:5] (14 lines, 142 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:6]
+
+Clone found (markup):
+ - [1m[32mviews/editUser.html[39m[22m [20:5 - 53:5] (33 lines, 338 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 54:9]
+
+Clone found (markup):
+ - [1m[32mviews/editSystemSettings.html[39m[22m [1:1 - 6:29] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/editSystemSettings.html[39m[22m [6:29 - 20:7] (14 lines, 142 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:6]
+
+Clone found (markup):
+ - [1m[32mviews/editSystemSettings.html[39m[22m [20:9 - 53:7] (33 lines, 338 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 54:9]
+
+Clone found (markup):
+ - [1m[32mviews/editEvent.html[39m[22m [1:1 - 6:24] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/editEvent.html[39m[22m [6:24 - 20:6] (14 lines, 144 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:5]
+
+Clone found (markup):
+ - [1m[32mviews/editEvent.html[39m[22m [20:6 - 53:6] (33 lines, 346 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [22:9 - 53:5]
+
+Clone found (markup):
+ - [1m[32mviews/createUser.html[39m[22m [1:1 - 6:25] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/createUser.html[39m[22m [6:25 - 21:7] (15 lines, 164 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 21:6]
+
+Clone found (markup):
+ - [1m[32mviews/createUser.html[39m[22m [21:2 - 54:7] (33 lines, 339 tokens)
+   [1m[32mviews/editUser.html[39m[22m [20:2 - 54:9]
+
+Clone found (markup):
+ - [1m[32mviews/createUser.html[39m[22m [58:15 - 77:12] (19 lines, 127 tokens)
+   [1m[32mviews/editUser.html[39m[22m [57:13 - 76:9]
+
+Clone found (markup):
+ - [1m[32mviews/createUser.html[39m[22m [77:17 - 96:2] (19 lines, 134 tokens)
+   [1m[32mviews/editUser.html[39m[22m [75:13 - 94:2]
+
+Clone found (markup):
+ - [1m[32mviews/createUser.html[39m[22m [131:16 - 143:23] (12 lines, 67 tokens)
+   [1m[32mviews/createUser.html[39m[22m [107:9 - 119:24]
+
+Clone found (markup):
+ - [1m[32mviews/createUser.html[39m[22m [164:19 - 176:15] (12 lines, 78 tokens)
+   [1m[32mviews/editUser.html[39m[22m [119:19 - 131:13]
+
+Clone found (markup):
+ - [1m[32mviews/createEvent.html[39m[22m [1:1 - 6:32] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/createEvent.html[39m[22m [6:32 - 15:21] (9 lines, 107 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 15:19]
+
+Clone found (markup):
+ - [1m[32mviews/createEvent.html[39m[22m [15:21 - 22:7] (7 lines, 68 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [14:20 - 21:6]
+
+Clone found (markup):
+ - [1m[32mviews/createEvent.html[39m[22m [23:2 - 41:9] (18 lines, 151 tokens)
+   [1m[32mviews/editEvent.html[39m[22m [20:2 - 39:2]
+
+Clone found (markup):
+ - [1m[32mviews/createEvent.html[39m[22m [45:19 - 50:6] (5 lines, 63 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [37:14 - 42:11]
+
+Clone found (markup):
+ - [1m[32mviews/createEvent.html[39m[22m [50:13 - 60:3] (10 lines, 101 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [42:13 - 54:5]
+
+Clone found (markup):
+ - [1m[32mviews/browseNewEvents.html[39m[22m [1:1 - 6:27] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/browseNewEvents.html[39m[22m [6:27 - 20:20] (14 lines, 147 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:17]
+
+Clone found (markup):
+ - [1m[32mviews/browseNewEvents.html[39m[22m [21:2 - 38:12] (17 lines, 161 tokens)
+   [1m[32mviews/showAllEvents.html[39m[22m [21:2 - 37:21]
+
+Clone found (markup):
+ - [1m[32mviews/browseNewEvents.html[39m[22m [38:12 - 49:3] (11 lines, 111 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [39:21 - 50:4]
+
+Clone found (markup):
+ - [1m[32mviews/browseMyEvents.html[39m[22m [1:1 - 6:32] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mviews/browseMyEvents.html[39m[22m [6:32 - 20:16] (14 lines, 147 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 20:17]
+
+Clone found (markup):
+ - [1m[32mviews/browseMyEvents.html[39m[22m [21:2 - 38:2] (17 lines, 169 tokens)
+   [1m[32mviews/showAllEvents.html[39m[22m [21:2 - 38:2]
+
+Clone found (markup):
+ - [1m[32mviews/browseMyEvents.html[39m[22m [35:12 - 49:3] (14 lines, 149 tokens)
+   [1m[32mviews/browseNewEvents.html[39m[22m [35:7 - 49:10]
+
+Clone found (markup):
+ - [1m[32mviews/browseMyEvents.html[39m[22m [54:2 - 88:12] (34 lines, 280 tokens)
+   [1m[32mviews/browseNewEvents.html[39m[22m [82:2 - 116:14]
+
+Clone found (markup):
+ - [1m[32mviews/browseMyEvents.html[39m[22m [88:2 - 96:2] (8 lines, 73 tokens)
+   [1m[32mviews/browseNewEvents.html[39m[22m [114:4 - 123:2]
+
+Clone found (markup):
+ - [1m[32mviews/baseTemplate.html[39m[22m [1:1 - 8:40] (7 lines, 60 tokens)
+   [1m[32mviews/signup.html[39m[22m [1:1 - 8:44]
+
+Clone found (markup):
+ - [1m[32mviews/baseTemplate.html[39m[22m [8:40 - 23:18] (15 lines, 147 tokens)
+   [1m[32mviews/signup.html[39m[22m [8:44 - 20:17]
+
+Clone found (markup):
+ - [1m[32mviews/baseTemplate.html[39m[22m [83:9 - 96:4] (13 lines, 98 tokens)
+   [1m[32mviews/signup.html[39m[22m [141:9 - 104:9]
+
+Clone found (javascript):
+ - [1m[32mroutes/viewRoutes.js[39m[22m [217:7 - 227:8] (10 lines, 89 tokens)
+   [1m[32mroutes/viewRoutes.js[39m[22m [135:6 - 145:2]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/formListeners.js[39m[22m [200:20 - 207:9] (7 lines, 66 tokens)
+   [1m[32mpublic/js/formListeners.js[39m[22m [138:16 - 145:2]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/formListeners.js[39m[22m [250:9 - 256:17] (6 lines, 84 tokens)
+   [1m[32mpublic/js/formListeners.js[39m[22m [228:9 - 234:18]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/eventManager.js[39m[22m [47:5 - 58:15] (11 lines, 81 tokens)
+   [1m[32mpublic/js/userManager.js[39m[22m [55:5 - 66:14]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/eventManager.js[39m[22m [59:11 - 83:12] (24 lines, 171 tokens)
+   [1m[32mpublic/js/userManager.js[39m[22m [67:10 - 91:11]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/eventManager.js[39m[22m [83:12 - 105:16] (22 lines, 162 tokens)
+   [1m[32mpublic/js/userManager.js[39m[22m [91:11 - 113:15]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/eventManager.js[39m[22m [267:7 - 357:11] (90 lines, 776 tokens)
+   [1m[32mpublic/js/userManager.js[39m[22m [216:34 - 306:10]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/eventManager.js[39m[22m [363:7 - 373:12] (10 lines, 85 tokens)
+   [1m[32mpublic/js/userManager.js[39m[22m [312:7 - 322:11]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/eventManager.js[39m[22m [385:2 - 394:11] (9 lines, 80 tokens)
+   [1m[32mpublic/js/userManager.js[39m[22m [334:2 - 343:10]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/buttonDelegates.js[39m[22m [17:3 - 41:9] (24 lines, 202 tokens)
+   [1m[32mpublic/js/formListeners.js[39m[22m [16:3 - 40:21]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/buttonDelegates.js[39m[22m [183:23 - 196:28] (13 lines, 102 tokens)
+   [1m[32mpublic/js/buttonDelegates.js[39m[22m [158:21 - 168:28]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/browseEvents.js[39m[22m [13:18 - 28:31] (15 lines, 89 tokens)
+   [1m[32mpublic/js/myEvents.js[39m[22m [9:22 - 24:21]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/browseEvents.js[39m[22m [109:15 - 136:55] (27 lines, 216 tokens)
+   [1m[32mpublic/js/myEvents.js[39m[22m [32:7 - 58:6]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/browseEvents.js[39m[22m [151:9 - 164:23] (13 lines, 86 tokens)
+   [1m[32mpublic/js/myEvents.js[39m[22m [62:9 - 75:50]
+
+Clone found (javascript):
+ - [1m[32mpublic/js/browseEvents.js[39m[22m [202:19 - 213:29] (11 lines, 84 tokens)
+   [1m[32mpublic/js/myEvents.js[39m[22m [120:21 - 131:34]
+
+Clone found (markup):
+ - [1m[32mpublic/includes/navLoggedInAsUser.html[39m[22m [9:3 - 16:30] (7 lines, 73 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [33:7 - 39:2]
+
+Clone found (markup):
+ - [1m[32mpublic/includes/navLoggedInAsUser.html[39m[22m [68:2 - 80:2] (12 lines, 88 tokens)
+   [1m[32mpublic/includes/navLoggedInAsUser.html[39m[22m [55:2 - 67:2]
+
+Clone found (markup):
+ - [1m[32mpublic/includes/navLoggedInAsAdmin.html[39m[22m [36:3 - 44:52] (8 lines, 82 tokens)
+   [1m[32mviews/browseNewEvents.html[39m[22m [38:7 - 47:2]
+
+Clone found (markup):
+ - [1m[32mpublic/includes/navLoggedInAsAdmin.html[39m[22m [39:3 - 65:25] (26 lines, 193 tokens)
+   [1m[32mpublic/includes/navLoggedInAsUser.html[39m[22m [22:3 - 48:14]
+
+Clone found (markup):
+ - [1m[32mpublic/includes/navLoggedInAsAdmin.html[39m[22m [77:5 - 94:2] (17 lines, 124 tokens)
+   [1m[32mpublic/includes/navLoggedInAsUser.html[39m[22m [51:7 - 68:4]
+
+Clone found (markup):
+ - [1m[32mpublic/html/viewMySchedule.html[39m[22m [1:1 - 307:2] (306 lines, 3119 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 307:2]
+
+Clone found (markup):
+ - [1m[32mpublic/html/viewMasterSchedule.html[39m[22m [1:1 - 51:32] (50 lines, 530 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 52:32]
+
+Clone found (markup):
+ - [1m[32mpublic/html/viewMasterSchedule.html[39m[22m [51:2 - 151:2] (100 lines, 853 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [56:13 - 156:2]
+
+Clone found (markup):
+ - [1m[32mpublic/html/signup.html[39m[22m [7:38 - 25:12] (18 lines, 157 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [6:25 - 25:11]
+
+Clone found (markup):
+ - [1m[32mpublic/html/showAllUsers.html[39m[22m [1:1 - 62:2] (61 lines, 651 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 63:17]
+
+Clone found (markup):
+ - [1m[32mpublic/html/showAllUsers.html[39m[22m [70:13 - 85:2] (15 lines, 197 tokens)
+   [1m[32mviews/showAllUsers.html[39m[22m [72:13 - 87:2]
+
+Clone found (markup):
+ - [1m[32mpublic/html/showAllUsers.html[39m[22m [94:19 - 130:15] (36 lines, 315 tokens)
+   [1m[32mviews/showAllUsers.html[39m[22m [96:19 - 132:14]
+
+Clone found (markup):
+ - [1m[32mpublic/html/showAllUsers.html[39m[22m [130:15 - 182:2] (52 lines, 549 tokens)
+   [1m[32mviews/showAllUsers.html[39m[22m [132:14 - 187:2]
+
+Clone found (markup):
+ - [1m[32mpublic/html/showAllEvents.html[39m[22m [1:1 - 59:2] (58 lines, 609 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 60:17]
+
+Clone found (markup):
+ - [1m[32mpublic/html/showAllEvents.html[39m[22m [76:15 - 129:15] (53 lines, 512 tokens)
+   [1m[32mviews/showAllUsers.html[39m[22m [80:7 - 126:14]
+
+Clone found (markup):
+ - [1m[32mpublic/html/showAllEvents.html[39m[22m [120:13 - 131:22] (11 lines, 85 tokens)
+   [1m[32mpublic/html/showAllUsers.html[39m[22m [121:13 - 132:13]
+
+Clone found (markup):
+ - [1m[32mpublic/html/showAllEvents.html[39m[22m [129:15 - 182:46] (53 lines, 567 tokens)
+   [1m[32mviews/showAllEvents.html[39m[22m [126:14 - 182:46]
+
+Clone found (markup):
+ - [1m[32mpublic/html/scheduleCalculator.html[39m[22m [1:1 - 63:2] (62 lines, 681 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 66:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/scheduleCalculator.html[39m[22m [92:2 - 102:2] (10 lines, 101 tokens)
+   [1m[32mviews/scheduleCalculator.html[39m[22m [139:21 - 154:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/scheduleCalculator.html[39m[22m [113:2 - 118:2] (5 lines, 69 tokens)
+   [1m[32mviews/scheduleCalculator.html[39m[22m [184:15 - 190:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/scheduleCalculator.html[39m[22m [118:5 - 131:2] (13 lines, 134 tokens)
+   [1m[32mviews/scheduleCalculator.html[39m[22m [191:21 - 205:17]
+
+Clone found (markup):
+ - [1m[32mpublic/html/scheduleCalculator.html[39m[22m [131:2 - 174:46] (43 lines, 440 tokens)
+   [1m[32mviews/scheduleCalculator.html[39m[22m [208:15 - 257:46]
+
+Clone found (markup):
+ - [1m[32mpublic/html/noShowEvent.html[39m[22m [1:1 - 63:2] (62 lines, 661 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 65:17]
+
+Clone found (markup):
+ - [1m[32mpublic/html/newUI.html[39m[22m [307:13 - 314:11] (7 lines, 80 tokens)
+   [1m[32mpublic/html/newUI.html[39m[22m [290:13 - 297:7]
+
+Clone found (markup):
+ - [1m[32mpublic/html/newUI.html[39m[22m [364:13 - 371:7] (7 lines, 78 tokens)
+   [1m[32mpublic/html/newUI.html[39m[22m [347:13 - 354:7]
+
+Clone found (markup):
+ - [1m[32mpublic/html/myPasswordUpdate.html[39m[22m [1:1 - 62:21] (61 lines, 659 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 64:21]
+
+Clone found (markup):
+ - [1m[32mpublic/html/myPasswordUpdate.html[39m[22m [90:2 - 104:4] (14 lines, 147 tokens)
+   [1m[32mviews/myPasswordUpdate.html[39m[22m [100:19 - 116:7]
+
+Clone found (markup):
+ - [1m[32mpublic/html/myPasswordUpdate.html[39m[22m [102:4 - 124:2] (22 lines, 180 tokens)
+   [1m[32mviews/myPasswordUpdate.html[39m[22m [128:7 - 151:2]
+
+Clone found (markup):
+ - [1m[32mpublic/html/myPasswordReset.html[39m[22m [2:1 - 38:4] (36 lines, 355 tokens)
+   [1m[32mpublic/html/signup.html[39m[22m [2:1 - 37:3]
+
+Clone found (markup):
+ - [1m[32mpublic/html/myPasswordForgot.html[39m[22m [1:1 - 39:7] (38 lines, 376 tokens)
+   [1m[32mpublic/html/myPasswordReset.html[39m[22m [1:1 - 39:6]
+
+Clone found (markup):
+ - [1m[32mpublic/html/myAccountDetails.html[39m[22m [1:1 - 20:8] (19 lines, 203 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 20:6]
+
+Clone found (markup):
+ - [1m[32mpublic/html/myAccountDetails.html[39m[22m [19:13 - 61:21] (42 lines, 446 tokens)
+   [1m[32mviews/myAccountDetails.html[39m[22m [20:22 - 61:2]
+
+Clone found (markup):
+ - [1m[32mpublic/html/myAccountDetails.html[39m[22m [86:19 - 113:9] (27 lines, 223 tokens)
+   [1m[32mviews/myAccountDetails.html[39m[22m [77:2 - 199:5]
+
+Clone found (markup):
+ - [1m[32mpublic/html/login.html[39m[22m [1:1 - 37:4] (36 lines, 363 tokens)
+   [1m[32mpublic/html/signup.html[39m[22m [1:1 - 37:5]
+
+Clone found (markup):
+ - [1m[32mpublic/html/login.html[39m[22m [32:7 - 39:7] (7 lines, 95 tokens)
+   [1m[32mviews/login.html[39m[22m [27:4 - 34:7]
+
+Clone found (markup):
+ - [1m[32mpublic/html/login.html[39m[22m [39:2 - 57:17] (18 lines, 138 tokens)
+   [1m[32mviews/login.html[39m[22m [34:2 - 52:19]
+
+Clone found (markup):
+ - [1m[32mpublic/html/login.html[39m[22m [76:17 - 88:2] (12 lines, 92 tokens)
+   [1m[32mpublic/html/signup.html[39m[22m [73:17 - 85:2]
+
+Clone found (markup):
+ - [1m[32mpublic/html/homepage.html[39m[22m [1:1 - 36:9] (35 lines, 339 tokens)
+   [1m[32mpublic/html/signup.html[39m[22m [1:1 - 35:21]
+
+Clone found (markup):
+ - [1m[32mpublic/html/error.html[39m[22m [1:1 - 51:46] (50 lines, 481 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 53:46]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editUser.html[39m[22m [1:1 - 60:2] (59 lines, 617 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 61:21]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editUser.html[39m[22m [71:17 - 83:2] (12 lines, 122 tokens)
+   [1m[32mviews/editUser.html[39m[22m [89:17 - 102:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editUser.html[39m[22m [91:17 - 103:46] (12 lines, 97 tokens)
+   [1m[32mviews/editUser.html[39m[22m [116:17 - 130:46]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editSystemSettings.html[39m[22m [1:1 - 63:2] (62 lines, 649 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 64:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editSystemSettings.html[39m[22m [112:19 - 120:2] (8 lines, 74 tokens)
+   [1m[32mviews/editSystemSettings.html[39m[22m [171:19 - 180:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editEvent.html[39m[22m [1:1 - 61:2] (60 lines, 636 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 62:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editEvent.html[39m[22m [66:2 - 78:2] (12 lines, 125 tokens)
+   [1m[32mviews/editEvent.html[39m[22m [76:21 - 89:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editEvent.html[39m[22m [117:2 - 129:2] (12 lines, 123 tokens)
+   [1m[32mviews/editEvent.html[39m[22m [173:21 - 186:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editEvent.html[39m[22m [130:19 - 144:2] (14 lines, 142 tokens)
+   [1m[32mviews/editEvent.html[39m[22m [193:19 - 208:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editEvent.html[39m[22m [156:2 - 164:2] (8 lines, 90 tokens)
+   [1m[32mviews/editEvent.html[39m[22m [230:19 - 241:21]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editEvent.html[39m[22m [164:2 - 191:46] (27 lines, 245 tokens)
+   [1m[32mviews/editEvent.html[39m[22m [244:19 - 280:46]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editEvent.html[39m[22m [282:13 - 295:2] (13 lines, 130 tokens)
+   [1m[32mviews/editEvent.html[39m[22m [384:13 - 397:7]
+
+Clone found (markup):
+ - [1m[32mpublic/html/editEvent.html[39m[22m [309:17 - 331:60] (22 lines, 210 tokens)
+   [1m[32mviews/editEvent.html[39m[22m [411:17 - 433:62]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createUser.html[39m[22m [1:1 - 61:2] (60 lines, 639 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 62:21]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createUser.html[39m[22m [58:15 - 66:12] (8 lines, 127 tokens)
+   [1m[32mpublic/html/editUser.html[39m[22m [57:13 - 65:9]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createUser.html[39m[22m [66:17 - 85:2] (19 lines, 209 tokens)
+   [1m[32mpublic/html/editUser.html[39m[22m [65:13 - 105:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createUser.html[39m[22m [86:2 - 99:2] (13 lines, 119 tokens)
+   [1m[32mviews/createUser.html[39m[22m [115:21 - 129:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createUser.html[39m[22m [99:16 - 104:23] (5 lines, 65 tokens)
+   [1m[32mpublic/html/createUser.html[39m[22m [85:9 - 90:24]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createUser.html[39m[22m [100:2 - 109:2] (9 lines, 72 tokens)
+   [1m[32mviews/createUser.html[39m[22m [139:21 - 149:23]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createUser.html[39m[22m [110:6 - 126:46] (16 lines, 112 tokens)
+   [1m[32mviews/createUser.html[39m[22m [157:21 - 175:46]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createUser.html[39m[22m [115:5 - 127:15] (12 lines, 77 tokens)
+   [1m[32mpublic/html/editUser.html[39m[22m [92:8 - 104:13]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createEvent.html[39m[22m [1:1 - 21:7] (20 lines, 225 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 21:9]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createEvent.html[39m[22m [20:26 - 38:15] (18 lines, 174 tokens)
+   [1m[32mviews/createEvent.html[39m[22m [22:19 - 39:21]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createEvent.html[39m[22m [38:2 - 62:3] (24 lines, 242 tokens)
+   [1m[32mviews/createEvent.html[39m[22m [44:7 - 68:4]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createEvent.html[39m[22m [98:9 - 104:5] (6 lines, 76 tokens)
+   [1m[32mpublic/html/editUser.html[39m[22m [78:7 - 84:5]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createEvent.html[39m[22m [104:6 - 114:2] (10 lines, 74 tokens)
+   [1m[32mviews/createEvent.html[39m[22m [159:5 - 169:4]
+
+Clone found (markup):
+ - [1m[32mpublic/html/createEvent.html[39m[22m [305:16 - 321:2] (16 lines, 117 tokens)
+   [1m[32mviews/myPasswordUpdate.html[39m[22m [134:12 - 151:2]
+
+Clone found (markup):
+ - [1m[32mpublic/html/browseNewEvents.html[39m[22m [1:1 - 20:7] (19 lines, 203 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 20:6]
+
+Clone found (markup):
+ - [1m[32mpublic/html/browseNewEvents.html[39m[22m [19:13 - 53:2] (34 lines, 338 tokens)
+   [1m[32mviews/browseNewEvents.html[39m[22m [20:20 - 55:17]
+
+Clone found (markup):
+ - [1m[32mpublic/html/browseNewEvents.html[39m[22m [54:15 - 61:2] (7 lines, 81 tokens)
+   [1m[32mviews/browseNewEvents.html[39m[22m [60:15 - 67:2]
+
+Clone found (markup):
+ - [1m[32mpublic/html/browseNewEvents.html[39m[22m [67:17 - 138:2] (71 lines, 620 tokens)
+   [1m[32mviews/browseNewEvents.html[39m[22m [73:17 - 146:3]
+
+Clone found (markup):
+ - [1m[32mpublic/html/browseMyEvents.html[39m[22m [1:1 - 20:3] (19 lines, 203 tokens)
+   [1m[32mviews/viewMySchedule.html[39m[22m [1:1 - 20:6]
+
+Clone found (markup):
+ - [1m[32mpublic/html/browseMyEvents.html[39m[22m [19:13 - 97:13] (78 lines, 748 tokens)
+   [1m[32mviews/browseMyEvents.html[39m[22m [20:16 - 126:13]
+
+Clone found (markup):
+ - [1m[32mpublic/html/browseMyEvents.html[39m[22m [95:4 - 104:2] (9 lines, 84 tokens)
+   [1m[32mviews/browseMyEvents.html[39m[22m [101:5 - 110:3]
+
+Clone found (markup):
+ - [1m[32mpublic/html/browseMyEvents.html[39m[22m [103:13 - 123:3] (20 lines, 174 tokens)
+   [1m[32mpublic/html/browseNewEvents.html[39m[22m [128:13 - 147:6]
+
+Clone found (markup):
+ - [1m[32mpublic/html/browseMyEvents.html[39m[22m [130:2 - 163:5] (33 lines, 253 tokens)
+   [1m[32mpublic/html/browseNewEvents.html[39m[22m [204:2 - 237:7]
+
+Clone found (markup):
+ - [1m[32mpublic/html/baseTemplate.html[39m[22m [1:1 - 6:40] (5 lines, 60 tokens)
+   [1m[32mviews/viewMasterSchedule.html[39m[22m [1:1 - 6:25]
+
+Clone found (markup):
+ - [1m[32mpublic/html/baseTemplate.html[39m[22m [22:4 - 41:7] (19 lines, 138 tokens)
+   [1m[32mviews/baseTemplate.html[39m[22m [77:4 - 104:9]
+
+Clone found (javascript):
+ - [1m[32mmodels/sessionModel.js[39m[22m [10:3 - 17:2] (7 lines, 109 tokens)
+   [1m[32mmodels/settingsModel.js[39m[22m [4:3 - 11:9]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [154:5 - 161:5] (7 lines, 97 tokens)
+   [1m[32mroutes/viewRoutes.js[39m[22m [205:2 - 212:6]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [267:5 - 283:2] (16 lines, 258 tokens)
+   [1m[32mroutes/viewRoutes.js[39m[22m [196:5 - 212:2]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [291:7 - 299:10] (8 lines, 79 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [169:6 - 177:9]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [317:2 - 328:6] (11 lines, 138 tokens)
+   [1m[32mroutes/viewRoutes.js[39m[22m [197:2 - 207:3]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [325:2 - 334:19] (9 lines, 86 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [280:6 - 289:16]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [335:16 - 350:36] (15 lines, 151 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [290:13 - 305:33]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [370:7 - 386:6] (16 lines, 130 tokens)
+   [1m[32mroutes/viewRoutes.js[39m[22m [323:7 - 339:7]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [391:7 - 399:34] (8 lines, 74 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [229:2 - 237:28]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [405:2 - 413:5] (8 lines, 93 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [356:2 - 364:2]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [422:18 - 432:35] (10 lines, 90 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [389:17 - 237:28]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [461:6 - 470:29] (9 lines, 84 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [228:5 - 237:28]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [476:2 - 492:6] (16 lines, 144 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [438:2 - 454:6]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [562:2 - 578:4] (16 lines, 144 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [438:2 - 454:6]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [616:13 - 624:38] (8 lines, 74 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [229:2 - 237:28]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [649:15 - 657:31] (8 lines, 74 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [229:2 - 237:28]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/viewsController.js[39m[22m [684:9 - 692:34] (8 lines, 75 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [391:2 - 237:28]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/userController.js[39m[22m [10:26 - 20:6] (10 lines, 73 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [12:26 - 22:12]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/settingsController.js[39m[22m [9:30 - 19:18] (10 lines, 73 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [12:26 - 22:12]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/handlerFactory.js[39m[22m [9:21 - 19:10] (10 lines, 73 tokens)
+   [1m[32mcontrollers/viewsController.js[39m[22m [12:26 - 22:12]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/handlerFactory.js[39m[22m [87:2 - 96:4] (9 lines, 75 tokens)
+   [1m[32mcontrollers/handlerFactory.js[39m[22m [46:8 - 57:4]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/eventController.js[39m[22m [319:6 - 328:4] (9 lines, 97 tokens)
+   [1m[32mcontrollers/userController.js[39m[22m [136:10 - 145:6]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/eventController.js[39m[22m [376:3 - 386:10] (10 lines, 113 tokens)
+   [1m[32mcontrollers/userController.js[39m[22m [136:7 - 146:5]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/eventController.js[39m[22m [385:2 - 393:8] (8 lines, 82 tokens)
+   [1m[32mcontrollers/eventController.js[39m[22m [330:2 - 338:7]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/directHtmlController.js[39m[22m [67:5 - 80:34] (13 lines, 148 tokens)
+   [1m[32mcontrollers/htmlViewController.js[39m[22m [47:8 - 60:13]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/directHtmlController.js[39m[22m [90:2 - 99:6] (9 lines, 82 tokens)
+   [1m[32mcontrollers/htmlViewController.js[39m[22m [64:2 - 73:17]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/directHtmlController.js[39m[22m [166:9 - 183:9] (17 lines, 110 tokens)
+   [1m[32mcontrollers/directHtmlController.js[39m[22m [133:13 - 151:13]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/authController.js[39m[22m [130:2 - 137:31] (7 lines, 117 tokens)
+   [1m[32mcontrollers/authController.js[39m[22m [90:2 - 97:31]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/authController.js[39m[22m [137:31 - 154:2] (17 lines, 146 tokens)
+   [1m[32mcontrollers/authController.js[39m[22m [97:31 - 114:7]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/authController.js[39m[22m [153:5 - 164:35] (11 lines, 95 tokens)
+   [1m[32mcontrollers/authController.js[39m[22m [114:5 - 125:28]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/authController.js[39m[22m [574:26 - 579:38] (5 lines, 73 tokens)
+   [1m[32mcontrollers/authController.js[39m[22m [92:20 - 97:31]
+
+Clone found (javascript):
+ - [1m[32mcontrollers/authController.js[39m[22m [661:19 - 671:37] (10 lines, 90 tokens)
+   [1m[32mcontrollers/authController.js[39m[22m [605:10 - 615:36]
+
+[90m┌────────────[39m[90m┬────────────────[39m[90m┬─────────────[39m[90m┬──────────────[39m[90m┬──────────────[39m[90m┬──────────────────[39m[90m┬───────────────────┐[39m
+[90m│[39m[31m Format     [39m[90m│[39m[31m Files analyzed [39m[90m│[39m[31m Total lines [39m[90m│[39m[31m Total tokens [39m[90m│[39m[31m Clones found [39m[90m│[39m[31m Duplicated lines [39m[90m│[39m[31m Duplicated tokens [39m[90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m markup     [90m│[39m 60             [90m│[39m 10382       [90m│[39m 88806        [90m│[39m 167          [90m│[39m 3548 (34.17%)    [90m│[39m 34745 (39.12%)    [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m javascript [90m│[39m 54             [90m│[39m 8917        [90m│[39m 71761        [90m│[39m 47           [90m│[39m 627 (7.03%)      [90m│[39m 5720 (7.97%)      [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m json       [90m│[39m 2              [90m│[39m 13          [90m│[39m 74           [90m│[39m 0            [90m│[39m 0 (0%)           [90m│[39m 0 (0%)            [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m css        [90m│[39m 5              [90m│[39m 805         [90m│[39m 4420         [90m│[39m 0            [90m│[39m 0 (0%)           [90m│[39m 0 (0%)            [90m│[39m
+[90m├────────────[39m[90m┼────────────────[39m[90m┼─────────────[39m[90m┼──────────────[39m[90m┼──────────────[39m[90m┼──────────────────[39m[90m┼───────────────────┤[39m
+[90m│[39m [1mTotal:[22m     [90m│[39m 121            [90m│[39m 20117       [90m│[39m 165061       [90m│[39m 214          [90m│[39m 4175 (20.75%)    [90m│[39m 40465 (24.52%)    [90m│[39m
+[90m└────────────[39m[90m┴────────────────[39m[90m┴─────────────[39m[90m┴──────────────[39m[90m┴──────────────[39m[90m┴──────────────────[39m[90m┴───────────────────┘[39m
+[90mFound 214 clones.[39m
+[3m[90mDetection time:[39m[23m: 1.024s

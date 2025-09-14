@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - Schedule Calculator" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <script type="module" src="/js/scheduleCalculator.js" defer></script>
+    <title>RallyPoint - Schedule Calculator</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+    
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/myAccountDetails" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="/users/showAll" aria-label="Users" class="admin-only">
+        <i class="fas fa-users"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+    
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Schedule Calculator</h2>
+              <p class="card-subtitle">Generate optimal schedules based on event parameters</p>
+            </div>
+            
+            <div class="card-body">
+              <form id="scheduleCalculatorForm" class="form">
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="numCourts">Number of Courts</label>
+                    <input type="number" id="numCourts" name="numCourts" class="form-control" min="1" value="4" required>
+                  </div>
+                  
+                  <div class="form-group col-md-6">
+                    <label for="numPlayers">Number of Players</label>
+                    <input type="number" id="numPlayers" name="numPlayers" class="form-control" min="4" value="16" required>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="playersPerCourt">Players Per Court</label>
+                    <input type="number" id="playersPerCourt" name="playersPerCourt" class="form-control" min="2" max="4" value="4" required>
+                  </div>
+                  
+                  <div class="form-group col-md-6">
+                    <label for="numRounds">Number of Rounds</label>
+                    <input type="number" id="numRounds" name="numRounds" class="form-control" min="1" value="5" required>
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label for="sessionLength">Session Length (minutes)</label>
+                    <input type="number" id="sessionLength" name="sessionLength" class="form-control" min="5" value="15" required>
+                  </div>
+                  
+                  <div class="form-group col-md-6">
+                    <label for="scheduleType">Schedule Type</label>
+                    <select id="scheduleType" name="scheduleType" class="form-control">
+                      <option value="balanced">Balanced (Even distribution)</option>
+                      <option value="competitive">Competitive (Skill-based)</option>
+                      <option value="social">Social (Mix all players)</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <div class="checkbox-group">
+                    <input type="checkbox" id="allowPlayerRests" name="allowPlayerRests" class="checkbox-input" checked>
+                    <label for="allowPlayerRests" class="checkbox-label">Allow player rest periods</label>
+                  </div>
+                </div>
+                
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">Generate Schedule</button>
+                  <button type="button" id="resetFormButton" class="btn btn-outline">Reset</button>
+                </div>
+              </form>
+              
+              <div id="scheduleSummary" class="schedule-summary mt-4" style="display: none;">
+                <h3>Schedule Summary</h3>
+                <div class="summary-stats">
+                  <div class="stat-item">
+                    <span class="stat-label">Total Playing Time:</span>
+                    <span id="totalPlayingTime" class="stat-value">0 minutes</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Average Games Per Player:</span>
+                    <span id="avgGamesPerPlayer" class="stat-value">0</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Total Sessions:</span>
+                    <span id="totalSessions" class="stat-value">0</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div id="scheduleContainer" class="schedule-container mt-4" style="display: none;">
+                <h3>Generated Schedule</h3>
+                <div class="tabs">
+                  <div class="tab-header">
+                    <button class="tab-button active" data-tab="roundView">Round View</button>
+                    <button class="tab-button" data-tab="playerView">Player View</button>
+                    <button class="tab-button" data-tab="courtView">Court View</button>
+                  </div>
+                  
+                  <div class="tab-content">
+                    <div id="roundView" class="tab-pane active">
+                      <div id="roundSchedule" class="round-schedule"></div>
+                    </div>
+                    
+                    <div id="playerView" class="tab-pane">
+                      <div id="playerSchedule" class="player-schedule"></div>
+                    </div>
+                    
+                    <div id="courtView" class="tab-pane">
+                      <div id="courtSchedule" class="court-schedule"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="schedule-actions mt-4">
+                  <button id="saveScheduleButton" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Schedule
+                  </button>
+                  <button id="printScheduleButton" class="btn btn-outline">
+                    <i class="fas fa-print"></i> Print Schedule
+                  </button>
+                  <button id="exportScheduleButton" class="btn btn-outline">
+                    <i class="fas fa-file-export"></i> Export as CSV
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const scheduleCalculatorForm = document.getElementById('scheduleCalculatorForm');
+        const resetFormButton = document.getElementById('resetFormButton');
+        const scheduleSummary = document.getElementById('scheduleSummary');
+        const scheduleContainer = document.getElementById('scheduleContainer');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        
+        // Tab functionality
+        tabButtons.forEach(button => {
+          button.addEventListener('click', function() {
+            // Remove active class from all buttons and panes
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanes.forEach(pane => pane.classList.remove('active'));
+            
+            // Add active class to clicked button and corresponding pane
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+          });
+        });
+        
+        // Reset form
+        resetFormButton.addEventListener('click', function() {
+          scheduleCalculatorForm.reset();
+          scheduleSummary.style.display = 'none';
+          scheduleContainer.style.display = 'none';
+        });
+        
+        // Handle form submission
+        scheduleCalculatorForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Get form values
+          const numCourts = parseInt(document.getElementById('numCourts').value);
+          const numPlayers = parseInt(document.getElementById('numPlayers').value);
+          const playersPerCourt = parseInt(document.getElementById('playersPerCourt').value);
+          const numRounds = parseInt(document.getElementById('numRounds').value);
+          const sessionLength = parseInt(document.getElementById('sessionLength').value);
+          const scheduleType = document.getElementById('scheduleType').value;
+          const allowPlayerRests = document.getElementById('allowPlayerRests').checked;
+          
+          // Basic validation
+          if (numPlayers < playersPerCourt) {
+            alert('Number of players must be at least equal to players per court');
+            return;
+          }
+          
+          // Call the schedule calculator module
+          import('/js/scheduleCalculator.js').then(module => {
+            const { generateSchedule, displaySchedule } = module;
+            
+            // Generate the schedule
+            const schedule = generateSchedule({
+              numCourts,
+              numPlayers,
+              playersPerCourt,
+              numRounds,
+              sessionLength,
+              scheduleType,
+              allowPlayerRests
+            });
+            
+            if (schedule) {
+              // Update summary statistics
+              document.getElementById('totalPlayingTime').textContent = 
+                `${schedule.totalPlayingTime} minutes`;
+              document.getElementById('avgGamesPerPlayer').textContent = 
+                schedule.avgGamesPerPlayer.toFixed(1);
+              document.getElementById('totalSessions').textContent = 
+                schedule.totalSessions;
+              
+              // Display the schedule
+              displaySchedule(schedule, {
+                roundElement: document.getElementById('roundSchedule'),
+                playerElement: document.getElementById('playerSchedule'),
+                courtElement: document.getElementById('courtSchedule')
+              });
+              
+              // Show the schedule sections
+              scheduleSummary.style.display = 'block';
+              scheduleContainer.style.display = 'block';
+              
+              // Add event listeners for the schedule action buttons
+              document.getElementById('saveScheduleButton').addEventListener('click', function() {
+                // Implementation for saving the schedule will go here
+                alert('Schedule saved successfully!');
+              });
+              
+              document.getElementById('printScheduleButton').addEventListener('click', function() {
+                window.print();
+              });
+              
+              document.getElementById('exportScheduleButton').addEventListener('click', function() {
+                // Implementation for exporting as CSV will go here
+                const csv = convertScheduleToCSV(schedule);
+                downloadCSV(csv, 'schedule.csv');
+              });
+            } else {
+              alert('Failed to generate schedule. Please check your parameters and try again.');
+            }
+          });
+        });
+        
+        // Helper function to convert schedule to CSV
+        function convertScheduleToCSV(schedule) {
+          // Implementation will go here
+          let csv = 'Round,Court,Players\n';
+          
+          schedule.rounds.forEach((round, roundIndex) => {
+            round.courts.forEach((court, courtIndex) => {
+              const players = court.players.join(', ');
+              csv += `${roundIndex + 1},${courtIndex + 1},"${players}"\n`;
+            });
+          });
+          
+          return csv;
+        }
+        
+        // Helper function to download CSV
+        function downloadCSV(csv, filename) {
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          
+          if (navigator.msSaveBlob) { // IE 10+
+            navigator.msSaveBlob(blob, filename);
+          } else {
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

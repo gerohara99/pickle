@@ -1,3 +1,5 @@
+/* Consolidated media queries from all CSS files */
+
 /* Responsive styles for screens up to 768px wide */
 @media (max-width: 768px) {
   /* Show mobile nav toggle, hide desktop nav */
@@ -292,3 +294,12 @@
     margin-bottom: 2rem;
   }
 }
+
+/* --- Begin signup.css media queries --- */
+/* --- End signup.css media queries --- */
+
+/* --- Begin schedules.css media queries --- */
+/* --- End schedules.css media queries --- */
+
+/* --- Begin createEvent.css media queries --- */
+/* --- End createEvent.css media queries --- */

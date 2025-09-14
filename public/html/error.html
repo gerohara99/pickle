@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -23,7 +23,7 @@
     <header>
       <h1>RallyPoint</h1>
     </header>
-    
+
     <main class="main">
       <section class="section">
         <div class="container">
@@ -31,13 +31,15 @@
             <div class="error-icon">
               <i class="fas fa-exclamation-triangle"></i>
             </div>
-            
-            <h2 id="errorTitle" class="error-title">Oops! Something went wrong</h2>
-            
+
+            <h2 id="errorTitle" class="error-title">
+              Oops! Something went wrong
+            </h2>
+
             <p id="errorMessage" class="error-message">
               We're sorry, but there was an error processing your request.
             </p>
-            
+
             <div class="error-actions">
               <a href="/" class="btn btn-primary">Go to Homepage</a>
               <button id="goBackButton" class="btn btn-outline">Go Back</button>
@@ -46,38 +48,38 @@
         </div>
       </section>
     </main>
-    
+
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const errorTitle = document.getElementById('errorTitle');
-        const errorMessage = document.getElementById('errorMessage');
-        const goBackButton = document.getElementById('goBackButton');
-        
+      document.addEventListener("DOMContentLoaded", function () {
+        const errorTitle = document.getElementById("errorTitle");
+        const errorMessage = document.getElementById("errorMessage");
+        const goBackButton = document.getElementById("goBackButton");
+
         // Extract error information from URL params
         const urlParams = new URLSearchParams(window.location.search);
-        const statusCode = urlParams.get('statusCode');
-        const message = urlParams.get('message');
-        
+        const statusCode = urlParams.get("statusCode");
+        const message = urlParams.get("message");
+
         // Update error title based on status code
         if (statusCode) {
-          if (statusCode === '404') {
-            errorTitle.textContent = 'Page Not Found';
-          } else if (statusCode === '403') {
-            errorTitle.textContent = 'Access Forbidden';
-          } else if (statusCode === '500') {
-            errorTitle.textContent = 'Server Error';
+          if (statusCode === "404") {
+            errorTitle.textContent = "Page Not Found";
+          } else if (statusCode === "403") {
+            errorTitle.textContent = "Access Forbidden";
+          } else if (statusCode === "500") {
+            errorTitle.textContent = "Server Error";
           } else {
             errorTitle.textContent = `Error ${statusCode}`;
           }
         }
-        
+
         // Update error message if provided
         if (message) {
           errorMessage.textContent = message;
         }
-        
+
         // Set up go back button
-        goBackButton.addEventListener('click', function() {
+        goBackButton.addEventListener("click", function () {
           window.history.back();
         });
       });

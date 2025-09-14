@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -18,12 +18,15 @@
     />
     <script type="module" src="/js/index.js" defer></script>
     <title>RallyPoint - Event Not Found</title>
+    <script>
+      window.templateData = window.templateData || {};
+    </script>
   </head>
   <body>
     <header>
       <h1>RallyPoint</h1>
     </header>
-    
+
     <nav>
       <a href="/" aria-label="Home">
         <i class="fas fa-home"></i>
@@ -44,7 +47,7 @@
         <i class="fas fa-sign-out-alt"></i>
       </a>
     </nav>
-    
+
     <main class="main">
       <section class="section">
         <div class="container">
@@ -52,44 +55,51 @@
             <div class="error-icon">
               <i class="fas fa-calendar-times"></i>
             </div>
-            
+
             <h2 class="error-title">Event Not Found</h2>
-            
+
             <p class="error-message">
-              The event you're looking for doesn't exist or you don't have permission to view it.
+              The event you're looking for doesn't exist or you don't have
+              permission to view it.
             </p>
-            
+
             <div class="error-actions">
-              <a href="/events/browseNew" class="btn btn-primary">Browse Events</a>
-              <a href="/events/create" class="btn btn-outline">Create New Event</a>
+              <a href="/events/browseNew" class="btn btn-primary"
+                >Browse Events</a
+              >
+              <a href="/events/create" class="btn btn-outline"
+                >Create New Event</a
+              >
             </div>
           </div>
         </div>
       </section>
     </main>
-    
+
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         // Handle logout button
-        document.getElementById('logoutButton').addEventListener('click', async function(e) {
-          e.preventDefault();
-          
-          try {
-            const response = await fetch('/api/v1/users/logout', {
-              method: 'GET'
-            });
-            
-            if (response.ok) {
-              // Redirect to login page
-              window.location.href = '/login';
-            } else {
-              alert('Failed to logout. Please try again.');
+        document
+          .getElementById("logoutButton")
+          .addEventListener("click", async function (e) {
+            e.preventDefault();
+
+            try {
+              const response = await fetch("/api/v1/users/logout", {
+                method: "GET",
+              });
+
+              if (response.ok) {
+                // Redirect to login page
+                window.location.href = "/login";
+              } else {
+                alert("Failed to logout. Please try again.");
+              }
+            } catch (err) {
+              console.error("Error logging out:", err);
+              alert("An error occurred while trying to logout");
             }
-          } catch (err) {
-            console.error('Error logging out:', err);
-            alert('An error occurred while trying to logout');
-          }
-        });
+          });
       });
     </script>
   </body>

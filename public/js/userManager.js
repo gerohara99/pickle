@@ -5,6 +5,13 @@
 
 import { showAlert } from "./alerts.js";
 import { apiRequest } from "./apiActions.js";
+import {
+  setRadioButtonState,
+  goToPage,
+} from "../public/js/utils/clientSharedLogic.js";
+import { renderPagination } from "../public/js/utils/paginate.js";
+import { setupCommonEventListeners } from "../public/js/utils/eventListeners.js";
+import { applyFilters, resetFilters } from "../public/js/utils/filterUtils.js";
 
 class UserManager {
   constructor() {
@@ -53,12 +60,7 @@ class UserManager {
     }
 
     // Set radio button state
-    const radioButtons = document.querySelectorAll('input[name="active"]');
-    radioButtons.forEach((radio) => {
-      if (radio.value === this.filters.active) {
-        radio.checked = true;
-      }
-    });
+    setRadioButtonState(this.filters.active);
 
     // Set up event listeners
     this.setupEventListeners();
@@ -68,56 +70,37 @@ class UserManager {
   }
 
   setupEventListeners() {
-    // Filter form submission
-    const filterForm = document.querySelector(".filter-form");
-    if (filterForm) {
-      filterForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        this.applyFilters();
-      });
-    }
-
-    // Filter form reset
-    if (filterForm) {
-      filterForm.addEventListener("reset", () => {
-        setTimeout(() => {
-          this.resetFilters();
-        }, 0);
-      });
-    }
-
-    // Delete modal
-    document.getElementById("confirmDelete").addEventListener("click", () => {
-      this.deleteUser();
-    });
-
-    document.getElementById("cancelDelete").addEventListener("click", () => {
-      this.closeDeleteModal();
-    });
-
-    const closeBtn = document.querySelector(".modal-close");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        this.closeDeleteModal();
-      });
-    }
-
-    // Click outside modal to close
-    window.addEventListener("click", (e) => {
-      if (e.target === this.deleteModal) {
-        this.closeDeleteModal();
-      }
-    });
-
-    // Table row actions - delegate
-    if (this.usersTableBody) {
-      this.usersTableBody.addEventListener("click", (e) => {
-        const button = e.target.closest("button");
-        if (!button) return;
-
-        const row = button.closest(".table-row");
+    setupCommonEventListeners({
+      filterForm: document.querySelector(".filter-form"),
+      onFilterSubmit: () =>
+        applyFilters({
+          filterConfig: [
+            { id: "username", type: "input" },
+            { id: "role", type: "select" },
+            { id: "active", type: "radio" },
+          ],
+          filterState: this.filters,
+          reloadCallback: () => this.loadUsers(),
+          baseUrl: "/users/showAll",
+        }),
+      onFilterReset: () =>
+        resetFilters({
+          filterConfig: [
+            { id: "username", type: "input" },
+            { id: "role", type: "select" },
+            { id: "active", type: "radio" },
+          ],
+          filterState: this.filters,
+          reloadCallback: () => this.loadUsers(),
+          baseUrl: "/users/showAll",
+        }),
+      deleteModal: this.deleteModal,
+      onConfirmDelete: () => this.deleteUser(),
+      onCancelDelete: () => this.closeDeleteModal(),
+      onCloseModal: () => this.closeDeleteModal(),
+      tableBody: this.usersTableBody,
+      rowActionHandler: (button, row) => {
         const userId = row.dataset.userId;
-
         if (button.classList.contains("edit-user")) {
           this.editUser(userId);
         } else if (button.classList.contains("reset-password")) {
@@ -125,8 +108,8 @@ class UserManager {
         } else if (button.classList.contains("delete-user")) {
           this.showDeleteConfirmation(userId);
         }
-      });
-    }
+      },
+    });
   }
 
   async loadUsers() {
@@ -155,7 +138,12 @@ class UserManager {
 
       // Render users and pagination
       this.renderUsers();
-      this.renderPagination();
+      renderPagination(
+        this.paginationContainer,
+        this.currentPage,
+        this.totalPages,
+        (page) => this.goToPage(page)
+      );
     } catch (err) {
       console.error("Error loading users:", err);
       showAlert("error", "An error occurred while loading users");
@@ -219,128 +207,9 @@ class UserManager {
     return row;
   }
 
-  renderPagination() {
-    // Clear container
-    this.paginationContainer.innerHTML = "";
-
-    if (this.totalPages <= 1) {
-      return;
-    }
-
-    const paginationList = document.createElement("ul");
-    paginationList.className = "pagination-list";
-
-    // Previous button
-    const prevItem = document.createElement("li");
-    const prevLink = document.createElement("a");
-    prevLink.href = "#";
-    prevLink.innerHTML = '<i class="fas fa-chevron-left"></i>';
-    prevLink.className = "pagination-link";
-    if (this.currentPage === 1) {
-      prevItem.className = "pagination-item disabled";
-    } else {
-      prevItem.className = "pagination-item";
-      prevLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        this.goToPage(this.currentPage - 1);
-      });
-    }
-    prevItem.appendChild(prevLink);
-    paginationList.appendChild(prevItem);
-
-    // Page numbers
-    const startPage = Math.max(1, this.currentPage - 2);
-    const endPage = Math.min(this.totalPages, startPage + 4);
-
-    for (let i = startPage; i <= endPage; i++) {
-      const pageItem = document.createElement("li");
-      pageItem.className = "pagination-item";
-
-      const pageLink = document.createElement("a");
-      pageLink.href = "#";
-      pageLink.textContent = i.toString();
-      pageLink.className = "pagination-link";
-
-      if (i === this.currentPage) {
-        pageLink.className += " active";
-      } else {
-        pageLink.addEventListener("click", (e) => {
-          e.preventDefault();
-          this.goToPage(i);
-        });
-      }
-
-      pageItem.appendChild(pageLink);
-      paginationList.appendChild(pageItem);
-    }
-
-    // Next button
-    const nextItem = document.createElement("li");
-    const nextLink = document.createElement("a");
-    nextLink.href = "#";
-    nextLink.innerHTML = '<i class="fas fa-chevron-right"></i>';
-    nextLink.className = "pagination-link";
-    if (this.currentPage === this.totalPages) {
-      nextItem.className = "pagination-item disabled";
-    } else {
-      nextItem.className = "pagination-item";
-      nextLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        this.goToPage(this.currentPage + 1);
-      });
-    }
-    nextItem.appendChild(nextLink);
-    paginationList.appendChild(nextItem);
-
-    this.paginationContainer.appendChild(paginationList);
-  }
-
   goToPage(page) {
     this.currentPage = page;
-
-    // Update URL with new page
-    const url = new URL(window.location);
-    url.searchParams.set("page", page.toString());
-    window.history.pushState({}, "", url);
-
-    this.loadUsers();
-  }
-
-  applyFilters() {
-    // Get filter values
-    this.filters.username = document.getElementById("username").value;
-    this.filters.role = document.getElementById("role").value;
-
-    const activeRadio = document.querySelector('input[name="active"]:checked');
-    this.filters.active = activeRadio ? activeRadio.value : "";
-
-    // Reset to first page
-    this.currentPage = 1;
-
-    // Update URL with filters
-    const url = new URL(window.location);
-    url.searchParams.set("username", this.filters.username);
-    url.searchParams.set("role", this.filters.role);
-    url.searchParams.set("active", this.filters.active);
-    url.searchParams.set("page", "1");
-    window.history.pushState({}, "", url);
-
-    this.loadUsers();
-  }
-
-  resetFilters() {
-    // Clear filters
-    this.filters.username = "";
-    this.filters.role = "";
-    this.filters.active = "";
-    this.currentPage = 1;
-
-    // Update URL
-    const url = new URL(window.location);
-    url.search = "";
-    window.history.pushState({}, "", url);
-
-    this.loadUsers();
+    goToPage(page, () => this.loadUsers());
   }
 
   editUser(userId) {

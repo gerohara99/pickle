@@ -1,21 +1,12 @@
+const {
+  renderPaginatedList,
+  renderSingleDocument,
+} = require("../utils/serverControllerUtils");
+const requestTimeout = require("../utils/requestTimeout");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
-const factory = require("./handlerFactory");
 const mongoose = require("mongoose");
-
-const requestTimeout = (req, res, next) => {
-  try {
-    res.setTimeout(15000, () => {
-      console.warn(`User request timed out: ${req.originalUrl}`);
-      res.status(503).send("Request timed out");
-    });
-    next();
-  } catch (err) {
-    console.error("Synchronous error in requestTimeout:", err);
-    next(err);
-  }
-};
 
 exports.getMe = (req, res, next) => {
   try {
@@ -219,42 +210,34 @@ exports.deleteUser = [
 exports.getUser = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
-    try {
-      if (!req.params.id) throw new AppError("User ID param is required", 400);
-    } catch (err) {
-      console.error("Synchronous error in getUser:", err);
-      return next(err);
-    }
-
-    try {
-      const user = await User.findById(req.params.id);
-      if (!user) {
-        return next(new AppError("No user found with that ID", 404));
-      }
-      res.status(200).json({
-        status: "success",
-        data: { user },
-      });
-    } catch (err) {
-      console.error("Error fetching user:", err);
-      next(new AppError("Failed to fetch user", 500));
-    }
+    await renderSingleDocument({
+      req,
+      res,
+      next,
+      Model: User,
+      id: req.params.id,
+      view: "userDetailView", // Replace with your actual view name
+      title: "User Details",
+      extraContext: {},
+    });
   }),
 ];
 
 exports.getAllUsers = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
-    try {
-      const users = await User.find();
-      res.status(200).json({
-        status: "success",
-        results: users.length,
-        data: { users },
-      });
-    } catch (err) {
-      console.error("Error fetching users:", err);
-      next(new AppError("Failed to fetch users", 500));
-    }
+    await renderPaginatedList({
+      req,
+      res,
+      next,
+      Model: User,
+      filter: {}, // Add filter logic if needed
+      sort: {}, // Add sort logic if needed
+      view: "userListView", // Replace with your actual view name
+      title: "All Users",
+      extraContext: {},
+    });
   }),
 ];
+
+// When rendering views, always use buildRenderContext(req, {...})

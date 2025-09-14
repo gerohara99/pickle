@@ -12,12 +12,16 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link rel="stylesheet" href="/css/schedules.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
     />
     <script type="module" src="/js/index.js" defer></script>
     <script type="module" src="/js/schedules.js" defer></script>
+    <script>
+      window.templateData = window.templateData || {};
+    </script>
     <title>RallyPoint - Master Schedule</title>
   </head>
   <body>
@@ -47,8 +51,12 @@
       <section class="section">
         <div class="container">
           <div class="event-header">
-            <h2 class="text-center mb-md event-title" id="eventTitle"></h2>
-            <p class="text-center mb-lg event-details" id="eventDetails"></p>
+            <h2 class="text-center mb-md event-title" id="eventTitle">
+              Loading event...
+            </h2>
+            <p class="text-center mb-lg event-details" id="eventDetails">
+              Loading details...
+            </p>
           </div>
 
           <!-- Round filter -->

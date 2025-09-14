@@ -99,7 +99,9 @@ async function connectWithRetry(retries = 5, delay = 5000) {
       return;
     } catch (err) {
       console.log(
-        `MongoDB connection failed (attempt ${i + 1}/${retries}). Retrying in ${delay / 1000}s...`
+        `MongoDB connection failed (attempt ${i + 1}/${retries}). Retrying in ${
+          delay / 1000
+        }s...`
       );
       if (i === retries - 1) {
         console.error("MongoDB connection failed after maximum retries.");
@@ -132,10 +134,12 @@ app.use(
   })
 );
 
-console.log("Session middleware initialized.");
-
 // Ensure this middleware is placed before any route handlers
 console.log("Session middleware initialized.");
+
+// Add middleware to sync JWT with session
+const authController = require("./controllers/authController");
+app.use(authController.syncJWTWithSession);
 
 app.enable("trust proxy");
 app.set("trust proxy", 1);
@@ -167,6 +171,14 @@ app.use(
 app.use(
   "/includes",
   express.static(path.join(__dirname, "public/includes"), staticOptions)
+);
+app.use(
+  "/utils",
+  express.static(path.join(__dirname, "public/utils"), staticOptions)
+);
+app.use(
+  "/js/utils",
+  express.static(path.join(__dirname, "public/js/utils"), staticOptions)
 );
 
 // Vite manifest middleware (recommendation 4)
@@ -211,7 +223,7 @@ app.use(cors(corsOptions));
 
 // Direct HTML serving instead of Pug templates
 console.log("Using direct HTML serving for views");
-app.use(directHtmlController.serveHtmlMiddleware("views"));
+app.use(directHtmlController.serveHtmlMiddleware("public/html"));
 
 // MIDDLEWARES
 
@@ -272,9 +284,12 @@ app.get("/health", (req, res) => {
 });
 
 // ROUTES
+
+// Standard routes
 app.use("/", viewRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/events", eventRouter);
+app.use("/api/events", eventRouter); // Add a duplicate mount for compatibility with frontend
 app.use("/api/v1/settings", settingsRouter);
 
 app.all("*", (req, res, next) => {
@@ -283,21 +298,5 @@ app.all("*", (req, res, next) => {
 
 // Error-handling middleware should be last
 app.use(globalErrorHandler);
-
-// Log session cookie and data for inspection
-app.use((req, res, next) => {
-  console.log("Cookies received:", req.cookies);
-  console.log("Session data before request:", req.session);
-  next();
-});
-
-// Additional logging middleware to verify session cookie and data
-app.use((req, res, next) => {
-  console.log("Logging middleware executed.");
-  console.log("Session cookie:", req.cookies);
-  console.log("Session ID:", req.sessionID);
-  console.log("Session data:", req.session);
-  next();
-});
 
 module.exports = app;

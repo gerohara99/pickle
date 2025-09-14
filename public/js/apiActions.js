@@ -1,6 +1,5 @@
 /* eslint-disable */
 // Use modern browser APIs directly instead of polyfills
-import axios from "./api.js";
 import { showAlert } from "./alerts.js";
 
 // --- Helper Functions ---
@@ -15,18 +14,29 @@ export async function apiRequest({
   reload,
 }) {
   try {
-    const res = await axios.request({ method, url, data });
-    if (res.data?.status === "success" || res.status === 204) {
+    console.log(`[API Request] ${method} ${url}`);
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!res.ok) throw new Error(`${method} ${url} failed: ${res.status}`);
+
+    const responseData = await res.json();
+    console.log(`[API Response] ${method} ${url}:`, responseData);
+
+    if (responseData?.status === "success" || res.status === 204) {
       if (successMessage) showAlert("success", successMessage);
-      if (onSuccess) onSuccess(res);
+      if (onSuccess) onSuccess(responseData);
 
       // Store user data in localStorage if we're logging in and have user data
-      if (redirect === "userLoggingIn" && res.data.user) {
+      if (redirect === "userLoggingIn" && responseData.user) {
         // Store user data for role detection
-        localStorage.setItem("userData", JSON.stringify(res.data.user));
+        localStorage.setItem("userData", JSON.stringify(responseData.user));
 
         let landingPage;
-        if (res.data.user.role === "clubAdmin") {
+        if (responseData.user.role === "clubAdmin") {
           landingPage = "/events/showAll";
         } else {
           landingPage = "/events/myBrowse";
@@ -38,14 +48,45 @@ export async function apiRequest({
         window.setTimeout(() => location.reload(), 1500);
       }
     }
-    return res;
+    return responseData;
   } catch (err) {
     handleError(err);
     throw err;
   }
 }
 
+// Global variable to track the last error message time
+let lastErrorTime = 0;
+
 function handleError(err) {
+  // Log detailed error information
+  console.error("[API Error]", err);
+  if (err.response) {
+    console.error("Error Response:", {
+      status: err.response.status,
+      statusText: err.response.statusText,
+      data: err.response.data,
+    });
+  }
+
+  // Only show one error every 3 seconds
+  const now = Date.now();
+  if (now - lastErrorTime < 3000) {
+    console.log("Suppressing duplicate error message");
+    return;
+  }
+
+  // Update the last error time
+  lastErrorTime = now;
+
+  // Remove any existing alerts
+  const existingAlerts = document.querySelectorAll(".alert");
+  if (existingAlerts.length > 0) {
+    existingAlerts.forEach((alert) => {
+      alert.parentElement.removeChild(alert);
+    });
+  }
+
   if (err.response && err.response.data && err.response.data.message) {
     showAlert("error", err.response.data.message);
   } else {
@@ -109,19 +150,42 @@ export const updateEventApiAction = async (data) =>
 export const deleteEventApiAction = async (eventId) =>
   apiRequest({
     method: "DELETE",
-    url: `/api/v1/events/${eventId}`,
+    url: `/api/events/${eventId}`,
     successMessage: "Event successfully deleted",
     redirect: "/events/showAll",
   });
 
-export const eventCreateBookingApiAction = async (eventId) =>
-  apiRequest({
-    method: "PATCH",
-    url: `/api/v1/events/booking/create`,
-    successMessage: "Booking successful",
-    data: { eventId },
-    reload: true,
-  });
+export const eventCreateBookingApiAction = async (eventId) => {
+  try {
+    const response = await fetch(`/api/v1/events/book`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ eventId }),
+    });
+
+    if (!response.ok)
+      throw new Error(`POST /api/v1/events/book failed: ${response.status}`);
+
+    const responseData = await response.json();
+
+    if (responseData?.status === "success") {
+      showAlert("success", "Booking successful");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      return responseData;
+    }
+    return null;
+  } catch (err) {
+    console.error("Booking error:", err);
+    if (err.response?.status === 404) {
+      showAlert("error", "Booking endpoint not found. Please contact support.");
+    } else {
+      handleError(err);
+    }
+    throw err;
+  }
+};
 
 export const eventCancelBookingApiAction = async (eventId) =>
   apiRequest({
@@ -168,10 +232,28 @@ export const loginApiAction = async (email, password) =>
 
 export const logOutApiAction = async () => {
   try {
-    await axios({ method: "GET", url: "/api/v1/users/logout" });
-    window.location.assign("/");
+    // Clear client-side storage first
+    localStorage.removeItem("userSettings");
+    localStorage.removeItem("userData");
+    sessionStorage.clear();
+
+    // Then make the logout request
+    const response = await fetch("/api/v1/users/logout", {
+      method: "GET",
+      credentials: "include",
+    });
+
+    // Force document.body to lose admin status
+    document.body.setAttribute("data-role", "");
+    document.body.classList.remove("role-admin", "role-user", "role-clubadmin");
+
+    // Don't show an error alert even if response is not ideal
+    // Just redirect to homepage with forced reload
+    window.location.href = "/?logout=success";
   } catch (err) {
-    showAlert("error", "Error logging out! Try again.");
+    console.error("Logout error:", err);
+    // Don't show an error alert, just redirect to login page
+    window.location.href = "/me/login";
   }
 };
 

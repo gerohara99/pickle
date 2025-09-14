@@ -18,6 +18,45 @@ router.post("/create", authController.create);
 router.post("/login", authController.login);
 router.get("/logout", authController.logout);
 
+// Auth status route - returns the current authentication state
+router.get("/auth-status", (req, res) => {
+  try {
+    // Get authentication status from multiple sources
+    const isAuthenticated = !!(
+      req.cookies.jwt &&
+      req.cookies.jwt !== "loggedout" &&
+      req.session?.user?.userId
+    );
+
+    // Return user info if authenticated
+    const userInfo =
+      isAuthenticated && req.session?.user
+        ? {
+            userId: req.session.user.userId,
+            userName: req.session.user.userName,
+            role: req.session.user.role || req.session.user.userRole,
+          }
+        : null;
+
+    res.status(200).json({
+      status: "success",
+      isAuthenticated,
+      user: userInfo,
+      auth: {
+        hasJWT: !!req.cookies.jwt && req.cookies.jwt !== "loggedout",
+        hasSession: !!req.session,
+        hasSessionUser: !!req.session?.user,
+      },
+    });
+  } catch (err) {
+    console.error("Auth status error:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to determine auth status",
+    });
+  }
+});
+
 router.post("/forgotPassword", authController.forgotPassword);
 router.patch("/passwordReset", authController.passwordReset);
 

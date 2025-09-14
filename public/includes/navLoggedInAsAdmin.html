@@ -1,51 +1,44 @@
 <!-- Desktop Nav -->
 <nav class="main-nav">
-  <ul class="main-nav-list">
-    <li class="left-nav">
-      <a class="main-nav-link user-display" href="#">Hi {{userName}} !!</a>
-    </li>
-    <li class="center-nav">
-      <ul class="center-nav-list">
-        <li>
-          <a class="main-nav-link" href="/users/showAll">Manage Users</a>
-        </li>
-        <li>
-          <a class="main-nav-link" href="/events/showAll">Manage Events</a>
-        </li>
-        <li>
-          <a class="main-nav-link" href="/events/showAllSchedules"
-            >Manage Schedules</a
-          >
-        </li>
-        <li>
-          <a class="main-nav-link" href="/settings/get">Manage Settings</a>
-        </li>
-      </ul>
-    </li>
-    <li class="right-nav">
-      <a class="main-nav-link settings-toggle" href="#">
-        <ion-icon name="settings-outline"></ion-icon>
-      </a>
-      <ul class="settings-dropdown">
-        <li>
-          <a class="main-nav-link" href="/events/noShowForm">Manage no show</a>
-        </li>
-        <li>
-          <a class="main-nav-link" href="/me/myAccountDetails"
-            >My Account Details</a
-          >
-        </li>
-        <li>
-          <a class="main-nav-link" href="/me/myPasswordUpdate"
-            >Update My Password</a
-          >
-        </li>
-        <li>
-          <a class="main-nav-link logOutButton" href="#">Logout</a>
-        </li>
-      </ul>
-    </li>
-  </ul>
+  <!-- Basic navigation for all users -->
+  <a href="/" aria-label="Home">
+    <i class="fas fa-home"></i>
+  </a>
+
+  <!-- Admin specific links -->
+  <a href="/users/showAll" aria-label="Manage Users" title="Manage Users">
+    <i class="fas fa-users-cog"></i>
+  </a>
+  <a href="/events/showAll" aria-label="Manage Events" title="Manage Events">
+    <i class="fas fa-calendar-alt"></i>
+  </a>
+  <a href="/events/showAllSchedules" aria-label="Manage Schedules" title="Manage Schedules">
+    <i class="fas fa-clock"></i>
+  </a>
+  <a href="/events/create" aria-label="Create Event" title="Create Event">
+    <i class="fas fa-plus-circle"></i>
+  </a>
+
+  <!-- Settings dropdown -->
+  <div class="settings-container" style="position: relative; display: inline-block;">
+    <a href="#" class="settings-toggle" aria-label="Settings" title="Settings">
+      <i class="fas fa-cog"></i>
+    </a>
+    <ul class="settings-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); list-style: none; padding: 0.5rem 0; margin: 0; z-index: 100;">
+      <li><a href="/settings/get" style="display: block; padding: 0.5rem 1rem; text-decoration: none;">Manage Settings</a></li>
+      <li><a href="/events/noShowForm" style="display: block; padding: 0.5rem 1rem; text-decoration: none;">Manage No Show</a></li>
+      <li><a href="/me/myAccountDetails" style="display: block; padding: 0.5rem 1rem; text-decoration: none;">My Account Details</a></li>
+      <li><a href="/me/myPasswordUpdate" style="display: block; padding: 0.5rem 1rem; text-decoration: none;">Update Password</a></li>
+    </ul>
+  </div>
+
+  <!-- Profile and logout -->
+  <a href="/me/account" aria-label="Profile">
+    <i class="fas fa-user"></i>
+  </a>
+  <a href="#" id="logoutButton" aria-label="Logout">
+    <i class="fas fa-sign-out-alt"></i>
+  </a>
 </nav>
 
 <!-- Mobile Nav Header (greeting + menu button) -->
@@ -69,18 +62,16 @@
 <div class="mobile-drawer">
   <ul class="mobile-nav-list">
     <li>
-      <a class="main-nav-link" href="/users/showAll">Manage Users</a>
+      <a class="main-nav-link admin-only" href="/users/showAll">Manage Users</a>
     </li>
     <li>
-      <a class="main-nav-link" href="/events/showAll">Manage Events</a>
+      <a class="main-nav-link admin-only" href="/events/showAll">Manage Events</a>
     </li>
     <li>
-      <a class="main-nav-link" href="/events/showAllSchedules"
-        >Manage Schedules</a
-      >
+      <a class="main-nav-link admin-only" href="/events/showAllSchedules">Manage Schedules</a>
     </li>
     <li>
-      <a class="main-nav-link" href="/settings/get">Manage Settings</a>
+      <a class="main-nav-link admin-only" href="/settings/get">Manage Settings</a>
     </li>
     <li>
       <a class="main-nav-link" href="/events/noShowForm">Manage No show</a>
@@ -96,6 +87,15 @@
       >
     </li>
     <li>
+      <a class="main-nav-link logOutButton" href="#">Logout</a>
+    </li>
+  </ul>
+</div>
+    <li>
+      <a class="main-nav-link logOutButton" href="#">Logout</a>
+    </li>
+  </ul>
+</div>
       <a class="main-nav-link logOutButton" href="#">Logout</a>
     </li>
   </ul>

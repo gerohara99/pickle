@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - Browse Events" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <title>RallyPoint - Browse Events</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+    
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events" class="active">
+        <i class="fas fa-search"></i>
+      </a>
+      <a href="/me/account" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="#" id="logoutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+    
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <h2 class="text-center mb-lg">Available Events</h2>
+          
+          <!-- Search filters -->
+          <div class="filters mb-lg">
+            <div class="filter-group">
+              <input type="text" id="eventSearch" placeholder="Search events..." class="filter-input">
+              <button class="btn btn--outline" id="searchButton">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+            
+            <div class="filter-options">
+              <label class="filter-label">
+                <input type="checkbox" id="filterUpcoming" checked>
+                <span>Upcoming Events</span>
+              </label>
+              
+              <label class="filter-label">
+                <input type="checkbox" id="filterAvailable">
+                <span>Available Spots</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- No events message (shown conditionally) -->
+          <div id="no-events-message" class="text-center hidden">
+            <p class="mb-md">There are currently no new events for you to book</p>
+          </div>
+          
+          <!-- Events container (populated dynamically) -->
+          <div id="event-container" class="grid grid--1-cols">
+            <!-- Event cards will be rendered here -->
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <footer class="footer text-center mt-lg">
+      <p>&copy; 2025 RallyPoint. All rights reserved.</p>
+    </footer>
+    
+    <!-- Event card template -->
+    <template id="event-card-template">
+      <div class="card event-card mb-md">
+        <div class="card__content">
+          <div class="event-header">
+            <div class="event-date">
+              <i class="fas fa-calendar-day"></i>
+              <span class="event-date-text"></span>
+            </div>
+            <div class="event-time">
+              <i class="fas fa-clock"></i>
+              <span class="event-time-text"></span>
+            </div>
+            <div class="event-location">
+              <i class="fas fa-map-marker-alt"></i>
+              <span class="event-location-text"></span>
+            </div>
+          </div>
+          
+          <div class="event-players">
+            <h4>Players</h4>
+            <ul class="player-list"></ul>
+          </div>
+          
+          <div class="event-waitlist hidden">
+            <h4>Wait List</h4>
+            <ol class="waitlist-list"></ol>
+          </div>
+          
+          <div class="event-status">
+            <span class="status-badge available">
+              <i class="fas fa-users"></i>
+              <span class="status-text"></span>
+            </span>
+          </div>
+          
+          <div class="form-buttons">
+            <button class="btn btn--primary book-event-btn">
+              <i class="fas fa-calendar-plus"></i> <span class="book-btn-text">Book Event</span>
+            </button>
+            <span class="hidden event-id"></span>
+          </div>
+        </div>
+      </div>
+    </template>
+    
+    <!-- Alert container for displaying messages -->
+    <div id="alert" class="alert hidden"></div>
+    
+    <script type="module">
+      // This script populates the events from the server data
+      document.addEventListener('DOMContentLoaded', () => {
+        // The server will inject this data when rendering the page
+        const events = window.eventsData || [];
+        
+        const eventContainer = document.getElementById('event-container');
+        const noEventsMessage = document.getElementById('no-events-message');
+        const template = document.getElementById('event-card-template');
+        const searchInput = document.getElementById('eventSearch');
+        const searchButton = document.getElementById('searchButton');
+        const filterUpcoming = document.getElementById('filterUpcoming');
+        const filterAvailable = document.getElementById('filterAvailable');
+        
+        // Show/hide appropriate elements based on events
+        if (events.length === 0) {
+          noEventsMessage.classList.remove('hidden');
+          return;
+        }
+        
+        // Render all events initially
+        renderEvents(events);
+        
+        // Set up search and filters
+        searchButton.addEventListener('click', filterEvents);
+        searchInput.addEventListener('keyup', (e) => {
+          if (e.key === 'Enter') filterEvents();
+        });
+        filterUpcoming.addEventListener('change', filterEvents);
+        filterAvailable.addEventListener('change', filterEvents);
+        
+        function filterEvents() {
+          const searchTerm = searchInput.value.toLowerCase();
+          const showUpcoming = filterUpcoming.checked;
+          const showOnlyAvailable = filterAvailable.checked;
+          
+          const now = new Date();
+          
+          const filteredEvents = events.filter(event => {
+            // Search term filter
+            const eventDate = new Date(event.eventDate);
+            const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
+            const dateString = eventDate.toLocaleDateString(undefined, options);
+            const textToSearch = `${event.eventName} ${event.eventLocation} ${dateString}`.toLowerCase();
+            const matchesSearch = !searchTerm || textToSearch.includes(searchTerm);
+            
+            // Upcoming filter
+            const isUpcoming = !showUpcoming || eventDate >= now;
+            
+            // Available spots filter
+            const hasSpots = !showOnlyAvailable || event.eventBookings.length < event.scheduleConfiguration.players;
+            
+            return matchesSearch && isUpcoming && hasSpots;
+          });
+          
+          // Clear and render filtered events
+          eventContainer.innerHTML = '';
+          if (filteredEvents.length === 0) {
+            noEventsMessage.classList.remove('hidden');
+          } else {
+            noEventsMessage.classList.add('hidden');
+            renderEvents(filteredEvents);
+          }
+        }
+        
+        function renderEvents(eventsToRender) {
+          eventsToRender.forEach(event => {
+            const clone = document.importNode(template.content, true);
+            
+            // Format the date
+            const options = {weekday: "short", year: "numeric", month: "short", day: "numeric"};
+            const eventDate = new Date(event.eventDate).toLocaleDateString(undefined, options);
+            
+            // Set event details
+            clone.querySelector('.event-date-text').textContent = eventDate;
+            clone.querySelector('.event-time-text').textContent = event.eventStartTime;
+            clone.querySelector('.event-location-text').textContent = event.eventLocation;
+            clone.querySelector('.event-id').textContent = event._id;
+            
+            // Add players
+            const playersList = clone.querySelector('.player-list');
+            const waitList = clone.querySelector('.waitlist-list');
+            const playersLimit = event.scheduleConfiguration.players;
+            
+            event.eventBookings.forEach((booking, index) => {
+              const listItem = document.createElement(index < playersLimit ? 'li' : 'li');
+              listItem.textContent = booking.userName;
+              
+              if (index < playersLimit) {
+                playersList.appendChild(listItem);
+              } else {
+                if (index === playersLimit) {
+                  // Show waitlist section when we hit the first waitlisted player
+                  clone.querySelector('.event-waitlist').classList.remove('hidden');
+                }
+                waitList.appendChild(listItem);
+              }
+            });
+            
+            // Update status badge
+            const isWaitList = event.eventBookings.length >= playersLimit;
+            const statusText = clone.querySelector('.status-text');
+            const statusBadge = clone.querySelector('.status-badge');
+            const bookBtnText = clone.querySelector('.book-btn-text');
+            
+            if (isWaitList) {
+              statusText.textContent = 'Wait list only';
+              statusBadge.classList.remove('available');
+              statusBadge.classList.add('waitlist');
+              bookBtnText.textContent = 'Join Wait List';
+            } else {
+              const spotsLeft = playersLimit - event.eventBookings.length;
+              statusText.textContent = `${spotsLeft} spot${spotsLeft !== 1 ? 's' : ''} available`;
+              bookBtnText.textContent = 'Book Event';
+            }
+            
+            eventContainer.appendChild(clone);
+          });
+          
+          // Add event listeners
+          document.querySelectorAll('.book-event-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const eventId = this.closest('.event-card').querySelector('.event-id').textContent;
+              // This will be handled by buttonDelegates.js
+              // Just mocking it here for the template
+              console.log(`Book event: ${eventId}`);
+            });
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

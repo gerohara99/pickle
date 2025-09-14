@@ -1,6 +1,4 @@
 const AppError = require("../utils/appError");
-const path = require("path");
-const fs = require("fs").promises;
 const htmlErrorController = require("./htmlErrorController");
 
 const handleCastErrorDB = (err) => {
@@ -170,7 +168,7 @@ const sendErrorProd = (err, req, res) => {
   }
 };
 
-module.exports = (err, req, res, next) => {
+module.exports = (err, req, res) => {
   try {
     err.statusCode = err.statusCode || 500;
     err.status = err.status || "error";

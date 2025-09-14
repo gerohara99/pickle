@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - Create a new event" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link rel="stylesheet" href="/css/createEvent.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <script type="module" src="/js/scheduleCalculator.js" defer></script>
+    <script type="module" src="/js/createEvent.js" defer></script>
+    <title>RallyPoint - Create Event</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/events/myBrowse" aria-label="My Events">
+        <i class="fas fa-calendar-check"></i>
+      </a>
+      <a href="/events/browseNew" aria-label="Find Events">
+        <i class="fas fa-search"></i>
+      </a>
+      <a
+        href="/events/create"
+        aria-label="Create Event"
+        class="active admin-only"
+      >
+        <i class="fas fa-plus-circle"></i>
+      </a>
+      <a href="/me/myAccountDetails" aria-label="Profile">
+        <i class="fas fa-user"></i>
+      </a>
+      <a href="#" id="logoutButton" class="logOutButton" aria-label="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </a>
+    </nav>
+
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Create an Event</h2>
+            </div>
+
+            <div class="card-body">
+              <form id="createEventForm" class="form">
+                <div class="form-grid">
+                  <!-- Left Column - Event Details -->
+                  <div class="form-column">
+                    <div class="event-details-header">
+                      <h3 class="section-title">Event Details</h3>
+                      <div class="event-details-icon-wrapper">
+                        <i class="fas fa-clipboard-list event-details-icon"></i>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="eventName">Event Name</label>
+                      <input
+                        type="text"
+                        id="eventName"
+                        name="eventName"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label for="eventLocation">Event Location</label>
+                      <input
+                        type="text"
+                        id="eventLocation"
+                        name="eventLocation"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label for="eventType">Event Type</label>
+                      <input
+                        type="text"
+                        id="eventType"
+                        name="eventType"
+                        class="form-control"
+                      />
+                    </div>
+
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="eventDate">Event Date</label>
+                        <input
+                          type="date"
+                          id="eventDate"
+                          name="eventDate"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="eventStartTime">Start Time</label>
+                        <input
+                          type="time"
+                          id="eventStartTime"
+                          name="eventStartTime"
+                          class="form-control"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="eventOrganiser">Event Organiser</label>
+                      <input
+                        type="text"
+                        id="eventOrganiser"
+                        name="eventOrganiser"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <label for="eventWaitListSize">Max Wait List Size</label>
+                      <input
+                        type="number"
+                        id="eventWaitListSize"
+                        name="eventWaitListSize"
+                        class="form-control"
+                        required
+                      />
+                    </div>
+
+                    <div class="form-group">
+                      <div class="checkbox-group">
+                        <label class="toggle-switch">
+                          <input type="checkbox" id="active" name="active" />
+                          <span class="slider"></span>
+                        </label>
+                        <span class="toggle-label">Make event active</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column - Schedule Calculator -->
+                  <div class="form-column">
+                    <div class="calculator-box">
+                      <div class="calculator-header">
+                        <h3 class="section-title">Schedule Calculator</h3>
+                        <div class="calculator-icon-wrapper">
+                          <i class="fas fa-calculator calculator-icon"></i>
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <div class="checkbox-group">
+                          <label class="toggle-switch">
+                            <input
+                              type="checkbox"
+                              id="doublesToggle"
+                              name="doublesToggle"
+                              checked
+                            />
+                            <span class="slider"></span>
+                          </label>
+                          <span class="toggle-label">Doubles Format</span>
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="numCourts">Number of Courts</label>
+                        <select
+                          id="numCourts"
+                          name="numCourts"
+                          class="form-control"
+                        >
+                          <option value="" disabled selected>
+                            Choose courts
+                          </option>
+                        </select>
+                      </div>
+
+                      <!-- Schedule Options -->
+                      <div
+                        id="scheduleOptions"
+                        class="schedule-options-container"
+                      >
+                        <!-- Will be populated by JS -->
+                      </div>
+
+                      <!-- Schedule Preview -->
+                      <div
+                        id="schedulePreview"
+                        class="schedule-preview-container"
+                      >
+                        <!-- Will be populated by JS -->
+                      </div>
+
+                      <input
+                        type="hidden"
+                        id="selectedScheduleConfig"
+                        name="selectedScheduleConfig"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <a href="/events/showAll" class="btn btn-outline">Cancel</a>
+                  <button type="submit" class="btn btn-primary">
+                    Create Event
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Alert container for displaying messages -->
+    <div id="alert" class="alert hidden"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const createEventForm = document.getElementById("createEventForm");
+
+        createEventForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(createEventForm);
+          const eventData = {};
+
+          // Convert FormData to object
+          for (const [key, value] of formData.entries()) {
+            if (key === "active" || key === "doublesToggle") {
+              eventData[key] = true; // Checkbox is checked
+            } else if (key === "selectedScheduleConfig" && value) {
+              eventData[key] = JSON.parse(value);
+            } else {
+              eventData[key] = value;
+            }
+          }
+
+          // Handle unchecked checkboxes
+          if (!formData.has("active")) {
+            eventData.active = false;
+          }
+
+          if (!formData.has("doublesToggle")) {
+            eventData.doublesToggle = false;
+          }
+
+          try {
+            const response = await fetch("/api/v1/events", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(eventData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              // Only show the showAlert message, not the browser alert
+              window.location.href = `/events/showAll`;
+            } else {
+              // Only log the error, the API will trigger the showAlert
+              console.error(
+                "Error creating event:",
+                data.message || "Failed to create event"
+              );
+            }
+          } catch (err) {
+            console.error("Error creating event:", err);
+            // Only log the error, don't show alert
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

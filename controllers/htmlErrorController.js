@@ -17,7 +17,7 @@ exports.serveErrorPage = async (req, res) => {
     const title = req.query.title || "Error";
 
     // Path to error.html file
-    const htmlPath = path.resolve(process.cwd(), "views", "error.html");
+    const htmlPath = path.resolve(process.cwd(), "public/html", "error.html");
 
     console.log(
       `Serving error page from: ${htmlPath} with status=${statusCode}, message=${message}`

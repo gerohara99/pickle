@@ -5,8 +5,6 @@
  * for ES modules to work properly in browsers.
  */
 
-const path = require("path");
-
 const mimeTypesMiddleware = (req, res, next) => {
   // Check if the request is for a JavaScript file
   if (req.path.endsWith(".js")) {

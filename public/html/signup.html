@@ -2,9 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="description" content="Pickleball admin" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="RallyPoint - Sign up and join the community"
+    />
     <link rel="icon" href="/img/favicon.png" />
     <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.gstatic.com" />
@@ -12,74 +14,141 @@
       href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/mediaQueries.css" />
-    <script
-      type="module"
-      src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.esm.js"
-    ></script>
-    <script
-      nomodule=""
-      src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.js"
-    ></script>
-    <title>Pickleball| Admin</title>
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link rel="stylesheet" href="/css/signup.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/signup.js" defer></script>
+    <script>
+      window.templateData = window.templateData || {};
+    </script>
+    <title>RallyPoint - Sign Up</title>
   </head>
   <body>
-    <header class="header">
-      <a class="logo" href="/">
-        <img src="/img/logo.png" alt="Pickle Logo" />
-      </a>
+    <header>
+      <h1>RallyPoint</h1>
     </header>
+    <nav>
+      <a href="/" aria-label="Home">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/me/login" aria-label="Login">
+        <i class="fas fa-sign-in-alt"></i>
+      </a>
+    </nav>
     <main class="main">
       <section class="section">
-        <div class="crudContainer-1-cols">
-          <div class="text-box">
-            <h1 class="heading-secondary">Sign Up</h1>
-            <p class="normal-text">
-              The "go to" place to book all your pickle ball games
-            </p>
-            <form class="form-1-cols" id="signUpForm">
-              <div>
-                <label for="name">Name</label>
-                <input name="name" type="text" id="name" required />
-                <label for="email">Email</label>
-                <input
-                  name="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  id="email"
-                  required
-                />
-                <label for="mobile">Mobile</label>
-                <input name="mobile" type="number" id="mobile" required />
-                <label for="password">Password</label>
-                <input name="password" type="password" id="password" required />
-                <label for="passwordConfirm">Re-Type Password</label>
-                <input
-                  name="passwordConfirm"
-                  type="password"
-                  id="passwordConfirm"
-                  required
-                />
-              </div>
-              <div class="form-buttons">
-                <a
-                  class="btn btn--form"
-                  id="signUpButton"
-                  href="#"
-                  onclick="document.getElementById('signUpForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
-                >
-                  Sign Up
-                </a>
-                <a class="btn btn--outline" id="cancelButton" href="/">
-                  Cancel
-                </a>
-              </div>
-            </form>
+        <div class="container">
+          <div class="card">
+            <div class="card__content">
+              <h2 class="text-center">Create your account</h2>
+              <p class="text-center mb-lg">
+                Join the RallyPoint community today
+              </p>
+              <form id="signUpForm" class="form">
+                <div class="form-group">
+                  <label for="name">Full Name</label>
+                  <input
+                    name="name"
+                    type="text"
+                    id="name"
+                    placeholder="John Smith"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input
+                    name="email"
+                    type="email"
+                    id="email"
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="mobile">Mobile Number</label>
+                  <input
+                    name="mobile"
+                    type="tel"
+                    id="mobile"
+                    placeholder="123-456-7890"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <div class="password-container">
+                    <input
+                      name="password"
+                      type="password"
+                      id="password"
+                      required
+                      minlength="8"
+                    />
+                    <button
+                      type="button"
+                      id="togglePassword"
+                      class="btn-icon"
+                      aria-label="Toggle password visibility"
+                    >
+                      <i class="fas fa-eye"></i> Show
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="passwordConfirm">Confirm Password</label>
+                  <div class="password-container">
+                    <input
+                      name="passwordConfirm"
+                      type="password"
+                      id="passwordConfirm"
+                      required
+                      minlength="8"
+                    />
+                    <button
+                      type="button"
+                      id="togglePasswordConfirm"
+                      class="btn-icon"
+                      aria-label="Toggle password visibility"
+                    >
+                      <i class="fas fa-eye"></i> Show
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-buttons">
+                  <a href="/" class="btn btn--outline">Cancel</a>
+                  <button
+                    type="submit"
+                    id="signupButton"
+                    class="btn btn--primary"
+                  >
+                    <i class="fas fa-user-plus"></i> Sign Up
+                  </button>
+                </div>
+
+                <p class="text-center mt-md">
+                  Already have an account?
+                  <a href="/me/login" class="text-link">Login here</a>
+                </p>
+              </form>
+            </div>
           </div>
         </div>
       </section>
     </main>
-    <script type="module" src="/js/index.js"></script>
+    <footer class="footer text-center mt-lg">
+      <p>&copy; 2025 RallyPoint. All rights reserved.</p>
+    </footer>
+
+    <!-- Alert container for displaying messages -->
+    <div id="alert" class="alert hidden"></div>
   </body>
 </html>

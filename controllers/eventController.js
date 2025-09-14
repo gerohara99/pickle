@@ -1,10 +1,13 @@
 const Event = require("../models/eventModel");
-const factory = require("./handlerFactory");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { sendWhatsAppMessage } = require("../utils/twilioClient");
-const generateDynamicSchedule = require("../utils/generateDynamicSchedule");
 const configs = require("../public/js/schedules.json");
+const {
+  renderSingleDocument,
+  renderPaginatedList,
+} = require("../utils/serverControllerUtils");
+const handlerFactory = require("./handlerFactory"); // Add handlerFactory import
 
 exports.createBooking = catchAsync(async (req, res, next) => {
   try {
@@ -136,15 +139,59 @@ exports.cancelBooking = catchAsync(async (req, res, next) => {
 exports.eventTimeout = (req, res, next) => {
   try {
     res.setTimeout(15000, () => {
-      console.warn(`Request timed out: ${req.originalUrl}`);
+      console.warn(`Event request timed out: ${req.originalUrl}`);
       res.status(503).send("Request timed out");
     });
     next();
   } catch (err) {
-    console.error("Error in eventTimeout middleware:", err);
+    console.error("Synchronous error in eventTimeout:", err);
     next(err);
   }
 };
+
+// Custom implementation to ensure we get all events regardless of active status
+exports.getEvent = [
+  catchAsync(async (req, res, next) => {
+    await renderSingleDocument({
+      req,
+      res,
+      next,
+      Model: Event,
+      id: req.params.id,
+      view: "eventDetailView", // Replace with your actual view name
+      title: "Event Details",
+      extraContext: {},
+    });
+  }),
+];
+
+exports.getAllEvents = [
+  catchAsync(async (req, res, next) => {
+    await renderPaginatedList({
+      req,
+      res,
+      next,
+      Model: Event,
+      filter: {}, // Add filter logic if needed
+      sort: {}, // Add sort logic if needed
+      view: "eventListView", // Replace with your actual view name
+      title: "All Events",
+      extraContext: {},
+    });
+  }),
+];
+
+function findBestSchedule(courts, players, desiredRounds) {
+  const candidates = configs.filter(
+    (cfg) => cfg.courts === courts && cfg.players === players
+  );
+  if (candidates.length === 0) return null;
+  candidates.sort(
+    (a, b) =>
+      Math.abs(a.rounds - desiredRounds) - Math.abs(b.rounds - desiredRounds)
+  );
+  return candidates[0];
+}
 
 async function checkAndUpdateSchedule(eventId, next) {
   try {
@@ -175,19 +222,6 @@ async function checkAndUpdateSchedule(eventId, next) {
     await event.save();
 
     // Find best matching precomputed schedule (allowing flexible rounds)
-    function findBestSchedule(courts, players, desiredRounds) {
-      const candidates = configs.filter(
-        (cfg) => cfg.courts === courts && cfg.players === players
-      );
-      if (candidates.length === 0) return null;
-      candidates.sort(
-        (a, b) =>
-          Math.abs(a.rounds - desiredRounds) -
-          Math.abs(b.rounds - desiredRounds)
-      );
-      return candidates[0];
-    }
-
     const matchingConfig = findBestSchedule(
       event.scheduleConfiguration.courts,
       numPlayers,
@@ -289,7 +323,8 @@ exports.createEvent = catchAsync(async (req, res, next) => {
   }
 
   try {
-    const newEvent = await Event.create({
+    // Create event data object
+    const eventData = {
       eventName: req.body.eventName,
       eventLocation: req.body.eventLocation,
       eventType: req.body.eventType,
@@ -299,8 +334,24 @@ exports.createEvent = catchAsync(async (req, res, next) => {
       eventWaitListSize: req.body.eventWaitListSize,
       active: activeValue,
       doubles: req.body.doubles,
-      scheduleConfiguration: req.body.scheduleConfiguration,
-    });
+    };
+
+    // Only add scheduleConfiguration if it exists
+    if (req.body.scheduleConfiguration) {
+      eventData.scheduleConfiguration = req.body.scheduleConfiguration;
+    } else {
+      // Create a default schedule configuration if not provided
+      eventData.scheduleConfiguration = {
+        courts: 1,
+        rounds: 1,
+        players: 2,
+        playersPerCourt: 2,
+        matchFormat: "singles",
+      };
+      console.log("Using default schedule configuration");
+    }
+
+    const newEvent = await Event.create(eventData);
     res.status(201).json({
       status: "success",
       data: { event: newEvent },
@@ -393,6 +444,5 @@ exports.handleNoShow = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.getEvent = factory.getOne(Event);
-exports.getAllEvents = factory.getAll(Event);
-exports.deleteEvent = factory.deleteOne(Event);
+// Replace custom deleteEvent implementation with handlerFactory.deleteOne
+exports.deleteEvent = handlerFactory.deleteOne(Event);

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Events Debugger</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 20px;
+      }
+      pre {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      button {
+        padding: 8px 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .results {
+        margin-top: 20px;
+      }
+      .section {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Admin Events Debugging Tool</h1>
+
+    <div class="section">
+      <button id="debugEvents">Check Database Events</button>
+      <div id="dbEventsResults" class="results">
+        <pre>Results will appear here...</pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <button id="checkAdminEvents">Check Admin Events API</button>
+      <div id="adminEventsResults" class="results">
+        <pre>Results will appear here...</pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <button id="checkSession">Check Session Data</button>
+      <div id="sessionResults" class="results">
+        <pre>Results will appear here...</pre>
+      </div>
+    </div>
+
+    <div class="section">
+      <button id="checkAuth">Check Auth Status</button>
+      <div id="authResults" class="results">
+        <pre>Results will appear here...</pre>
+      </div>
+    </div>
+
+    <script>
+      // Function to format JSON responses
+      function formatResponse(data) {
+        return JSON.stringify(data, null, 2);
+      }
+
+      // Check Database Events
+      document
+        .getElementById("debugEvents")
+        .addEventListener("click", async () => {
+          try {
+            const response = await fetch("/api/debug/events");
+            const data = await response.json();
+            document.getElementById("dbEventsResults").innerHTML =
+              `<pre>${formatResponse(data)}</pre>`;
+          } catch (err) {
+            document.getElementById("dbEventsResults").innerHTML =
+              `<pre>Error: ${err.message}</pre>`;
+          }
+        });
+
+      // Check Admin Events API
+      document
+        .getElementById("checkAdminEvents")
+        .addEventListener("click", async () => {
+          try {
+            const response = await fetch("/api/v1/events");
+            const data = await response.json();
+            document.getElementById("adminEventsResults").innerHTML =
+              `<pre>${formatResponse(data)}</pre>`;
+          } catch (err) {
+            document.getElementById("adminEventsResults").innerHTML =
+              `<pre>Error: ${err.message}</pre>`;
+          }
+        });
+
+      // Check Session Data
+      document
+        .getElementById("checkSession")
+        .addEventListener("click", async () => {
+          try {
+            const response = await fetch("/api/debug/session");
+            const data = await response.json();
+            document.getElementById("sessionResults").innerHTML =
+              `<pre>${formatResponse(data)}</pre>`;
+          } catch (err) {
+            document.getElementById("sessionResults").innerHTML =
+              `<pre>Error: ${err.message}</pre>`;
+          }
+        });
+
+      // Check Auth Status
+      document
+        .getElementById("checkAuth")
+        .addEventListener("click", async () => {
+          try {
+            const response = await fetch("/api/debug/auth-check");
+            const data = await response.json();
+            document.getElementById("authResults").innerHTML =
+              `<pre>${formatResponse(data)}</pre>`;
+          } catch (err) {
+            document.getElementById("authResults").innerHTML =
+              `<pre>Error: ${err.message}</pre>`;
+          }
+        });
+    </script>
+  </body>
+</html>

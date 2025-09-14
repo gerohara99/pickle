@@ -2,9 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="description" content="Pickleball admin" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="RallyPoint - The go-to place for sports enthusiasts"
+    />
     <link rel="icon" href="/img/favicon.png" />
     <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.gstatic.com" />
@@ -12,48 +14,94 @@
       href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <link rel="stylesheet" href="/css/mediaQueries.css" />
-    <script
-      type="module"
-      src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.esm.js"
-    ></script>
-    <script
-      nomodule=""
-      src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.js"
-    ></script>
-    <title>Pickleball| Admin</title>
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script type="module" src="/js/index.js" defer></script>
+    <title>RallyPoint - Home</title>
   </head>
   <body>
-    <header class="header">
-      <a class="logo" href="/">
-        <img src="/img/logo.png" alt="Pickle Logo" />
-      </a>
+    <header>
+      <h1>RallyPoint</h1>
     </header>
+
+    <nav>
+      <a href="/" aria-label="Home" class="active">
+        <i class="fas fa-home"></i>
+      </a>
+      <a href="/me/login" aria-label="Login">
+        <i class="fas fa-sign-in-alt"></i>
+      </a>
+      <a href="/me/signUp" aria-label="Signup">
+        <i class="fas fa-user-plus"></i>
+      </a>
+    </nav>
 
     <main class="main">
       <section class="section">
-        <div class="homepage">
-          <div class="homepage-text-box">
-            <h1 class="heading-primary">Let's play !!!</h1>
-            <p class="homepage-description">
-              <a href="/me/login" class="btn btn--form margin-right-sm"
-                >Login</a
-              >
-              <a href="/me/signUp" class="btn btn--outline">Signup</a>
-            </p>
-          </div>
-          <div class="homepage-img-box">
-            <img
-              src="img/homepage.png"
-              class="homepage-img"
-              alt="PickleBall Picture"
-            />
+        <div class="container">
+          <div class="text-center">
+            <h2>Welcome to RallyPoint</h2>
+            <p class="mb-lg">Your ultimate sports scheduling platform</p>
+
+            <div class="grid grid--2-cols">
+              <div class="card">
+                <img
+                  src="/img/homepage.png"
+                  alt="Find games"
+                  class="card__img"
+                />
+                <div class="card__content">
+                  <h3 class="card__title">Find Games</h3>
+                  <p>
+                    Browse upcoming events and book your spot in seconds. Join
+                    the community and never miss a game.
+                  </p>
+                  <a href="/me/login" class="btn btn--primary mt-md"
+                    >Find Games</a
+                  >
+                </div>
+              </div>
+
+              <div class="card">
+                <img
+                  src="/img/event.png"
+                  alt="Create events"
+                  class="card__img"
+                />
+                <div class="card__content">
+                  <h3 class="card__title">Organize Events</h3>
+                  <p>
+                    Create and manage sports events with our intelligent
+                    scheduling system. Maximize court usage and player
+                    satisfaction.
+                  </p>
+                  <a href="/me/login" class="btn btn--secondary mt-md"
+                    >Create Event</a
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-xl">
+              <h3>Ready to get started?</h3>
+              <div class="mt-md">
+                <a href="/me/login" class="btn btn--primary">Login</a>
+                <a href="/me/signUp" class="btn btn--outline mt-sm">Sign Up</a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
     </main>
 
-    <script type="module" src="/js/index.js"></script>
+    <footer class="footer text-center mt-lg">
+      <p>&copy; 2025 RallyPoint. All rights reserved.</p>
+    </footer>
+
+    <!-- Alert container for displaying messages -->
+    <div id="alert" class="alert hidden"></div>
   </body>
 </html>

@@ -13,7 +13,6 @@ function generateDynamicSchedule(selectedBookings, config) {
     selectedBookings.find((p) => p.userId === userId);
 
   // Partnership tracker
-  const partnershipTracker = {};
 
   // Backtracking function
   function backtrack(roundIdx, rounds, partnershipTracker, restsCount) {
@@ -75,7 +74,7 @@ function generateDynamicSchedule(selectedBookings, config) {
 }
 
 // Helper: Generate all possible rest combinations (spread evenly)
-function getRestCombos(playerIds, numResting, restsCount) {
+function getRestCombos(playerIds, numResting) {
   // For simplicity, just rotate rests for now (can be improved for even spread)
   const combos = [];
   for (let i = 0; i < playerIds.length; i++) {

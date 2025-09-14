@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const baseSessionSettings = require("./sessionModel").baseSessionSettings;
 
 const settingsSchema = new mongoose.Schema({
   systemDefaults: {

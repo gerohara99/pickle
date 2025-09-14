@@ -7,14 +7,13 @@
 
 const path = require("path");
 const fs = require("fs").promises;
-const express = require("express");
 const { injectImportMap } = require("../utils/importMapInjector");
 
 /**
  * Middleware to serve HTML files directly
  * @param {string} htmlDir - Directory containing HTML files (relative to project root)
  */
-const serveHtmlMiddleware = (htmlDir = "views") => {
+const serveHtmlMiddleware = (htmlDir = "public/html") => {
   console.log(`HTML middleware initialized with directory: ${htmlDir}`);
 
   return async (req, res, next) => {
@@ -61,10 +60,6 @@ const serveHtmlMiddleware = (htmlDir = "views") => {
     }
 
     const pathParts = req.path.split("/").filter(Boolean);
-
-    console.log(
-      `[HTML Middleware] Processing path: ${req.path}, parts: ${JSON.stringify(pathParts)}`
-    );
 
     // Special case for homepage
     if (req.path === "/") {
@@ -161,7 +156,7 @@ const serveHtmlMiddleware = (htmlDir = "views") => {
  * @param {string} template - Template name without .html extension
  * @param {string} htmlDir - Directory containing HTML files (relative to project root)
  */
-const serveHtmlFile = (template, htmlDir = "views") => {
+const serveHtmlFile = (template, htmlDir = "public/html") => {
   return async (req, res, next) => {
     const htmlPath = path.join(process.cwd(), htmlDir, `${template}.html`);
 
@@ -192,7 +187,7 @@ const serveHtmlFile = (template, htmlDir = "views") => {
  * @param {Function} dataHandler - Function to get data for the template
  * @param {string} htmlDir - Directory containing HTML files (relative to project root)
  */
-const serveHtmlWithData = (template, dataHandler, htmlDir = "views") => {
+const serveHtmlWithData = (template, dataHandler, htmlDir = "public/html") => {
   return async (req, res, next) => {
     try {
       // Get data
@@ -210,7 +205,7 @@ const serveHtmlWithData = (template, dataHandler, htmlDir = "views") => {
         // Read HTML file
         let html = await fs.readFile(htmlPath, "utf8");
 
-        // Inject data script
+        // Inject data script as window.templateData
         const dataScript = `<script>window.templateData = ${JSON.stringify(data)};</script>`;
         html = html.replace("</head>", `${dataScript}</head>`);
 

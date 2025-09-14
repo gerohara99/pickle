@@ -5,6 +5,10 @@
 
 import { showAlert } from "./alerts.js";
 import { apiRequest } from "./apiActions.js";
+import { setRadioButtonState } from "./utils/clientSharedLogic.js";
+import { renderPagination } from "./utils/paginate.js";
+import { applyFilters, resetFilters } from "./utils/filterUtils.js";
+import { setupCommonEventListeners } from "./utils/eventListeners.js";
 
 class EventManager {
   constructor() {
@@ -45,12 +49,7 @@ class EventManager {
     document.getElementById("date").value = this.filters.date;
 
     // Set radio button state
-    const radioButtons = document.querySelectorAll('input[name="active"]');
-    radioButtons.forEach((radio) => {
-      if (radio.value === this.filters.active) {
-        radio.checked = true;
-      }
-    });
+    setRadioButtonState(this.filters.active);
 
     // Set up event listeners
     this.setupEventListeners();
@@ -60,56 +59,37 @@ class EventManager {
   }
 
   setupEventListeners() {
-    // Filter form submission
-    const filterForm = document.querySelector(".filter-form");
-    if (filterForm) {
-      filterForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        this.applyFilters();
-      });
-    }
-
-    // Filter form reset
-    if (filterForm) {
-      filterForm.addEventListener("reset", () => {
-        setTimeout(() => {
-          this.resetFilters();
-        }, 0);
-      });
-    }
-
-    // Delete modal
-    document.getElementById("confirmDelete").addEventListener("click", () => {
-      this.deleteEvent();
-    });
-
-    document.getElementById("cancelDelete").addEventListener("click", () => {
-      this.closeDeleteModal();
-    });
-
-    const closeBtn = document.querySelector(".modal-close");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        this.closeDeleteModal();
-      });
-    }
-
-    // Click outside modal to close
-    window.addEventListener("click", (e) => {
-      if (e.target === this.deleteModal) {
-        this.closeDeleteModal();
-      }
-    });
-
-    // Table row actions - delegate
-    if (this.eventsTableBody) {
-      this.eventsTableBody.addEventListener("click", (e) => {
-        const button = e.target.closest("button");
-        if (!button) return;
-
-        const row = button.closest(".table-row");
+    setupCommonEventListeners({
+      filterForm: document.querySelector(".filter-form"),
+      onFilterSubmit: () =>
+        applyFilters({
+          filterConfig: [
+            { id: "organiser", type: "input" },
+            { id: "date", type: "input" },
+            { id: "active", type: "radio" },
+          ],
+          filterState: this.filters,
+          reloadCallback: () => this.loadEvents(),
+          baseUrl: "/events/showAll",
+        }),
+      onFilterReset: () =>
+        resetFilters({
+          filterConfig: [
+            { id: "organiser", type: "input" },
+            { id: "date", type: "input" },
+            { id: "active", type: "radio" },
+          ],
+          filterState: this.filters,
+          reloadCallback: () => this.loadEvents(),
+          baseUrl: "/events/showAll",
+        }),
+      deleteModal: this.deleteModal,
+      onConfirmDelete: () => this.deleteEvent(),
+      onCancelDelete: () => this.closeDeleteModal(),
+      onCloseModal: () => this.closeDeleteModal(),
+      tableBody: this.eventsTableBody,
+      rowActionHandler: (button, row) => {
         const eventId = row.dataset.eventId;
-
         if (button.classList.contains("edit-event")) {
           this.editEvent(eventId);
         } else if (button.classList.contains("view-schedule")) {
@@ -117,28 +97,46 @@ class EventManager {
         } else if (button.classList.contains("delete-event")) {
           this.showDeleteConfirmation(eventId);
         }
-      });
-    }
+      },
+    });
   }
 
   async loadEvents() {
     try {
+      // Add a loading indicator before making the request
+      this.eventsTableBody.innerHTML =
+        '<tr><td colspan="6" class="text-center">Loading events...</td></tr>';
+
       // Construct query string
       const queryParams = new URLSearchParams();
-      if (this.filters.organiser)
-        queryParams.set("organiser", this.filters.organiser);
-      if (this.filters.date) queryParams.set("date", this.filters.date);
+
+      // Add search filters - use regex for partial matching
+      if (this.filters.organiser) {
+        // Add case-insensitive search by adding a special regex filter
+        // This will match organiser names that contain the search term (partial match)
+        queryParams.set("eventOrganiser[$regex]", this.filters.organiser);
+        queryParams.set("eventOrganiser[$options]", "i"); // i for case-insensitive
+      }
+
+      if (this.filters.date) queryParams.set("eventDate", this.filters.date);
       if (this.filters.active) queryParams.set("active", this.filters.active);
       queryParams.set("page", this.currentPage.toString());
       queryParams.set("limit", "10"); // Show 10 events per page
 
       const queryString = queryParams.toString();
-      const url = `/api/v1/events?${queryString}`;
+
+      // Force cache busting by adding a timestamp
+      const cacheBuster = `&_cb=${Date.now()}`;
+      const url = `/api/v1/events?${queryString}${cacheBuster}`;
+
+      console.log("Fetching events with URL:", url);
 
       const response = await apiRequest({
         method: "GET",
         url: url,
       });
+
+      console.log("Events API response:", response);
 
       if (
         !response ||
@@ -146,6 +144,7 @@ class EventManager {
         !response.data.data ||
         !response.data.data.doc
       ) {
+        console.error("Invalid response structure:", response);
         showAlert("error", "Failed to load events");
         return;
       }
@@ -155,10 +154,36 @@ class EventManager {
 
       // Render events and pagination
       this.renderEvents();
-      this.renderPagination();
+      renderPagination(
+        this.paginationContainer,
+        this.currentPage,
+        this.totalPages,
+        (page) => this.goToPage(page)
+      );
+
+      // Log success
+      console.log(`Loaded ${this.events.length} events successfully`);
     } catch (err) {
       console.error("Error loading events:", err);
-      showAlert("error", "An error occurred while loading events");
+
+      // Show a more descriptive error message based on the error type
+      let errorMessage = "An error occurred while loading events";
+
+      if (err.message && err.message.includes("Network")) {
+        errorMessage = "Network error: Please check your internet connection";
+      } else if (err.response) {
+        // Server responded with an error status
+        const status = err.response.status || "unknown";
+        const message = err.response.data?.message || "Failed to load events";
+        errorMessage = `Server error (${status}): ${message}`;
+      }
+
+      showAlert("error", errorMessage);
+
+      // Show empty state in case of error
+      this.eventsTableBody.innerHTML = "";
+      this.events = [];
+      this.renderEvents(); // This will show the empty state
     }
   }
 
@@ -217,6 +242,14 @@ class EventManager {
     } else {
       statusBadge.textContent = "Inactive";
       statusBadge.className = "status-badge status-badge--full";
+    }
+
+    // Show/hide view schedule icon based on whether a schedule exists
+    const viewScheduleBtn = row.querySelector(".view-schedule");
+    if (viewScheduleBtn) {
+      // Check if event has rounds (schedule)
+      const hasSchedule = event.rounds && event.rounds.length > 0;
+      viewScheduleBtn.style.display = hasSchedule ? "inline-block" : "none";
     }
 
     return row;
@@ -365,26 +398,67 @@ class EventManager {
   }
 
   async deleteEvent() {
-    if (!this.eventToDelete) return;
+    if (!this.eventToDelete) {
+      console.error("No event ID provided for deletion");
+      showAlert("error", "Missing event ID. Please try again.");
+      return;
+    }
+
+    // Validate the event ID before attempting to delete
+    if (
+      !this.eventToDelete ||
+      this.eventToDelete === "null" ||
+      this.eventToDelete === null
+    ) {
+      console.error(
+        "Invalid event ID provided for deletion:",
+        this.eventToDelete
+      );
+      showAlert("error", "Invalid event ID. Please try again.");
+      this.closeDeleteModal();
+      return;
+    }
 
     try {
-      const response = await apiRequest({
+      // Close the modal immediately to prevent additional clicks
+      this.closeDeleteModal();
+
+      console.log("Deleting event with ID:", this.eventToDelete);
+
+      // Make the API request using fetch for more control
+      const response = await fetch(`/api/events/${this.eventToDelete}`, {
         method: "DELETE",
-        url: `/api/v1/events/${this.eventToDelete}`,
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      if (response && response.status === "success") {
+      if (response.ok) {
         showAlert("success", "Event deleted successfully");
-        this.closeDeleteModal();
 
-        // Reload events
-        this.loadEvents();
+        // Wait a moment before reloading to allow the alert to be seen
+        setTimeout(() => {
+          // Reload events
+          this.loadEvents();
+        }, 1000);
       } else {
-        showAlert("error", response.message || "Failed to delete event");
+        // Try to get error details
+        let errorMessage = "Error deleting event.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+          console.error("Delete response error details:", errorData);
+        } catch (e) {
+          // If we can't parse the JSON, use the status text
+          errorMessage = `Delete failed: ${response.status} ${response.statusText}`;
+          console.error("Could not parse error response:", e);
+        }
+        console.error("Delete response error:", errorMessage);
+        showAlert("error", errorMessage);
       }
     } catch (err) {
       console.error("Error deleting event:", err);
-      showAlert("error", "An error occurred while deleting the event");
+      showAlert("error", "Error deleting event. Please try again.");
     }
   }
 }

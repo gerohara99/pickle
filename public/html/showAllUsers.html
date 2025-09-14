@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -18,13 +18,16 @@
     />
     <script type="module" src="/js/index.js" defer></script>
     <script type="module" src="/js/userManager.js" defer></script>
+    <script>
+      window.templateData = window.templateData || {};
+    </script>
     <title>RallyPoint - All Users</title>
   </head>
   <body>
     <header>
       <h1>RallyPoint</h1>
     </header>
-    
+
     <nav>
       <a href="/" aria-label="Home">
         <i class="fas fa-home"></i>
@@ -45,7 +48,7 @@
         <i class="fas fa-sign-out-alt"></i>
       </a>
     </nav>
-    
+
     <main class="main">
       <section class="section">
         <div class="container">
@@ -55,20 +58,22 @@
               <i class="fas fa-user-plus"></i> Create User
             </a>
           </div>
-          
+
           <!-- Filter form -->
           <form class="filter-form mb-lg">
             <div class="filter-group">
-              <label for="username" class="filter-label">Filter by username:</label>
-              <input 
-                type="text" 
-                id="username" 
-                name="username" 
-                class="form-control" 
-                placeholder="Enter username"
+              <label for="username" class="filter-label"
+                >Filter by username:</label
               >
+              <input
+                type="text"
+                id="username"
+                name="username"
+                class="form-control"
+                placeholder="Enter username"
+              />
             </div>
-            
+
             <div class="filter-group">
               <label for="role" class="filter-label">Filter by role:</label>
               <select id="role" name="role" class="form-control">
@@ -77,25 +82,25 @@
                 <option value="user">User</option>
               </select>
             </div>
-            
+
             <div class="filter-group">
               <label class="filter-label">Filter by status:</label>
               <div class="radio-group">
                 <label class="radio-label">
-                  <input type="radio" name="active" value="" checked>
+                  <input type="radio" name="active" value="" checked />
                   <span>All</span>
                 </label>
                 <label class="radio-label">
-                  <input type="radio" name="active" value="true">
+                  <input type="radio" name="active" value="true" />
                   <span>Active</span>
                 </label>
                 <label class="radio-label">
-                  <input type="radio" name="active" value="false">
+                  <input type="radio" name="active" value="false" />
                   <span>Inactive</span>
                 </label>
               </div>
             </div>
-            
+
             <div class="filter-actions">
               <button type="submit" class="btn btn-secondary">
                 <i class="fas fa-filter"></i> Filter
@@ -105,7 +110,7 @@
               </button>
             </div>
           </form>
-          
+
           <!-- Users table -->
           <div class="table">
             <div class="table-header">
@@ -115,19 +120,19 @@
               <div class="table-cell">Status</div>
               <div class="table-cell">Actions</div>
             </div>
-            
+
             <div class="table-body" id="usersTableBody">
               <!-- User rows will be added dynamically -->
             </div>
           </div>
-          
+
           <!-- Pagination -->
           <div class="pagination" id="pagination">
             <!-- Pagination controls will be added dynamically -->
           </div>
-          
+
           <!-- Empty state -->
-          <div id="emptyState" class="empty-state" style="display: none;">
+          <div id="emptyState" class="empty-state" style="display: none">
             <div class="empty-state-icon">
               <i class="fas fa-users"></i>
             </div>
@@ -140,20 +145,23 @@
         </div>
       </section>
     </main>
-    
+
     <!-- Delete confirmation modal -->
     <div class="modal" id="deleteModal">
       <div class="modal-content">
         <span class="modal-close">&times;</span>
         <h3>Confirm Deletion</h3>
-        <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+        <p>
+          Are you sure you want to delete this user? This action cannot be
+          undone.
+        </p>
         <div class="modal-actions">
           <button id="cancelDelete" class="btn btn-outline">Cancel</button>
           <button id="confirmDelete" class="btn btn-danger">Delete</button>
         </div>
       </div>
     </div>
-    
+
     <!-- User row template -->
     <template id="userRowTemplate">
       <div class="table-row">

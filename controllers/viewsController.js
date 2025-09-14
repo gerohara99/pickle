@@ -3,473 +3,279 @@ const AppError = require("../utils/appError");
 const User = require("../models/userModel");
 const Event = require("../models/eventModel");
 const settings = require("../models/settingsModel");
-const paginate = require("../utils/paginate");
 const mongoose = require("mongoose");
-
-const requestTimeout = (req, res, next) => {
-  try {
-    res.setTimeout(15000, () => {
-      console.warn(`View request timed out: ${req.originalUrl}`);
-      res.status(503).send("Request timed out");
-    });
-    next();
-  } catch (err) {
-    console.error("Synchronous error in requestTimeout:", err);
-    next(err);
-  }
-};
+const requestTimeout = require("../utils/requestTimeout");
+const {
+  buildRenderContext,
+  renderPaginatedList,
+  renderSingleDocument,
+  renderSimpleView,
+  renderEventList,
+} = require("../utils/serverControllerUtils");
 
 exports.getHomePage = [
   requestTimeout,
-  catchAsync(async (req, res, next) => {
-    try {
-      res.status(200).render("homepage", {
+  catchAsync(async (req, res) => {
+    res.status(200).render(
+      "homepage",
+      buildRenderContext(req, {
         title: "Pickle Admin !!!",
-        userRole: null,
         showNav: false,
-      });
-    } catch (err) {
-      console.error("Synchronous error in getHomePage:", err);
-      next(err);
-    }
+      })
+    );
   }),
 ];
 
 // INDIVIDUAL USER FUNCTIONALITY
 exports.getLoginForm = [
   requestTimeout,
-  (req, res, next) => {
-    try {
-      res.status(200).render("login", {
+  (req, res) =>
+    renderSimpleView(
+      res,
+      "login",
+      buildRenderContext(req, {
         title: "log into your account",
-        userRole: null,
         showNav: false,
-      });
-    } catch (err) {
-      console.error("Synchronous error in getLoginForm:", err);
-      next(err);
-    }
-  },
+      })
+    ),
 ];
 
 exports.getsignupForm = [
   requestTimeout,
-  (req, res, next) => {
-    try {
-      res.status(200).render("signUp", {
-        title: "create your account",
-        userRole: null,
-        showNav: false,
-      });
-    } catch (err) {
-      console.error("Synchronous error in getsignupForm:", err);
-      next(err);
-    }
-  },
+  (req, res) =>
+    renderSimpleView(
+      res,
+      "signUp",
+      buildRenderContext(req, { title: "create your account", showNav: false })
+    ),
 ];
 
 exports.getMyAccountDetails = [
   requestTimeout,
-  (req, res, next) => {
-    try {
-      res.status(200).render("myAccountDetails", {
-        title: "Your account",
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      });
-    } catch (err) {
-      console.error("Synchronous error in getMyAccountDetails:", err);
-      next(err);
-    }
-  },
+  (req, res) =>
+    renderSimpleView(
+      res,
+      "myAccountDetails",
+      buildRenderContext(req, { title: "Your account" })
+    ),
 ];
 
 exports.myPasswordUpdate = [
   requestTimeout,
-  (req, res, next) => {
-    try {
-      res.status(200).render("myPasswordUpdate", {
-        title: "Update Password",
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      });
-    } catch (err) {
-      console.error("Synchronous error in myPasswordUpdate:", err);
-      next(err);
-    }
-  },
+  (req, res) =>
+    renderSimpleView(
+      res,
+      "myPasswordUpdate",
+      buildRenderContext(req, { title: "Update Password" })
+    ),
 ];
 
 exports.forgotPassword = [
   requestTimeout,
-  (req, res, next) => {
-    try {
-      res.status(200).render("myPasswordForgot", {
-        title: "Forgot Password",
-        userRole: req.session.user.userRole,
-        showNav: false,
-      });
-    } catch (err) {
-      console.error("Synchronous error in forgotPassword:", err);
-      next(err);
-    }
-  },
+  (req, res) =>
+    renderSimpleView(
+      res,
+      "myPasswordForgot",
+      buildRenderContext(req, { title: "Forgot Password", showNav: false })
+    ),
 ];
 
 exports.myPasswordReset = [
   requestTimeout,
-  (req, res, next) => {
-    try {
-      const resetToken = req.params.resetToken;
-      let data = {};
-      data.resetToken = resetToken;
-      res.status(200).render("myPasswordReset", {
+  (req, res) => {
+    const resetToken = req.params.resetToken;
+    renderSimpleView(
+      res,
+      "myPasswordReset",
+      buildRenderContext(req, {
         title: "Reset Password",
-        data,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
+        resetToken,
         showNav: false,
-      });
-    } catch (err) {
-      console.error("Synchronous error in myPasswordReset:", err);
-      next(err);
-    }
+      })
+    );
   },
 ];
 
 // ADMIN USER FUNCTIONALITY
 exports.showAllUsers = [
   requestTimeout,
-  catchAsync(async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const filter = {};
-      if (req.query.username) {
-        filter.name = { $regex: req.query.username, $options: "i" };
-      }
-      if (req.query.role && req.query.role !== "") {
-        filter.role = req.query.role;
-      }
-      if (typeof req.query.active !== "undefined" && req.query.active !== "") {
-        if (req.query.active === "true") filter.active = true;
-        else if (req.query.active === "false") filter.active = false;
-      }
-
-      const query = User.find(filter).sort({ name: 1 }).session(session);
-      const pagination = await paginate(query, req);
-
-      await session.commitTransaction();
-      session.endSession();
-
-      res.status(200).render("showAllUsers", {
-        title: "All Users",
-        users: pagination.results,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-        currentPage: pagination.currentPage,
-        totalPages: pagination.totalPages,
-        results: pagination.results.length,
-        limit: pagination.limit,
+  catchAsync((req, res, next) => {
+    const filter = {};
+    if (req.query.username) {
+      filter.name = { $regex: req.query.username, $options: "i" };
+    }
+    if (req.query.role && req.query.role !== "") {
+      filter.role = req.query.role;
+    }
+    if (typeof req.query.active !== "undefined" && req.query.active !== "") {
+      if (req.query.active === "true") filter.active = true;
+      else if (req.query.active === "false") filter.active = false;
+    }
+    renderPaginatedList({
+      req,
+      res,
+      next,
+      Model: User,
+      filter,
+      sort: { name: 1 },
+      view: "showAllUsers",
+      title: "All Users",
+      extraContext: buildRenderContext(req, {
         username: req.query.username || "",
         role: req.query.role || "",
         active: typeof req.query.active !== "undefined" ? req.query.active : "",
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      console.error("Error rendering showAllUsers:", err);
-      next(new AppError("Failed to render all users", 500));
-    }
+      }),
+    });
   }),
 ];
 
 exports.createUser = [
   requestTimeout,
-  (req, res, next) => {
-    try {
-      res.status(200).render("createUser", {
-        title: "Create User",
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      });
-    } catch (err) {
-      console.error("Synchronous error in createUser:", err);
-      next(err);
-    }
-  },
+  (req, res) =>
+    renderSimpleView(
+      res,
+      "createUser",
+      buildRenderContext(req, { title: "Create User" })
+    ),
 ];
 
 exports.editUser = [
   requestTimeout,
-  catchAsync(async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const user = await User.findOne({ _id: req.params.id }).session(session);
-
-      if (!user) {
-        await session.abortTransaction();
-        session.endSession();
-        return next(new AppError("There is no user with that name", 404));
-      }
-
-      await session.commitTransaction();
-      session.endSession();
-
-      res.status(200).render("editUser", {
-        title: `${user.name} Name`,
-        user: {
-          ...user.toObject(),
-          active: user.active === true || user.active === "true",
-        },
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      console.error("Error rendering editUser:", err);
-      next(new AppError("Failed to render edit user", 500));
-    }
+  catchAsync((req, res, next) => {
+    renderSingleDocument({
+      req,
+      res,
+      next,
+      Model: User,
+      id: req.params.id,
+      view: "editUser",
+      title: "Edit User",
+    });
   }),
 ];
 
 // EVENTS FUNCTIONALITY
 exports.createEvent = [
   requestTimeout,
-  (req, res, next) => {
-    try {
-      res.status(200).render("createEvent", {
+  (req, res) =>
+    renderSimpleView(
+      res,
+      "createEvent",
+      buildRenderContext(req, {
         title: "Events",
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
         systemDefaults: req.session.systemDefaults,
-        showNav: true,
-      });
-    } catch (err) {
-      console.error("Synchronous error in createEvent:", err);
-      next(err);
-    }
-  },
+      })
+    ),
 ];
 
 exports.showAllEvents = [
   requestTimeout,
-  catchAsync(async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const filter = {};
-      if (req.query.organiser) {
-        filter.eventOrganiser = { $regex: req.query.organiser, $options: "i" };
-      }
-      if (req.query.date) {
-        const date = new Date(req.query.date);
-        const nextDate = new Date(date);
-        nextDate.setDate(date.getDate() + 1);
-        filter.eventDate = { $gte: date, $lt: nextDate };
-      }
-      if (typeof req.query.active !== "undefined" && req.query.active !== "") {
-        if (req.query.active === "true") filter.active = true;
-        else if (req.query.active === "false") filter.active = false;
-      }
-
-      const query = Event.find(filter).sort({ eventDate: 1 }).session(session);
-      const pagination = await paginate(query, req);
-
-      await session.commitTransaction();
-      session.endSession();
-
-      res.status(200).render("showAllEvents", {
-        title: "All Events",
-        events: pagination.results,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-        currentPage: pagination.currentPage,
-        totalPages: pagination.totalPages,
-        results: pagination.results.length,
-        limit: pagination.limit,
+  catchAsync((req, res, next) => {
+    const filter = {};
+    if (req.query.organiser) {
+      filter.eventOrganiser = { $regex: req.query.organiser, $options: "i" };
+    }
+    if (req.query.date) {
+      const date = new Date(req.query.date);
+      const nextDate = new Date(date);
+      nextDate.setDate(date.getDate() + 1);
+      filter.eventDate = { $gte: date, $lt: nextDate };
+    }
+    if (typeof req.query.active !== "undefined" && req.query.active !== "") {
+      if (req.query.active === "true") filter.active = true;
+      else if (req.query.active === "false") filter.active = false;
+    }
+    renderPaginatedList({
+      req,
+      res,
+      next,
+      Model: Event,
+      filter,
+      sort: { eventDate: 1 },
+      view: "showAllEvents",
+      title: "All Events",
+      extraContext: {
         organiser: req.query.organiser || "",
         date: req.query.date || "",
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      console.error("Error rendering showAllEvents:", err);
-      next(new AppError("Failed to render all events", 500));
-    }
+      },
+    });
   }),
 ];
 
 exports.showAllSchedules = [
   requestTimeout,
-  catchAsync(async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const filter = { "rounds.0": { $exists: true } };
-      if (req.query.organiser) {
-        filter.eventOrganiser = { $regex: req.query.organiser, $options: "i" };
-      }
-      if (req.query.date) {
-        const date = new Date(req.query.date);
-        const nextDate = new Date(date);
-        nextDate.setDate(date.getDate() + 1);
-        filter.eventDate = { $gte: date, $lt: nextDate };
-      }
-
-      const query = Event.find(filter).sort({ eventDate: 1 }).session(session);
-      const pagination = await paginate(query, req);
-
-      await session.commitTransaction();
-      session.endSession();
-
-      res.status(200).render("showAllSchedules", {
-        title: "All Schedules",
-        events: pagination.results,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-        currentPage: pagination.currentPage,
-        totalPages: pagination.totalPages,
-        results: pagination.results.length,
-        limit: pagination.limit,
+  catchAsync((req, res, next) => {
+    const filter = { "rounds.0": { $exists: true } };
+    if (req.query.organiser) {
+      filter.eventOrganiser = { $regex: req.query.organiser, $options: "i" };
+    }
+    if (req.query.date) {
+      const date = new Date(req.query.date);
+      const nextDate = new Date(date);
+      nextDate.setDate(date.getDate() + 1);
+      filter.eventDate = { $gte: date, $lt: nextDate };
+    }
+    renderPaginatedList({
+      req,
+      res,
+      next,
+      Model: Event,
+      filter,
+      sort: { eventDate: 1 },
+      view: "showAllSchedules",
+      title: "All Schedules",
+      extraContext: {
         organiser: req.query.organiser || "",
         date: req.query.date || "",
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      console.error("Error rendering showAllSchedules:", err);
-      next(new AppError("Failed to render all schedules", 500));
-    }
+      },
+    });
   }),
 ];
 
 exports.browseMyEvents = [
   requestTimeout,
-  catchAsync(async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const userId = req.session.user.userId;
-      const events = await Event.find({
-        "eventBookings.userId": { $in: userId },
-        active: true,
-      })
-        .sort({ eventDate: 1 })
-        .session(session);
-
-      events.forEach((event) => {
-        event.userInRounds =
-          event.rounds &&
-          event.rounds.some((round) =>
-            round.matches.some(
-              (match) =>
-                match.teamA.some(
-                  (player) => player.userId.toString() === userId
-                ) ||
-                match.teamB.some(
-                  (player) => player.userId.toString() === userId
-                )
-            )
-          );
-      });
-
-      await session.commitTransaction();
-      session.endSession();
-
-      res.status(200).render("browseMyEvents", {
-        title: "Browse Events",
-        events: events,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      console.error("Error rendering browseMyEvents:", err);
-      next(new AppError("Failed to render browse my events", 500));
-    }
+  catchAsync((req, res, next) => {
+    const userId = req.session.user.userId;
+    renderEventList({
+      req,
+      res,
+      next,
+      filter: { "eventBookings.userId": { $in: userId }, active: true },
+      sort: { eventDate: 1 },
+      view: "browseMyEvents",
+      title: "Browse Events",
+    });
   }),
 ];
 
 exports.browseNewEvents = [
   requestTimeout,
-  catchAsync(async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const userId = req.session.user.userId;
-      const events = await Event.find({
-        "eventBookings.userId": { $nin: userId },
-        active: true,
-      })
-        .sort({ eventDate: 1 })
-        .session(session);
-
-      await session.commitTransaction();
-      session.endSession();
-
-      res.status(200).render("browseNewEvents", {
-        title: "Browse Events",
-        events: events,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      console.error("Error rendering browseNewEvents:", err);
-      next(new AppError("Failed to render browse new events", 500));
-    }
+  catchAsync((req, res, next) => {
+    const userId = req.session.user.userId;
+    renderEventList({
+      req,
+      res,
+      next,
+      filter: { "eventBookings.userId": { $nin: userId }, active: true },
+      sort: { eventDate: 1 },
+      view: "browseNewEvents",
+      title: "Browse Events",
+    });
   }),
 ];
 
 exports.editEvent = [
   requestTimeout,
-  catchAsync(async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const event = await Event.findOne({ _id: req.params.id }).session(
-        session
-      );
-
-      if (!event) {
-        await session.abortTransaction();
-        session.endSession();
-        return next(new AppError("There is no event with that name", 404));
-      }
-
-      await session.commitTransaction();
-      session.endSession();
-
-      res.status(200).render("editEvent", {
-        title: `${event.eventName} Event`,
-        event: {
-          ...event.toObject(),
-          active: event.active === true || event.active === "true",
-        },
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      console.error("Error rendering editEvent:", err);
-      next(new AppError("Failed to render edit event", 500));
-    }
+  catchAsync((req, res, next) => {
+    renderSingleDocument({
+      req,
+      res,
+      next,
+      Model: Event,
+      id: req.params.id,
+      view: "editEvent",
+      title: "Edit Event",
+    });
   }),
 ];
 

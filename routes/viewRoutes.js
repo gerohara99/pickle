@@ -1,17 +1,22 @@
-const path = require("path");
 const express = require("express");
 const authController = require("../controllers/authController");
 const directHtmlController = require("../controllers/directHtmlController");
 const htmlErrorController = require("../controllers/htmlErrorController");
 const Event = require("../models/eventModel");
-const paginate = require("../utils/paginate");
+const User = require("../models/userModel");
+const settings = require("../models/settingsModel");
+const {
+  paginate,
+  getBrowseNewEventsData,
+  getBrowseMyEventsData,
+} = require("../utils/serverControllerUtils"); // Import DRY helpers
 
 const router = express.Router();
 
 // Homepage
 router.get(
   "/",
-  directHtmlController.serveHtmlWithData("homepage", async (req) => {
+  directHtmlController.serveHtmlWithData("homepage", async () => {
     return {
       title: "Pickle Admin",
       userRole: null,
@@ -26,7 +31,7 @@ router.get("/error.html", htmlErrorController.serveErrorPage);
 // Individual users
 router.get(
   "/me/login",
-  directHtmlController.serveHtmlWithData("login", async (req) => {
+  directHtmlController.serveHtmlWithData("login", async () => {
     return {
       title: "Log into your account",
       userRole: null,
@@ -37,7 +42,7 @@ router.get(
 
 router.get(
   "/me/signup",
-  directHtmlController.serveHtmlWithData("signup", async (req) => {
+  directHtmlController.serveHtmlWithData("signup", async () => {
     return {
       title: "Create your account",
       userRole: null,
@@ -60,6 +65,11 @@ router.get(
   })
 );
 
+// Redirect /me/account to /me/myAccountDetails for UI navigation consistency
+router.get("/me/account", authController.protect, (req, res) => {
+  res.redirect("/me/myAccountDetails");
+});
+
 router.get(
   "/me/myPasswordUpdate",
   authController.protect,
@@ -76,7 +86,7 @@ router.get(
 
 router.get(
   "/me/forgotPassword",
-  directHtmlController.serveHtmlWithData("myPasswordForgot", async (req) => {
+  directHtmlController.serveHtmlWithData("myPasswordForgot", async () => {
     return {
       title: "Forgot Password",
       userRole: null,
@@ -263,24 +273,7 @@ router.get(
   "/events/browseNew",
   authController.isLoggedIn,
   directHtmlController.serveHtmlWithData("browseNewEvents", async (req) => {
-    try {
-      const userId = req.session.user.userId;
-      const events = await Event.find({
-        "eventBookings.userId": { $nin: userId },
-        active: true,
-      }).sort({ eventDate: 1 });
-
-      return {
-        title: "Browse Events",
-        events: events,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      };
-    } catch (err) {
-      console.error("Error rendering browseNewEvents:", err);
-      throw new Error("Failed to render browse new events");
-    }
+    return await getBrowseNewEventsData(req);
   })
 );
 
@@ -288,41 +281,7 @@ router.get(
   "/events/myBrowse",
   authController.isLoggedIn,
   directHtmlController.serveHtmlWithData("browseMyEvents", async (req) => {
-    try {
-      const userId = req.session.user.userId;
-      const events = await Event.find({
-        "eventBookings.userId": { $in: userId },
-        active: true,
-      }).sort({ eventDate: 1 });
-
-      // Check if user is in rounds for each event
-      events.forEach((event) => {
-        event.userInRounds =
-          event.rounds &&
-          event.rounds.some((round) =>
-            round.matches.some(
-              (match) =>
-                match.teamA.some(
-                  (player) => player.userId.toString() === userId
-                ) ||
-                match.teamB.some(
-                  (player) => player.userId.toString() === userId
-                )
-            )
-          );
-      });
-
-      return {
-        title: "Browse Events",
-        events: events,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      };
-    } catch (err) {
-      console.error("Error rendering browseMyEvents:", err);
-      throw new Error("Failed to render browse my events");
-    }
+    return await getBrowseMyEventsData(req);
   })
 );
 
@@ -344,24 +303,15 @@ router.get(
   "/events/get/:id",
   authController.isLoggedIn,
   directHtmlController.serveHtmlWithData("editEvent", async (req) => {
-    try {
-      const event = await Event.findById(req.params.id);
-
-      if (!event) {
-        throw new Error("Event not found");
-      }
-
-      return {
-        title: "Edit Event",
-        event: event,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      };
-    } catch (err) {
-      console.error("Error rendering editEvent:", err);
-      throw new Error("Failed to render edit event");
-    }
+    const event = await Event.findById(req.params.id);
+    if (!event) throw new Error("Event not found");
+    return {
+      title: "Edit Event",
+      event: event,
+      userRole: req.session.user.userRole,
+      userName: req.session.user.userName,
+      showNav: true,
+    };
   })
 );
 
@@ -369,26 +319,17 @@ router.get(
   "/events/viewMySchedule/:id",
   authController.isLoggedIn,
   directHtmlController.serveHtmlWithData("viewMySchedule", async (req) => {
-    try {
-      const event = await Event.findById(req.params.id);
-      const userId = req.session.user.userId;
-
-      if (!event) {
-        throw new Error("Event not found");
-      }
-
-      return {
-        title: "My Schedule",
-        event: event,
-        userId: userId,
-        userRole: req.session.user.userRole,
-        userName: req.session.user.userName,
-        showNav: true,
-      };
-    } catch (err) {
-      console.error("Error rendering viewMySchedule:", err);
-      throw new Error("Failed to render my schedule");
-    }
+    const event = await Event.findById(req.params.id);
+    const userId = req.session.user.userId;
+    if (!event) throw new Error("Event not found");
+    return {
+      title: "My Schedule",
+      event: event,
+      userId: userId,
+      userRole: req.session.user.userRole,
+      userName: req.session.user.userName,
+      showNav: true,
+    };
   })
 );
 
@@ -466,8 +407,5 @@ router.get(
     }
   }
 );
-
-// Test route for HTML serving
-router.get("/test-html", directHtmlController.serveHtmlFile("test"));
 
 module.exports = router;

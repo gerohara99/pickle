@@ -1,40 +1,27 @@
 <!-- Desktop Nav -->
 <nav class="main-nav">
-  <ul class="main-nav-list">
-    <li class="left-nav">
-      <a class="main-nav-link user-display" href="#">Hi {{userName}} !!</a>
-    </li>
-    <li class="center-nav">
-      <ul class="center-nav-list">
-        <li>
-          <a class="main-nav-link" href="/events/browseNew">Book an event</a>
-        </li>
-        <li>
-          <a class="main-nav-link" href="/events/myBrowse">Browse My Events</a>
-        </li>
-      </ul>
-    </li>
-    <li class="right-nav">
-      <a class="main-nav-link settings-toggle" href="#">
-        <ion-icon name="settings-outline"></ion-icon>
-      </a>
-      <ul class="settings-dropdown">
-        <li>
-          <a class="main-nav-link" href="/me/myAccountDetails"
-            >My Account Details</a
-          >
-        </li>
-        <li>
-          <a class="main-nav-link" href="/me/myPasswordUpdate"
-            >Update My Password</a
-          >
-        </li>
-        <li>
-          <a class="main-nav-link logOutButton" href="#">Logout</a>
-        </li>
-      </ul>
-    </li>
-  </ul>
+  <!-- Basic navigation for regular users -->
+  <a href="/" aria-label="Home">
+    <i class="fas fa-home"></i>
+  </a>
+
+  <!-- User specific links -->
+  <a href="/events/myBrowse" aria-label="My Events">
+    <i class="fas fa-calendar-check"></i>
+  </a>
+  <a href="/events/browseNew" aria-label="Find Events">
+    <i class="fas fa-search"></i>
+  </a>
+
+  <!-- Profile and settings -->
+  <a href="/me/account" aria-label="Profile">
+    <i class="fas fa-user"></i>
+  </a>
+
+  <!-- Logout button -->
+  <a href="#" id="logoutButton" aria-label="Logout">
+    <i class="fas fa-sign-out-alt"></i>
+  </a>
 </nav>
 
 <!-- Mobile Nav Header (greeting + menu button) -->
@@ -65,6 +52,19 @@
     </li>
     <li>
       <a class="main-nav-link" href="/me/myAccountDetails"
+        >My Account Details</a
+      >
+    </li>
+    <li>
+      <a class="main-nav-link" href="/me/myPasswordUpdate"
+        >Update My Password</a
+      >
+    </li>
+    <li>
+      <a class="main-nav-link logOutButton" href="#">Logout</a>
+    </li>
+  </ul>
+</div>
         >My Account Details</a
       >
     </li>

@@ -1,3 +1,6 @@
+import { buttonDelegateLogic } from "./utils/buttonUtils.js";
+import { retryAsync } from "./utils/networkUtils.js";
+
 export function initFormListeners(deps) {
   // Graceful Degradation: Check for missing dependencies
   function depCheck(fn, name) {
@@ -13,28 +16,6 @@ export function initFormListeners(deps) {
   // User-friendly error display
   function showError(message) {
     alert(message); // Replace with custom UI if desired
-  }
-
-  // Network Reliability: Retry wrapper for transient errors
-  async function retryAsync(fn, args = [], retries = 2, delay = 500) {
-    let lastErr;
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        return await fn(...args);
-      } catch (err) {
-        lastErr = err;
-        // Only retry for network errors (can be customized)
-        if (
-          err instanceof TypeError ||
-          (err.message && err.message.includes("Network"))
-        ) {
-          await new Promise((res) => setTimeout(res, delay));
-        } else {
-          break;
-        }
-      }
-    }
-    throw lastErr;
   }
 
   // Dependency checks

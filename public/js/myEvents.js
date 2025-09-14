@@ -1,5 +1,7 @@
 // myEvents.js - Handles my events page functionality
 import { showAlert } from "./alerts.js";
+import { sharedBrowseEventLogic } from "./utils/eventUtils.js";
+import { handleEventBooking } from "../utils/eventBookingUtils.js";
 
 class MyEvents {
   constructor() {
@@ -84,7 +86,7 @@ class MyEvents {
   addEventListeners() {
     // View schedule buttons
     document.querySelectorAll(".view-schedule-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener("click", () => {
         // Find the event card containing this button
         const eventCard = btn.closest(".event-card");
         // Get the event ID from the hidden span
@@ -106,43 +108,27 @@ class MyEvents {
 
     // Cancel booking buttons
     document.querySelectorAll(".cancel-booking-btn").forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
-        const eventId = e.target
-          .closest(".event-card")
-          .querySelector(".event-id").textContent;
+      btn.addEventListener("click", async () => {
+        const eventCard = btn.closest(".event-card");
+        const eventId = eventCard.querySelector(".event-id").textContent;
         await this.cancelBooking(eventId);
       });
     });
   }
 
   async cancelBooking(eventId) {
-    try {
-      const response = await fetch("/api/events/cancel", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ eventId }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showAlert("success", "Booking cancelled successfully!");
-        // Refresh the page after a short delay to show the updated bookings
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      } else {
-        showAlert("error", data.message || "Could not cancel booking");
-      }
-    } catch (err) {
-      showAlert("error", "Something went wrong. Please try again.");
-    }
+    await handleEventBooking({
+      endpoint: "/api/events/cancel",
+      eventId,
+      successMsg: "Booking cancelled successfully!",
+      errorMsg: "Could not cancel booking",
+      reloadDelay: 1500,
+    });
   }
 }
 
 // Initialize the my events page when the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   new MyEvents();
+  sharedBrowseEventLogic();
 });

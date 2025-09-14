@@ -5,8 +5,6 @@
  * for proper ES module support.
  */
 
-const fs = require("fs").promises;
-
 /**
  * Adds external scripts and import map to HTML file content
  * @param {string} htmlContent - Original HTML content
@@ -18,19 +16,9 @@ const injectImportMap = (htmlContent) => {
     return htmlContent;
   }
 
-  // Scripts to inject - load axios as a global before any modules
-  const scriptsToInject = `
-    <!-- RallyPoint External Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>`;
-
-  // Insert scripts before the first script tag or before </head>
-  if (htmlContent.includes("<script")) {
-    return htmlContent.replace(/(<script)/i, `${scriptsToInject}\n    $1`);
-  } else if (htmlContent.includes("</head>")) {
-    return htmlContent.replace("</head>", `    ${scriptsToInject}\n  </head>`);
-  }
-
-  // If we can't find a good insertion point, just return the original
+  // No scripts to inject since axios is removed
+  // If you need to inject other scripts, add them here
+  // For now, just return the original content
   return htmlContent;
 };
 

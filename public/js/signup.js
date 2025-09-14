@@ -1,13 +1,11 @@
 // signup.js
 import { togglePasswordVisibility } from "../services/authService.js";
-import { signUpApiAction } from "./apiActions.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const togglePasswordBtn = document.getElementById("togglePassword");
   const togglePasswordConfirmBtn = document.getElementById(
     "togglePasswordConfirm"
   );
-  const signupButton = document.getElementById("signupButton");
 
   // Password toggle functionality
   if (togglePasswordBtn) {

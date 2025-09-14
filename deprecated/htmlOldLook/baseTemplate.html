@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RallyPoint - Sports scheduling platform" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/rallypoint.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <script type="module" src="/js/index.js" defer></script>
+    <title>RallyPoint - Sports Scheduling Platform</title>
+  </head>
+  <body>
+    <header>
+      <h1>RallyPoint</h1>
+    </header>
+
+    <!-- Navigation will be loaded dynamically based on user role -->
+    <div id="navigationContainer"></div>
+
+    <main class="main">
+      <section class="section">
+        <div class="container">
+          <!-- Content will be injected here -->
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer text-center mt-lg">
+      <p>&copy; 2025 RallyPoint. All rights reserved.</p>
+    </footer>
+
+    <!-- Alert container for displaying messages -->
+    <div id="alert" class="alert hidden"></div>
+
+    <script type="module">
+      document.addEventListener("DOMContentLoaded", () => {
+        // Simple function to load navigation based on role
+        function loadNavigation() {
+          const navContainer = document.getElementById('navigationContainer');
+          if (!navContainer) return;
+          
+          // Get user role (normalized to lowercase)
+          const role = (document.body.getAttribute("data-role") || 
+                        document.body.dataset.userRole || 
+                        'guest').toLowerCase();
+          
+          // Determine which navigation file to load
+          let navFile = '/includes/navLoggedOut.html'; // Default for guests
+          
+  
+            // Check if user has any admin role
+            if (role.includes('admin')) {
+              navFile = '/includes/navLoggedInAsAdmin.html';
+              console.log('Loading admin navigation');
+            } else {
+              navFile = '/includes/navLoggedInAsUser.html';
+              console.log('Loading user navigation');
+            }
+
+          
+          // Load the navigation file
+          fetch(navFile)
+            .then(response => {
+              if (!response.ok) throw new Error(`Failed to load navigation: ${response.status}`);
+              return response.text();
+            })
+            .then(html => {
+              navContainer.innerHTML = html;
+              console.log(`Successfully loaded navigation from: ${navFile}`);
+              
+              // Set up any event listeners for the navigation
+              setupNavigationHandlers();
+            })
+            .catch(error => {
+              console.error('Error loading navigation:', error);
+              // Fallback to basic navigation
+              navContainer.innerHTML = `
+                <nav>
+                  <a href="/" aria-label="Home"><i class="fas fa-home"></i></a>
+                  <a href="/me/login" aria-label="Login"><i class="fas fa-sign-in-alt"></i></a>
+                </nav>
+              `;
+            });
+        }
+        
+        // Function to set up event handlers for navigation elements
+        function setupNavigationHandlers() {
+          // Set up logout button click event
+          const logoutButton = document.querySelector('#logoutButton');
+          if (logoutButton) {
+            logoutButton.addEventListener('click', function(e) {
+              e.preventDefault();
+              // Handle logout - typically would call your logout API
+              fetch('/api/v1/users/logout', { method: 'GET' })
+                .then(() => { window.location.href = '/'; })
+                .catch(err => { console.error('Logout error:', err); });
+            });
+          }
+          
+          // Set up settings toggle if it exists
+          const settingsToggle = document.querySelector('.settings-toggle');
+          const settingsDropdown = document.querySelector('.settings-dropdown');
+          if (settingsToggle && settingsDropdown) {
+            settingsToggle.addEventListener('click', function(e) {
+              e.preventDefault();
+              settingsDropdown.style.display = 
+                settingsDropdown.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+              if (settingsToggle && !settingsToggle.contains(e.target) && 
+                  settingsDropdown && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.style.display = 'none';
+              }
+            });
+          }
+        }
+        
+        // Load the appropriate navigation
+        loadNavigation();
+      });
+    </script>
+  </body>
+</html>
+              el.style.display = el.tagName === "A" ? "inline-block" : "block";
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

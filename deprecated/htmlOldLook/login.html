@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="Pickleball admin" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/img/favicon.png" />
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/mediaQueries.css" />
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule=""
+      src="https://unpkg.com/ionicons@5.4.0/dist/ionicons/ionicons.js"
+    ></script>
+    <title>Pickleball| Admin</title>
+  </head>
+  <body>
+    <header class="header">
+      <a class="logo" href="/">
+        <img src="/img/logo.png" alt="Pickle Logo" />
+      </a>
+    </header>
+    <main class="main">
+      <section class="section">
+        <div class="crudContainer-1-cols">
+          <div class="text-box">
+            <h1 class="heading-secondary">Log into your account test</h1>
+            <p class="normal-text">
+              The "go to" place to book all your pickle ball games
+            </p>
+            <form class="form-1-cols" id="loginForm">
+              <div>
+                <label for="email">Email</label>
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  id="email"
+                  required
+                />
+                <label for="password">Password</label>
+                <input name="password" type="password" id="password" required />
+                <button
+                  type="button"
+                  id="togglePassword"
+                  class="show-password-link"
+                >
+                  Show Password
+                </button>
+              </div>
+              <div class="form-buttons">
+                <a
+                  class="btn btn--form"
+                  id="loginButton"
+                  href="#"
+                  onclick="document.getElementById('loginForm').dispatchEvent(new Event('submit', {cancelable: true, bubbles: true})); return false;"
+                >
+                  Login
+                </a>
+                <a
+                  id="forgotPasswordLink"
+                  class="text-link"
+                  href="/me/forgotPassword"
+                >
+                  Forgot Password?
+                </a>
+                <a class="btn btn--outline" id="cancelButton" href="/">
+                  Cancel
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/js/index.js"></script>
+  </body>
+</html>

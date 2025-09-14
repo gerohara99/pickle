@@ -1,6 +1,5 @@
 // createEvent.js - Handles event creation page functionality
 import { showAlert } from "./alerts.js";
-import { initScheduleCalculator } from "./scheduleCalculator.js";
 
 class EventCreator {
   constructor() {

@@ -2,51 +2,22 @@ const Settings = require("../models/settingsModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const mongoose = require("mongoose");
-
-const requestTimeout = (req, res, next) => {
-  try {
-    res.setTimeout(15000, () => {
-      console.warn(`Settings request timed out: ${req.originalUrl}`);
-      res.status(503).send("Request timed out");
-    });
-    next();
-  } catch (err) {
-    console.error("Synchronous error in requestTimeout:", err);
-    next(err);
-  }
-};
+const requestTimeout = require("../utils/requestTimeout");
+const { renderSingleDocument } = require("../utils/serverControllerUtils");
 
 exports.getSystemSettings = [
   requestTimeout,
   catchAsync(async (req, res, next) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
-      const settings = await Settings.findOne({}).session(session).lean();
-      if (!settings) {
-        await session.abortTransaction();
-        return next(new AppError("No system settings found", 404));
-      }
-
-      req.session.systemDefaults = settings.systemDefaults;
-      req.session.features = settings.features;
-
-      await session.commitTransaction();
-      if (res.headersSent) return;
-      res.status(200).json({
-        status: "success",
-        data: {
-          systemDefaults: req.session.systemDefaults,
-          features: req.session.features,
-        },
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      console.error("Error in getSystemSettings transaction:", err);
-      next(new AppError("Failed to retrieve system settings", 500));
-    } finally {
-      session.endSession();
-    }
+    await renderSingleDocument({
+      req,
+      res,
+      next,
+      Model: Settings,
+      id: undefined, // For singleton settings, you may want to fetch the first document
+      view: "settingsView", // Replace with your actual view name
+      title: "System Settings",
+      extraContext: {},
+    });
   }),
 ];
 
@@ -89,3 +60,6 @@ exports.saveSettings = [
     }
   }),
 ];
+
+// When rendering views, always use buildRenderContext(req, {...})
+// When rendering views, always use buildRenderContext(req, {...})

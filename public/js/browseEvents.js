@@ -1,5 +1,6 @@
 // browseEvents.js - Handles event browsing and booking functionality
-import { showAlert } from "./alerts.js";
+import { renderEventBookings } from "../utils/eventCardUtils.js";
+import { handleEventBooking } from "../utils/eventBookingUtils.js";
 
 class EventBrowser {
   constructor() {
@@ -54,17 +55,43 @@ class EventBrowser {
         day: "numeric",
       };
       const dateString = eventDate.toLocaleDateString(undefined, options);
-      const textToSearch =
-        `${event.eventName || ""} ${event.eventLocation} ${dateString}`.toLowerCase();
-      const matchesSearch = !searchTerm || textToSearch.includes(searchTerm);
+
+      // Enhance search to include event organizer
+      const searchFields = [
+        event.eventName || "",
+        event.eventLocation || "",
+        event.eventOrganiser || "",
+        dateString,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch = !searchTerm || searchFields.includes(searchTerm);
 
       // Upcoming filter
       const isUpcoming = !showUpcoming || eventDate >= now;
 
-      // Available spots filter
+      // Available spots filter - ensure we check if event has scheduleConfiguration
+      let totalSpots = 0;
+      if (event.scheduleConfiguration && event.scheduleConfiguration.players) {
+        totalSpots = event.scheduleConfiguration.players;
+      } else if (event.doubles) {
+        totalSpots = 4; // Default for doubles
+      } else {
+        totalSpots = 2; // Default for singles
+      }
+
+      // Check waitlist too if it exists
+      let waitlistSize = event.eventWaitListSize || 0;
+
+      // Check current bookings
+      const currentBookings = Array.isArray(event.eventBookings)
+        ? event.eventBookings.length
+        : 0;
+
+      // There are spots available if bookings are less than total spots + waitlist
       const hasSpots =
-        !showOnlyAvailable ||
-        event.eventBookings.length < event.scheduleConfiguration.players;
+        !showOnlyAvailable || currentBookings < totalSpots + waitlistSize;
 
       return matchesSearch && isUpcoming && hasSpots;
     });
@@ -82,66 +109,7 @@ class EventBrowser {
   renderEvents(eventsToRender) {
     eventsToRender.forEach((event) => {
       const clone = document.importNode(this.template.content, true);
-
-      // Format the date
-      const options = {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      };
-      const eventDate = new Date(event.eventDate).toLocaleDateString(
-        undefined,
-        options
-      );
-
-      // Set event details
-      clone.querySelector(".event-date-text").textContent = eventDate;
-      clone.querySelector(".event-time-text").textContent =
-        event.eventStartTime;
-      clone.querySelector(".event-location-text").textContent =
-        event.eventLocation;
-      clone.querySelector(".event-id").textContent = event._id;
-
-      // Add players
-      const playersList = clone.querySelector(".player-list");
-      const waitList = clone.querySelector(".waitlist-list");
-      const playersLimit = event.scheduleConfiguration.players;
-
-      event.eventBookings.forEach((booking, index) => {
-        const listItem = document.createElement(
-          index < playersLimit ? "li" : "li"
-        );
-        listItem.textContent = booking.userName;
-
-        if (index < playersLimit) {
-          playersList.appendChild(listItem);
-        } else {
-          if (index === playersLimit) {
-            // Show waitlist section when we hit the first waitlisted player
-            clone.querySelector(".event-waitlist").classList.remove("hidden");
-          }
-          waitList.appendChild(listItem);
-        }
-      });
-
-      // Update status badge
-      const isWaitList = event.eventBookings.length >= playersLimit;
-      const statusText = clone.querySelector(".status-text");
-      const statusBadge = clone.querySelector(".status-badge");
-      const bookBtnText = clone.querySelector(".book-btn-text");
-
-      if (isWaitList) {
-        statusText.textContent = "Wait list only";
-        statusBadge.classList.remove("available");
-        statusBadge.classList.add("waitlist");
-        bookBtnText.textContent = "Join Wait List";
-      } else {
-        const spotsLeft = playersLimit - event.eventBookings.length;
-        statusText.textContent = `${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} available`;
-        bookBtnText.textContent = "Book Event";
-      }
-
+      renderEventBookings({ event, clone });
       this.eventContainer.appendChild(clone);
     });
 
@@ -161,29 +129,13 @@ class EventBrowser {
   }
 
   async bookEvent(eventId) {
-    try {
-      const response = await fetch("/api/events/book", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ eventId }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showAlert("success", "Event booked successfully!");
-        // Refresh the page after a short delay to show the updated booking
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      } else {
-        showAlert("error", data.message || "Could not book event");
-      }
-    } catch (err) {
-      showAlert("error", "Something went wrong. Please try again.");
-    }
+    await handleEventBooking({
+      endpoint: "/api/events/book",
+      eventId,
+      successMsg: "Event booked successfully!",
+      errorMsg: "Could not book event",
+      reloadDelay: 1500,
+    });
   }
 }
 
