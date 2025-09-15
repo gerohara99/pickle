@@ -49,23 +49,11 @@ exports.renderPaginatedList = async ({
         data: {
           doc: pagination.results,
         },
-        results: pagination.results.length,
+        results: pagination.totalDocs,
       },
     };
 
     res.status(200).json(responseData);
-    // If you want to render a view instead, use:
-    // res.status(200).render(view, {
-    //   title,
-    //   [view === "showAllUsers" ? "users" : "events"]: pagination.results,
-    //   ...exports.buildRenderContext(req, {
-    //     currentPage: pagination.currentPage,
-    //     totalPages: pagination.totalPages,
-    //     results: pagination.results.length,
-    //     limit: pagination.limit,
-    //     ...extraContext,
-    //   }),
-    // });
   } catch (err) {
     if (session.inTransaction()) {
       await session.abortTransaction();

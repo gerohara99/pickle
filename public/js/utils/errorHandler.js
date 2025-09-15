@@ -42,7 +42,7 @@ export function handleApiError(err, context = "operation") {
 }
 
 export function createLoadingState(container, colspan = 6) {
-  container.innerHTML = `<tr><td colspan="${colspan}" class="text-center">Loading...</td></tr>`;
+  container.innerHTML = `<div class="text-center">Loading...</div>`;
 }
 
 export function createEmptyState(container, message = "No data found") {

@@ -33,8 +33,6 @@ class EventManager {
     };
     this.eventToDelete = null;
 
-    // Modal is hidden by default via CSS
-
     // Initialize
     this.init();
   }
@@ -112,22 +110,17 @@ class EventManager {
       // Construct query string
       const queryParams = new URLSearchParams();
 
-      // Add search filters - use regex for partial matching
       if (this.filters.organiser) {
-        // Add case-insensitive search by adding a special regex filter
-        // This will match organiser names that contain the search term (partial match)
         queryParams.set("eventOrganiser[$regex]", this.filters.organiser);
-        queryParams.set("eventOrganiser[$options]", "i"); // i for case-insensitive
+        queryParams.set("eventOrganiser[$options]", "i");
       }
 
       if (this.filters.date) queryParams.set("eventDate", this.filters.date);
       if (this.filters.active) queryParams.set("active", this.filters.active);
       queryParams.set("page", this.currentPage.toString());
-      queryParams.set("limit", "10"); // Show 10 events per page
+      queryParams.set("limit", "10");
 
       const queryString = queryParams.toString();
-
-      // Force cache busting by adding a timestamp
       const cacheBuster = `&_cb=${Date.now()}`;
       const url = `/api/v1/events?${queryString}${cacheBuster}`;
 
@@ -136,12 +129,7 @@ class EventManager {
         url: url,
       });
 
-      if (
-        !response ||
-        !response.data ||
-        !response.data.data ||
-        !response.data.data.doc
-      ) {
+      if (!response?.data?.data?.doc) {
         console.error("Invalid response structure:", response);
         showAlert("error", "Failed to load events");
         return;
@@ -150,7 +138,6 @@ class EventManager {
       this.events = response.data.data.doc;
       this.totalPages = Math.ceil(response.data.results / 10) || 1;
 
-      // Render events and pagination
       this.renderEvents();
       renderPagination(
         this.paginationContainer,
@@ -160,22 +147,7 @@ class EventManager {
       );
     } catch (err) {
       console.error("Error loading events:", err);
-
-      // Show a more descriptive error message based on the error type
-      let errorMessage = "An error occurred while loading events";
-
-      if (err.message && err.message.includes("Network")) {
-        errorMessage = "Network error: Please check your internet connection";
-      } else if (err.response) {
-        // Server responded with an error status
-        const status = err.response.status || "unknown";
-        const message = err.response.data?.message || "Failed to load events";
-        errorMessage = `Server error (${status}): ${message}`;
-      }
-
-      showAlert("error", errorMessage);
-
-      // Show empty state in case of error
+      showAlert("error", "An error occurred while loading events");
       this.eventsTableBody.innerHTML = "";
       this.events = [];
       this.renderEvents();
@@ -183,7 +155,6 @@ class EventManager {
   }
 
   renderEvents() {
-    // Clear container
     this.eventsTableBody.innerHTML = "";
 
     if (this.events.length === 0) {
@@ -195,7 +166,6 @@ class EventManager {
     this.eventsTableBody.style.display = "block";
     this.emptyState.style.display = "none";
 
-    // Create event rows
     this.events.forEach((event) => {
       const eventRow = this.createEventRow(event);
       this.eventsTableBody.appendChild(eventRow);
@@ -203,24 +173,17 @@ class EventManager {
   }
 
   createEventRow(event) {
-    // Clone template
     const template = this.eventRowTemplate.content.cloneNode(true);
     const row = template.querySelector(".table-row");
 
-    // Set event ID
     row.dataset.eventId = event._id;
-
-    // Set event details
     row.querySelector(".event-name").textContent = event.eventName;
     row.querySelector(".event-organiser").textContent = event.eventOrganiser;
-
-    // Use centralized date formatting
     row.querySelector(".event-date").textContent = formatEventDate(
       event.eventDate
     );
     row.querySelector(".event-time").textContent = event.eventStartTime;
 
-    // Set status badge
     const statusBadge = row.querySelector(".status-badge");
     if (event.active) {
       statusBadge.textContent = "Active";
@@ -230,10 +193,8 @@ class EventManager {
       statusBadge.className = "status-badge status-badge--full";
     }
 
-    // Show/hide view schedule icon based on whether a schedule exists
     const viewScheduleBtn = row.querySelector(".view-schedule");
     if (viewScheduleBtn) {
-      // Check if event has rounds (schedule)
       const hasSchedule = event.rounds && event.rounds.length > 0;
       viewScheduleBtn.style.display = hasSchedule ? "inline-block" : "none";
     }
@@ -243,49 +204,9 @@ class EventManager {
 
   goToPage(page) {
     this.currentPage = page;
-
-    // Update URL with new page
     const url = new URL(window.location);
     url.searchParams.set("page", page.toString());
     window.history.pushState({}, "", url);
-
-    this.loadEvents();
-  }
-
-  applyFilters() {
-    // Get filter values
-    this.filters.organiser = document.getElementById("organiser").value;
-    this.filters.date = document.getElementById("date").value;
-
-    const activeRadio = document.querySelector('input[name="active"]:checked');
-    this.filters.active = activeRadio ? activeRadio.value : "";
-
-    // Reset to first page
-    this.currentPage = 1;
-
-    // Update URL with filters
-    const url = new URL(window.location);
-    url.searchParams.set("organiser", this.filters.organiser);
-    url.searchParams.set("date", this.filters.date);
-    url.searchParams.set("active", this.filters.active);
-    url.searchParams.set("page", "1");
-    window.history.pushState({}, "", url);
-
-    this.loadEvents();
-  }
-
-  resetFilters() {
-    // Clear filters
-    this.filters.organiser = "";
-    this.filters.date = "";
-    this.filters.active = "";
-    this.currentPage = 1;
-
-    // Update URL
-    const url = new URL(window.location);
-    url.search = "";
-    window.history.pushState({}, "", url);
-
     this.loadEvents();
   }
 
@@ -308,7 +229,6 @@ class EventManager {
   }
 
   async deleteEvent() {
-    // Use centralized validation
     if (!validateEventId(this.eventToDelete, "deletion")) {
       showAlert("error", "Invalid event ID. Please try again.");
       this.closeDeleteModal();
@@ -317,8 +237,6 @@ class EventManager {
 
     try {
       this.closeDeleteModal();
-
-      console.log("Deleting event with ID:", this.eventToDelete);
 
       await apiRequest({
         method: "DELETE",
@@ -338,7 +256,6 @@ class EventManager {
 
 // Initialize when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  // Only initialize on the admin events page
   if (window.location.pathname === "/events/showAll") {
     new EventManager();
   }

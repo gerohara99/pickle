@@ -135,12 +135,8 @@ export const eventCreateBookingApiAction = async (eventId) => {
     }
     return null;
   } catch (err) {
-    console.error("Booking error:", err);
-    if (err.response?.status === 404) {
-      showAlert("error", "Booking endpoint not found. Please contact support.");
-    } else {
-      handleApiError(err, "booking");
-    }
+    // Use centralized error handler instead of inline handling
+    handleApiError(err, "booking");
     throw err;
   }
 };

@@ -11,42 +11,55 @@ export function setupCommonEventListeners({
   tableBody,
   rowActionHandler,
 }) {
+  // Filter form listeners
   if (filterForm) {
     filterForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      if (typeof onFilterSubmit === "function") onFilterSubmit();
+      if (onFilterSubmit) onFilterSubmit();
     });
-    filterForm.addEventListener("reset", () => {
-      setTimeout(() => {
-        if (typeof onFilterReset === "function") onFilterReset();
-      }, 0);
+
+    filterForm.addEventListener("reset", (e) => {
+      e.preventDefault();
+      if (onFilterReset) onFilterReset();
     });
   }
+
+  // Delete modal listeners
   if (deleteModal) {
-    document.getElementById("confirmDelete").addEventListener("click", () => {
-      if (typeof onConfirmDelete === "function") onConfirmDelete();
-    });
-    document.getElementById("cancelDelete").addEventListener("click", () => {
-      if (typeof onCancelDelete === "function") onCancelDelete();
-    });
-    const closeBtn = document.querySelector(".modal-close");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        if (typeof onCloseModal === "function") onCloseModal();
-      });
+    const confirmBtn = deleteModal.querySelector("#confirmDelete");
+    const cancelBtn = deleteModal.querySelector("#cancelDelete");
+    const closeBtn = deleteModal.querySelector(".modal-close");
+
+    if (confirmBtn && onConfirmDelete) {
+      confirmBtn.addEventListener("click", onConfirmDelete);
     }
-    window.addEventListener("click", (e) => {
-      if (e.target === deleteModal) {
-        if (typeof onCloseModal === "function") onCloseModal();
+
+    if (cancelBtn && onCancelDelete) {
+      cancelBtn.addEventListener("click", onCancelDelete);
+    }
+
+    if (closeBtn && onCloseModal) {
+      closeBtn.addEventListener("click", onCloseModal);
+    }
+
+    // Close modal when clicking outside
+    deleteModal.addEventListener("click", (e) => {
+      if (e.target === deleteModal && onCloseModal) {
+        onCloseModal();
       }
     });
   }
-  if (tableBody) {
+
+  // Table row action listeners (event delegation)
+  if (tableBody && rowActionHandler) {
     tableBody.addEventListener("click", (e) => {
-      const button = e.target.closest("button");
-      if (!button) return;
-      const row = button.closest(".table-row");
-      if (typeof rowActionHandler === "function") rowActionHandler(button, row);
+      const button = e.target.closest(".btn-icon");
+      if (button) {
+        const row = button.closest(".table-row");
+        if (row) {
+          rowActionHandler(button, row);
+        }
+      }
     });
   }
 }

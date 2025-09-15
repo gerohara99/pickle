@@ -1,31 +1,83 @@
 // utils/filterUtils.js
 
-export function applyFilters({ filterConfig, filterState, reloadCallback }) {
-  filterConfig.forEach(({ id, type }) => {
-    if (type === "input" || type === "select") {
-      filterState[id] = document.getElementById(id).value;
-    } else if (type === "radio") {
-      const radio = document.querySelector(`input[name="${id}"]:checked`);
-      filterState[id] = radio ? radio.value : "";
+export function applyFilters({
+  filterConfig,
+  filterState,
+  reloadCallback,
+  baseUrl,
+}) {
+  // Get filter values from form
+  filterConfig.forEach((config) => {
+    if (config.type === "input") {
+      const element = document.getElementById(config.id);
+      if (element) {
+        filterState[config.id] = element.value;
+      }
+    } else if (config.type === "radio") {
+      const selectedRadio = document.querySelector(
+        `input[name="${config.id}"]:checked`
+      );
+      filterState[config.id] = selectedRadio ? selectedRadio.value : "";
     }
   });
-  filterState.page = 1;
+
+  // Reset to first page
+  filterState.currentPage = 1;
+
+  // Update URL with filters
   const url = new URL(window.location);
-  filterConfig.forEach(({ id }) => {
-    url.searchParams.set(id, filterState[id]);
+  Object.keys(filterState).forEach((key) => {
+    if (filterState[key]) {
+      url.searchParams.set(key, filterState[key]);
+    } else {
+      url.searchParams.delete(key);
+    }
   });
   url.searchParams.set("page", "1");
   window.history.pushState({}, "", url);
-  if (typeof reloadCallback === "function") reloadCallback();
+
+  // Trigger reload
+  if (reloadCallback) {
+    reloadCallback();
+  }
 }
 
-export function resetFilters({ filterConfig, filterState, reloadCallback }) {
-  filterConfig.forEach(({ id }) => {
-    filterState[id] = "";
+export function resetFilters({
+  filterConfig,
+  filterState,
+  reloadCallback,
+  baseUrl,
+}) {
+  // Clear filter state
+  filterConfig.forEach((config) => {
+    filterState[config.id] = "";
   });
-  filterState.page = 1;
+  filterState.currentPage = 1;
+
+  // Clear form fields
+  filterConfig.forEach((config) => {
+    if (config.type === "input") {
+      const element = document.getElementById(config.id);
+      if (element) {
+        element.value = "";
+      }
+    } else if (config.type === "radio") {
+      const defaultRadio = document.querySelector(
+        `input[name="${config.id}"][value=""]`
+      );
+      if (defaultRadio) {
+        defaultRadio.checked = true;
+      }
+    }
+  });
+
+  // Update URL
   const url = new URL(window.location);
   url.search = "";
   window.history.pushState({}, "", url);
-  if (typeof reloadCallback === "function") reloadCallback();
+
+  // Trigger reload
+  if (reloadCallback) {
+    reloadCallback();
+  }
 }

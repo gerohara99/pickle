@@ -15,9 +15,10 @@ export function extractFormData(form) {
   const formData = new FormData(form);
   const data = {};
 
-  for (const [key, value] of formData.entries()) {
+  // Use forEach instead of for...of to avoid lint issues
+  formData.forEach((value, key) => {
     data[key] = value;
-  }
+  });
 
   return data;
 }
