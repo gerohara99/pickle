@@ -358,7 +358,9 @@ class ScheduleHandler {
           // Force update the details element
           const detailsEl = document.getElementById("eventDetails");
           if (detailsEl) {
-            detailsEl.textContent = `${dateStr} @ ${nestedData.eventStartTime || "TBD"} in ${nestedData.eventLocation || "TBD"}`;
+            detailsEl.textContent = `${dateStr} @ ${
+              nestedData.eventStartTime || "TBD"
+            } in ${nestedData.eventLocation || "TBD"}`;
             console.log(
               "Directly updated details with:",
               detailsEl.textContent
@@ -968,9 +970,15 @@ class ScheduleHandler {
               // Special case for test users
               playerItem.textContent = player.testuser;
             } else if (player.userId) {
-              playerItem.textContent = `User ${player.userId.substring(0, 6)}...`;
+              playerItem.textContent = `User ${player.userId.substring(
+                0,
+                6
+              )}...`;
             } else if (player._id) {
-              playerItem.textContent = `Player ${player._id.substring(0, 6)}...`;
+              playerItem.textContent = `Player ${player._id.substring(
+                0,
+                6
+              )}...`;
             } else if (player.id) {
               playerItem.textContent = `Player ${player.id.substring(0, 6)}...`;
             } else {
@@ -1010,10 +1018,12 @@ class ScheduleHandler {
     const card = template.querySelector(".match-card");
 
     // Set round and court
-    card.querySelector(".round-badge").textContent =
-      `Round ${matchData.roundIndex + 1}`;
-    card.querySelector(".court-badge").textContent =
-      `Court ${matchData.match.court + 1}`;
+    card.querySelector(".round-badge").textContent = `Round ${
+      matchData.roundIndex + 1
+    }`;
+    card.querySelector(".court-badge").textContent = `Court ${
+      matchData.match.court + 1
+    }`;
 
     // Set team players
     const teamAPlayers = card.querySelector(".team-a-players");
@@ -1272,7 +1282,9 @@ window.updateEventHeader = function (name, date, time, location, organizer) {
     // Create date element with icon
     const dateItem = document.createElement("span");
     dateItem.className = "event-detail-item";
-    dateItem.innerHTML = `<i class="far fa-calendar-alt"></i>${date || "Date not available"}`;
+    dateItem.innerHTML = `<i class="far fa-calendar-alt"></i>${
+      date || "Date not available"
+    }`;
 
     // Create time element with icon
     const timeItem = document.createElement("span");
@@ -1282,7 +1294,9 @@ window.updateEventHeader = function (name, date, time, location, organizer) {
     // Create location element with icon
     const locationItem = document.createElement("span");
     locationItem.className = "event-detail-item";
-    locationItem.innerHTML = `<i class="fas fa-map-marker-alt"></i>${location || "TBD"}`;
+    locationItem.innerHTML = `<i class="fas fa-map-marker-alt"></i>${
+      location || "TBD"
+    }`;
 
     // Add all elements to the details container
     detailsElement.appendChild(dateItem);

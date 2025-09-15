@@ -33,7 +33,6 @@ const settingsDropdown = document.querySelector(".settings-dropdown");
 if (settingsToggle && settingsDropdown) {
   settingsToggle.addEventListener("click", function (e) {
     e.preventDefault();
-    console.log("Cog clicked");
     settingsDropdown.classList.toggle("open");
   });
   document.addEventListener("click", function (e) {

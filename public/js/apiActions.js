@@ -1,8 +1,8 @@
 /* eslint-disable */
 // Use modern browser APIs directly instead of polyfills
 import { showAlert } from "./alerts.js";
+import { handleApiError } from "./utils/errorHandler.js";
 
-// --- Helper Functions ---
 // Export this function so it can be used by other modules
 export async function apiRequest({
   method,
@@ -14,7 +14,6 @@ export async function apiRequest({
   reload,
 }) {
   try {
-    console.log(`[API Request] ${method} ${url}`);
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
@@ -24,7 +23,6 @@ export async function apiRequest({
     if (!res.ok) throw new Error(`${method} ${url} failed: ${res.status}`);
 
     const responseData = await res.json();
-    console.log(`[API Response] ${method} ${url}:`, responseData);
 
     if (responseData?.status === "success" || res.status === 204) {
       if (successMessage) showAlert("success", successMessage);
@@ -32,7 +30,6 @@ export async function apiRequest({
 
       // Store user data in localStorage if we're logging in and have user data
       if (redirect === "userLoggingIn" && responseData.user) {
-        // Store user data for role detection
         localStorage.setItem("userData", JSON.stringify(responseData.user));
 
         let landingPage;
@@ -50,47 +47,8 @@ export async function apiRequest({
     }
     return responseData;
   } catch (err) {
-    handleError(err);
+    handleApiError(err, `${method} ${url}`);
     throw err;
-  }
-}
-
-// Global variable to track the last error message time
-let lastErrorTime = 0;
-
-function handleError(err) {
-  // Log detailed error information
-  console.error("[API Error]", err);
-  if (err.response) {
-    console.error("Error Response:", {
-      status: err.response.status,
-      statusText: err.response.statusText,
-      data: err.response.data,
-    });
-  }
-
-  // Only show one error every 3 seconds
-  const now = Date.now();
-  if (now - lastErrorTime < 3000) {
-    console.log("Suppressing duplicate error message");
-    return;
-  }
-
-  // Update the last error time
-  lastErrorTime = now;
-
-  // Remove any existing alerts
-  const existingAlerts = document.querySelectorAll(".alert");
-  if (existingAlerts.length > 0) {
-    existingAlerts.forEach((alert) => {
-      alert.parentElement.removeChild(alert);
-    });
-  }
-
-  if (err.response && err.response.data && err.response.data.message) {
-    showAlert("error", err.response.data.message);
-  } else {
-    showAlert("error", err.message || "An unexpected error occurred");
   }
 }
 
@@ -150,7 +108,7 @@ export const updateEventApiAction = async (data) =>
 export const deleteEventApiAction = async (eventId) =>
   apiRequest({
     method: "DELETE",
-    url: `/api/events/${eventId}`,
+    url: `/api/v1/events/${eventId}`,
     successMessage: "Event successfully deleted",
     redirect: "/events/showAll",
   });
@@ -181,7 +139,7 @@ export const eventCreateBookingApiAction = async (eventId) => {
     if (err.response?.status === 404) {
       showAlert("error", "Booking endpoint not found. Please contact support.");
     } else {
-      handleError(err);
+      handleApiError(err, "booking");
     }
     throw err;
   }
@@ -232,27 +190,21 @@ export const loginApiAction = async (email, password) =>
 
 export const logOutApiAction = async () => {
   try {
-    // Clear client-side storage first
     localStorage.removeItem("userSettings");
     localStorage.removeItem("userData");
     sessionStorage.clear();
 
-    // Then make the logout request
     const response = await fetch("/api/v1/users/logout", {
       method: "GET",
       credentials: "include",
     });
 
-    // Force document.body to lose admin status
     document.body.setAttribute("data-role", "");
     document.body.classList.remove("role-admin", "role-user", "role-clubadmin");
 
-    // Don't show an error alert even if response is not ideal
-    // Just redirect to homepage with forced reload
     window.location.href = "/?logout=success";
   } catch (err) {
     console.error("Logout error:", err);
-    // Don't show an error alert, just redirect to login page
     window.location.href = "/me/login";
   }
 };

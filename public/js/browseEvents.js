@@ -1,6 +1,7 @@
 // browseEvents.js - Handles event browsing and booking functionality
 import { renderEventBookings } from "../utils/eventCardUtils.js";
 import { handleEventBooking } from "../utils/eventBookingUtils.js";
+import { renderPagination } from "./utils/clientPagination.js";
 
 class EventBrowser {
   constructor() {

@@ -2,7 +2,7 @@
 const mongoose = require("mongoose");
 const Event = require("../models/eventModel");
 const AppError = require("../utils/appError");
-const mongoosePaginate = require("./mongoosePagination");
+const paginate = require("./mongoosePagination");
 
 /**
  * Build a standardized context object for rendering views.
@@ -38,7 +38,7 @@ exports.renderPaginatedList = async ({
   try {
     await session.startTransaction();
     const query = Model.find(filter).sort(sort).session(session);
-    const pagination = await mongoosePaginate(query, req);
+    const pagination = await paginate(query, req);
     await session.commitTransaction();
     session.endSession();
 
@@ -148,3 +148,40 @@ exports.renderEventList = async ({
     next(new AppError(`Failed to render ${view}`, 500));
   }
 };
+
+// mongoosePagination.js
+const catchAsync = require("./catchAsync");
+
+/**
+ * Mongoose pagination utility for server-side paginated queries
+ * @param {Query} query - Mongoose query object
+ * @param {Object} req - Express request object
+ * @returns {Object} Pagination result with docs, totalDocs, currentPage, totalPages, etc.
+ */
+const mongoosePaginate = catchAsync(async (query, req) => {
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const skip = (page - 1) * limit;
+
+  // Get total count for pagination
+  const totalDocs = await query.model.countDocuments(query.getFilter());
+
+  // Execute query with pagination
+  const docs = await query.skip(skip).limit(limit);
+
+  const totalPages = Math.ceil(totalDocs / limit);
+
+  return {
+    results: docs,
+    totalDocs,
+    currentPage: page,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPrevPage: page > 1,
+    nextPage: page < totalPages ? page + 1 : null,
+    prevPage: page > 1 ? page - 1 : null,
+    limit,
+  };
+});
+
+module.exports = mongoosePaginate;

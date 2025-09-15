@@ -6,9 +6,12 @@
 import { showAlert } from "./alerts.js";
 import { apiRequest } from "./apiActions.js";
 import { setRadioButtonState } from "./utils/clientSharedLogic.js";
-import { renderPagination } from "./utils/paginate.js";
+import { renderPagination } from "./utils/clientPagination.js";
 import { applyFilters, resetFilters } from "./utils/filterUtils.js";
 import { setupCommonEventListeners } from "./utils/eventListeners.js";
+import { formatEventDate } from "./utils/dateUtils.js";
+import { createLoadingState } from "./utils/errorHandler.js";
+import { validateEventId } from "./utils/formValidation.js";
 
 class EventManager {
   constructor() {
@@ -103,9 +106,8 @@ class EventManager {
 
   async loadEvents() {
     try {
-      // Add a loading indicator before making the request
-      this.eventsTableBody.innerHTML =
-        '<tr><td colspan="6" class="text-center">Loading events...</td></tr>';
+      // Use centralized loading state
+      createLoadingState(this.eventsTableBody);
 
       // Construct query string
       const queryParams = new URLSearchParams();
@@ -129,14 +131,10 @@ class EventManager {
       const cacheBuster = `&_cb=${Date.now()}`;
       const url = `/api/v1/events?${queryString}${cacheBuster}`;
 
-      console.log("Fetching events with URL:", url);
-
       const response = await apiRequest({
         method: "GET",
         url: url,
       });
-
-      console.log("Events API response:", response);
 
       if (
         !response ||
@@ -160,9 +158,6 @@ class EventManager {
         this.totalPages,
         (page) => this.goToPage(page)
       );
-
-      // Log success
-      console.log(`Loaded ${this.events.length} events successfully`);
     } catch (err) {
       console.error("Error loading events:", err);
 
@@ -183,7 +178,7 @@ class EventManager {
       // Show empty state in case of error
       this.eventsTableBody.innerHTML = "";
       this.events = [];
-      this.renderEvents(); // This will show the empty state
+      this.renderEvents();
     }
   }
 
@@ -219,19 +214,10 @@ class EventManager {
     row.querySelector(".event-name").textContent = event.eventName;
     row.querySelector(".event-organiser").textContent = event.eventOrganiser;
 
-    // Format date
-    const options = {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    };
-    const eventDate = new Date(event.eventDate).toLocaleDateString(
-      undefined,
-      options
+    // Use centralized date formatting
+    row.querySelector(".event-date").textContent = formatEventDate(
+      event.eventDate
     );
-    row.querySelector(".event-date").textContent = eventDate;
-
     row.querySelector(".event-time").textContent = event.eventStartTime;
 
     // Set status badge
@@ -253,82 +239,6 @@ class EventManager {
     }
 
     return row;
-  }
-
-  renderPagination() {
-    // Clear container
-    this.paginationContainer.innerHTML = "";
-
-    if (this.totalPages <= 1) {
-      return;
-    }
-
-    const paginationList = document.createElement("ul");
-    paginationList.className = "pagination-list";
-
-    // Previous button
-    const prevItem = document.createElement("li");
-    const prevLink = document.createElement("a");
-    prevLink.href = "#";
-    prevLink.innerHTML = '<i class="fas fa-chevron-left"></i>';
-    prevLink.className = "pagination-link";
-    if (this.currentPage === 1) {
-      prevItem.className = "pagination-item disabled";
-    } else {
-      prevItem.className = "pagination-item";
-      prevLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        this.goToPage(this.currentPage - 1);
-      });
-    }
-    prevItem.appendChild(prevLink);
-    paginationList.appendChild(prevItem);
-
-    // Page numbers
-    const startPage = Math.max(1, this.currentPage - 2);
-    const endPage = Math.min(this.totalPages, startPage + 4);
-
-    for (let i = startPage; i <= endPage; i++) {
-      const pageItem = document.createElement("li");
-      pageItem.className = "pagination-item";
-
-      const pageLink = document.createElement("a");
-      pageLink.href = "#";
-      pageLink.textContent = i.toString();
-      pageLink.className = "pagination-link";
-
-      if (i === this.currentPage) {
-        pageLink.className += " active";
-      } else {
-        pageLink.addEventListener("click", (e) => {
-          e.preventDefault();
-          this.goToPage(i);
-        });
-      }
-
-      pageItem.appendChild(pageLink);
-      paginationList.appendChild(pageItem);
-    }
-
-    // Next button
-    const nextItem = document.createElement("li");
-    const nextLink = document.createElement("a");
-    nextLink.href = "#";
-    nextLink.innerHTML = '<i class="fas fa-chevron-right"></i>';
-    nextLink.className = "pagination-link";
-    if (this.currentPage === this.totalPages) {
-      nextItem.className = "pagination-item disabled";
-    } else {
-      nextItem.className = "pagination-item";
-      nextLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        this.goToPage(this.currentPage + 1);
-      });
-    }
-    nextItem.appendChild(nextLink);
-    paginationList.appendChild(nextItem);
-
-    this.paginationContainer.appendChild(paginationList);
   }
 
   goToPage(page) {
@@ -398,64 +308,27 @@ class EventManager {
   }
 
   async deleteEvent() {
-    if (!this.eventToDelete) {
-      console.error("No event ID provided for deletion");
-      showAlert("error", "Missing event ID. Please try again.");
-      return;
-    }
-
-    // Validate the event ID before attempting to delete
-    if (
-      !this.eventToDelete ||
-      this.eventToDelete === "null" ||
-      this.eventToDelete === null
-    ) {
-      console.error(
-        "Invalid event ID provided for deletion:",
-        this.eventToDelete
-      );
+    // Use centralized validation
+    if (!validateEventId(this.eventToDelete, "deletion")) {
       showAlert("error", "Invalid event ID. Please try again.");
       this.closeDeleteModal();
       return;
     }
 
     try {
-      // Close the modal immediately to prevent additional clicks
       this.closeDeleteModal();
 
       console.log("Deleting event with ID:", this.eventToDelete);
 
-      // Make the API request using fetch for more control
-      const response = await fetch(`/api/events/${this.eventToDelete}`, {
+      await apiRequest({
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        url: `/api/v1/events/${this.eventToDelete}`,
+        successMessage: "Event deleted successfully",
       });
 
-      if (response.ok) {
-        showAlert("success", "Event deleted successfully");
-
-        // Wait a moment before reloading to allow the alert to be seen
-        setTimeout(() => {
-          // Reload events
-          this.loadEvents();
-        }, 1000);
-      } else {
-        // Try to get error details
-        let errorMessage = "Error deleting event.";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-          console.error("Delete response error details:", errorData);
-        } catch (e) {
-          // If we can't parse the JSON, use the status text
-          errorMessage = `Delete failed: ${response.status} ${response.statusText}`;
-          console.error("Could not parse error response:", e);
-        }
-        console.error("Delete response error:", errorMessage);
-        showAlert("error", errorMessage);
-      }
+      setTimeout(() => {
+        this.loadEvents();
+      }, 1000);
     } catch (err) {
       console.error("Error deleting event:", err);
       showAlert("error", "Error deleting event. Please try again.");

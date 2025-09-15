@@ -2,6 +2,7 @@
 import { showAlert } from "./alerts.js";
 import { sharedBrowseEventLogic } from "./utils/eventUtils.js";
 import { handleEventBooking } from "../utils/eventBookingUtils.js";
+import { renderPagination } from "./utils/clientPagination.js";
 
 class MyEvents {
   constructor() {

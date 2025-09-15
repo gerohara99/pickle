@@ -6,6 +6,7 @@
 import { showAlert } from "./alerts.js";
 import { apiRequest } from "./apiActions.js";
 import { ScheduleHandler } from "./schedules.js";
+import { renderPagination } from "./utils/clientPagination.js";
 
 class MyScheduleHandler extends ScheduleHandler {
   constructor() {
@@ -106,7 +107,9 @@ class MyScheduleHandler extends ScheduleHandler {
       // Display resting rounds info
       this.restingInfo.innerHTML = `
         You will be resting in round(s): 
-        <span class="resting-rounds">${this.restingRounds.map((r) => r + 1).join(", ")}</span>
+        <span class="resting-rounds">${this.restingRounds
+          .map((r) => r + 1)
+          .join(", ")}</span>
       `;
     } else {
       // Player plays in all rounds
@@ -145,10 +148,12 @@ class MyScheduleHandler extends ScheduleHandler {
     const card = template.querySelector(".match-card");
 
     // Set round and court
-    card.querySelector(".round-badge").textContent =
-      `Round ${matchData.roundIndex + 1}`;
-    card.querySelector(".court-badge").textContent =
-      `Court ${matchData.match.court + 1}`;
+    card.querySelector(".round-badge").textContent = `Round ${
+      matchData.roundIndex + 1
+    }`;
+    card.querySelector(".court-badge").textContent = `Court ${
+      matchData.match.court + 1
+    }`;
 
     // Determine teams
     const myTeam = matchData.playerTeam;

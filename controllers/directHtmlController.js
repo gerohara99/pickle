@@ -14,8 +14,6 @@ const { injectImportMap } = require("../utils/importMapInjector");
  * @param {string} htmlDir - Directory containing HTML files (relative to project root)
  */
 const serveHtmlMiddleware = (htmlDir = "public/html") => {
-  console.log(`HTML middleware initialized with directory: ${htmlDir}`);
-
   return async (req, res, next) => {
     // Skip API routes and static files
     if (
@@ -68,7 +66,9 @@ const serveHtmlMiddleware = (htmlDir = "public/html") => {
     // Handle routes with IDs like /events/get/123
     else if (pathParts.length >= 2 && pathParts[1] === "get" && pathParts[2]) {
       // For edit pages with IDs
-      templateName = `edit${pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(0, -1)}`;
+      templateName = `edit${
+        pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(0, -1)
+      }`;
     }
     // Routes like /events/create
     else if (pathParts.length >= 2 && pathParts[1] === "create") {
@@ -76,17 +76,20 @@ const serveHtmlMiddleware = (htmlDir = "public/html") => {
       if (pathParts[0] === "events") {
         templateName = "createEvent";
       } else {
-        templateName = `create${pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(0, -1)}`;
+        templateName = `create${
+          pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(0, -1)
+        }`;
       }
     }
     // Routes like /events/showAll
     else if (pathParts.length >= 2) {
       templateName = pathParts[1];
-      console.log(`[HTML Middleware] Route part: ${templateName}`);
 
       // Handle special templates
       const specialTemplates = {
-        showAll: `showAll${pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(0, -1)}s`,
+        showAll: `showAll${
+          pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(0, -1)
+        }s`,
         myAccountDetails: "myAccountDetails",
         myPasswordUpdate: "myPasswordUpdate",
         myPasswordReset: "myPasswordReset",
@@ -206,7 +209,9 @@ const serveHtmlWithData = (template, dataHandler, htmlDir = "public/html") => {
         let html = await fs.readFile(htmlPath, "utf8");
 
         // Inject data script as window.templateData
-        const dataScript = `<script>window.templateData = ${JSON.stringify(data)};</script>`;
+        const dataScript = `<script>window.templateData = ${JSON.stringify(
+          data
+        )};</script>`;
         html = html.replace("</head>", `${dataScript}</head>`);
 
         // Send HTML

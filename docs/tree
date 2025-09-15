@@ -1,0 +1,293 @@
+.
+├── ~
+├── app.js
+├── app.js.map
+├── codeReviews
+│   ├── codebase.md
+│   ├── filesIncluded.md
+│   └── generateCodebaseMarkdown.js
+├── config.env
+├── controllers
+│   ├── authController.js
+│   ├── directHtmlController.js
+│   ├── errorController.js
+│   ├── eventController.js
+│   ├── handlerFactory.js
+│   ├── htmlErrorController.js
+│   ├── settingsController.js
+│   ├── userController.js
+│   └── viewsController.js
+├── data
+│   ├── copyDb.js
+│   └── copyDbDevStaging.js
+├── deprecated
+│   ├── anyFile.html
+│   ├── api.js
+│   ├── base.pug
+│   ├── baseTemplate.html
+│   ├── browseMyEvents.pug
+│   ├── browseNewEvents.pug
+│   ├── createEvent.css
+│   ├── createEvent.pug
+│   ├── createUser.pug
+│   ├── debug-admin-events.js
+│   ├── debug-admin.html
+│   ├── debug-collector.html
+│   ├── debug-helper.js
+│   ├── editEvent.pug
+│   ├── editSystemSettings.pug
+│   ├── editUser.pug
+│   ├── error.pug
+│   ├── homepage.pug
+│   ├── htmlOldLook
+│   │   ├── baseTemplate.html
+│   │   ├── browseMyEvents.html
+│   │   ├── browseNewEvents.html
+│   │   ├── createEvent.html
+│   │   ├── createUser.html
+│   │   ├── editEvent.html
+│   │   ├── editSystemSettings.html
+│   │   ├── editUser.html
+│   │   ├── error.html
+│   │   ├── homepage.html
+│   │   ├── login.html
+│   │   ├── myAccountDetails.html
+│   │   ├── myPasswordForgot.html
+│   │   ├── myPasswordReset.html
+│   │   ├── myPasswordUpdate.html
+│   │   ├── newUI.html
+│   │   ├── noShowEvent.html
+│   │   ├── scheduleCalculator.html
+│   │   ├── showAllEvents.html
+│   │   ├── showAllSchedules.html
+│   │   ├── showAllUsers.html
+│   │   ├── signup.html
+│   │   ├── viewMasterSchedule.html
+│   │   └── viewMySchedule.html
+│   ├── htmlViewController.js
+│   ├── htmlViewController.js.new
+│   ├── includes
+│   │   ├── _footer.pug
+│   │   ├── _header.pug
+│   │   ├── _navLoggedInAsAdmin.pug
+│   │   ├── _navLoggedInAsUser.pug
+│   │   ├── _navLogOut.pug
+│   │   ├── _pagination.pug
+│   │   └── _usernameGreeting.pug
+│   ├── login.pug
+│   ├── myAccountDetails.pug
+│   ├── myPasswordForgot.pug
+│   ├── myPasswordReset.pug
+│   ├── myPasswordUpdate.pug
+│   ├── noShowEvent.pug
+│   ├── pagination.js
+│   ├── scheduleCalculator.pug
+│   ├── schedules.css
+│   ├── showAllEvents.pug
+│   ├── showAllSchedules copy.pug
+│   ├── showAllSchedules.pug
+│   ├── showAllUsers.pug
+│   ├── signup.css
+│   ├── signup.pug
+│   ├── styles.css
+│   ├── test.html
+│   ├── viewMasterSchedule copy.pug
+│   ├── viewMasterSchedule.pug
+│   ├── viewMySchedule copy.pug
+│   ├── viewMySchedule.pug
+│   └── views
+│       ├── baseTemplate.html
+│       ├── browseMyEvents.html
+│       ├── browseNewEvents.html
+│       ├── createEvent.html
+│       ├── createUser.html
+│       ├── debug-admin.html
+│       ├── debug-collector.html
+│       ├── editEvent.html
+│       ├── editSystemSettings.html
+│       ├── editUser.html
+│       ├── error.html
+│       ├── homepage.html
+│       ├── login.html
+│       ├── myAccountDetails.html
+│       ├── myPasswordForgot.html
+│       ├── myPasswordReset.html
+│       ├── myPasswordUpdate.html
+│       ├── noShowEvent.html
+│       ├── scheduleCalculator.html
+│       ├── showAllEvents.html
+│       ├── showAllSchedules.html
+│       ├── showAllUsers.html
+│       ├── signup.html
+│       ├── test.html
+│       ├── viewMasterSchedule.html
+│       └── viewMySchedule.html
+├── dev-data
+├── docs
+│   ├── frontend-revamp-readme.md
+│   ├── html-migration-guide.md
+│   ├── html-migration.md
+│   └── migration-status.txt
+├── dump
+│   └── Pickle-Database
+│       ├── events.bson
+│       ├── events.metadata.json
+│       ├── prelude.json
+│       ├── sessions.bson
+│       ├── sessions.metadata.json
+│       ├── settings.bson
+│       ├── settings.metadata.json
+│       ├── users.bson
+│       └── users.metadata.json
+├── manifest.webmanifest
+├── middleware
+│   ├── jsFileMiddleware.js
+│   └── mimeTypes.js
+├── models
+│   ├── eventModel.js
+│   ├── sessionModel.js
+│   ├── settingsModel.js
+│   └── userModel.js
+├── mongodb-whitelist-instructions.md
+├── package-lock.json
+├── package.json
+├── Procfile
+├── prototype
+│   ├── generateSchedule.js
+│   ├── newUI.html
+│   └── validateSchedule.js
+├── public
+│   ├── css
+│   │   ├── mediaQueries.css
+│   │   ├── rallypoint.css
+│   │   └── typoGraphySystem.css
+│   ├── debug.html
+│   ├── favicon.ico
+│   ├── html
+│   │   ├── browseMyEvents.html
+│   │   ├── browseNewEvents.html
+│   │   ├── createEvent.html
+│   │   ├── createUser.html
+│   │   ├── editEvent.html
+│   │   ├── editSystemSettings.html
+│   │   ├── editUser.html
+│   │   ├── error.html
+│   │   ├── homepage.html
+│   │   ├── login.html
+│   │   ├── myAccountDetails.html
+│   │   ├── myPasswordForgot.html
+│   │   ├── myPasswordReset.html
+│   │   ├── myPasswordUpdate.html
+│   │   ├── noShowEvent.html
+│   │   ├── scheduleCalculator.html
+│   │   ├── showAllEvents.html
+│   │   ├── showAllSchedules.html
+│   │   ├── showAllUsers.html
+│   │   ├── signup.html
+│   │   ├── viewMasterSchedule.html
+│   │   └── viewMySchedule.html
+│   ├── img
+│   │   ├── apple-touch-icon.png
+│   │   ├── event.png
+│   │   ├── favicon-192.png
+│   │   ├── favicon-512.png
+│   │   ├── favicon.png
+│   │   ├── homepage.png
+│   │   ├── icons.svg
+│   │   ├── location.png
+│   │   ├── logo.png
+│   │   ├── logo1.png
+│   │   └── pickle.png
+│   ├── includes
+│   │   ├── footer.html
+│   │   ├── header.html
+│   │   ├── navLoggedInAsAdmin.html
+│   │   ├── navLoggedInAsUser.html
+│   │   ├── navLoggedOut.html
+│   │   ├── navLogOut.html
+│   │   ├── pagination.html
+│   │   └── usernameGreeting.html
+│   ├── js
+│   │   ├── accountDetails.js
+│   │   ├── alerts.js
+│   │   ├── apiActions.js
+│   │   ├── browseEvents.js
+│   │   ├── buttonDelegates.js
+│   │   ├── createEvent.js
+│   │   ├── dist
+│   │   ├── eventManager.js
+│   │   ├── formListeners.js
+│   │   ├── index.js
+│   │   ├── login.js
+│   │   ├── modal.js
+│   │   ├── myEvents.js
+│   │   ├── mySchedule.js
+│   │   ├── navigation.js
+│   │   ├── navToggle.js
+│   │   ├── package.json
+│   │   ├── passwordUpdate.js
+│   │   ├── passwordValidator.js
+│   │   ├── roleDetection.js
+│   │   ├── scheduleCalculator.js
+│   │   ├── schedules.js
+│   │   ├── schedules.json
+│   │   ├── signup.js
+│   │   ├── tabs.js
+│   │   ├── templateData.js
+│   │   ├── userManager.js
+│   │   └── utils
+│   └── services
+│       └── authService.js
+├── report
+├── routes
+│   ├── eventRoutes.js
+│   ├── settingsRoutes.js
+│   ├── userRoutes.js
+│   └── viewRoutes.js
+├── scripts
+│   ├── check-env-vars.js
+│   ├── codeBaseScan.js
+│   └── generateSchedulesJson.js
+├── server.js
+├── services
+│   └── authService.js
+├── tests
+│   ├── debug.js
+│   ├── heroku-test.js
+│   ├── html-test-server.js
+│   ├── mongodb-connection-debug.js
+│   ├── simple-error-test.js
+│   ├── simple-mongo-test.js
+│   ├── test-error-handling.js
+│   ├── test-files.js
+│   ├── test-html-server.js
+│   ├── test-module.html
+│   ├── test-mongodb-connection.js
+│   ├── test-prod-mongo-connection.js
+│   ├── test-prod-mongo.js
+│   ├── test-server-startup.js
+│   ├── test-server.js
+│   ├── testScheduleCreation.js
+│   ├── testSchedulesJSON.js
+│   ├── validateSchedule.js
+│   └── validateScheduleConfig.js
+├── tree
+├── utils
+│   ├── apiFeatures.js
+│   ├── appError.js
+│   ├── authUtils.js
+│   ├── catchAsync.js
+│   ├── email.js
+│   ├── eventBookingUtils.js
+│   ├── eventCardUtils.js
+│   ├── generateDynamicSchedule.js
+│   ├── importMapInjector.js
+│   ├── paginate.js
+│   ├── requestTimeout.js
+│   ├── scheduleUtils.js
+│   ├── serverControllerUtils.js
+│   └── twilioClient.js
+├── vite.config.js
+└── vscode-setup.md
+
+29 directories, 262 files

@@ -9,7 +9,7 @@ import {
   setRadioButtonState,
   goToPage,
 } from "../public/js/utils/clientSharedLogic.js";
-import { renderPagination } from "../public/js/utils/paginate.js";
+import { renderPagination } from "./utils/clientPagination.js";
 import { setupCommonEventListeners } from "../public/js/utils/eventListeners.js";
 import { applyFilters, resetFilters } from "../public/js/utils/filterUtils.js";
 

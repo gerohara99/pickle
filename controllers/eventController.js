@@ -348,7 +348,6 @@ exports.createEvent = catchAsync(async (req, res, next) => {
         playersPerCourt: 2,
         matchFormat: "singles",
       };
-      console.log("Using default schedule configuration");
     }
 
     const newEvent = await Event.create(eventData);
